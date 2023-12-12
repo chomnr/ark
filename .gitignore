@@ -1,0 +1,5 @@
+# Rust target binary.
+/target
+
+# Executable to run the server.
+/run.bat
