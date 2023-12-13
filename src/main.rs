@@ -1,12 +1,19 @@
-use crate::app::arc::ArcServer;
+use crate::app::arc::{ArcServer, ArcDatabase};
 
 pub mod app;
 
 #[tokio::main]
 async fn main() {
     //let arc_database = ArcDatabase::default();
+    //let database = ArcDatabase::new().await;
     let arc = ArcServer::default();
-    //arc.attach_db_instance(database)
+    
+    arc.run_http_server().await.unwrap();
+}
+
+//println!("{} running on {}", PREFIX, self.address);
+
+//arc.attach_db_instance(database)
      
     //let databse = ArcDatabase::new();
     //database.redis.pool;
@@ -17,5 +24,3 @@ async fn main() {
     //schema generator
     //master server has /auth/login and /auth/callback.
     //thats it. Checking for pg.schema.sql..
-    println!("Hello, woddrld!");
-}
