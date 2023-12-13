@@ -1,10 +1,7 @@
 use std::env;
 
 use bb8::{Pool, PooledConnection};
-use bb8_postgres::{
-    tokio_postgres::{self, NoTls},
-    PostgresConnectionManager,
-};
+use bb8_postgres::{tokio_postgres::NoTls, PostgresConnectionManager};
 
 /// `PostgresConfig` - A structure representing the configuration needed to connect to a PostgreSQL database.
 ///
@@ -106,7 +103,9 @@ impl PostgresConfig {
 /// - `builder`: A `Pool<PostgresConnectionManager<NoTls>>`. This field manages the pool of connections.
 ///              It's crucial for maintaining efficient access to the database and handling concurrency issues.
 pub struct PostgresDatabase {
-    builder: Pool<PostgresConnectionManager<NoTls>>,
+    //builder: Pool<PostgresConnectionManager<NoTls>>,
+    manager: PostgresConnectionManager<NoTls>,
+    builder: Option<Pool<PostgresConnectionManager<NoTls>>>,
 }
 
 impl PostgresDatabase {
@@ -123,16 +122,23 @@ impl PostgresDatabase {
     ///
     /// Returns an instance of `PostgresDatabase`. This method ensures that the database connection pool is
     /// properly configured and ready for use, which is key for any database-driven application.
-    pub async fn new(pg_config: PostgresConfig) -> Self {
+    pub fn new(pg_config: PostgresConfig) -> Self {
         let manager =
             PostgresConnectionManager::new_from_stringlike(pg_config.to_conn_string(), NoTls)
                 .expect("Error: failed to create connection from PostgreSQL Config.");
         Self {
-            builder: Pool::builder()
-                .build(manager)
+            manager,
+            builder: None,
+        }
+    }
+
+    pub async fn builder(&mut self) {
+        self.builder = Some(
+            Pool::builder()
+                .build(self.manager.clone())
                 .await
                 .expect("Error: failed to build PostgreSQL pool."),
-        }
+        );
     }
 
     /// Retrieves a pooled database connection.
@@ -147,8 +153,10 @@ impl PostgresDatabase {
     /// management, providing a simple and effective interface for database interactions.
     pub async fn get(&self) -> PooledConnection<'_, PostgresConnectionManager<NoTls>> {
         self.builder
+            .as_ref()
+            .expect("Error: failed to connect to PostgreSQL pool")
             .get()
             .await
-            .expect("Error: failed to connect to PostgreSQL pool.")
+            .unwrap()
     }
 }

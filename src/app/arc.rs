@@ -1,4 +1,4 @@
-use std::{fmt, path::Prefix, sync::Arc};
+use std::fmt;
 
 use axum::Router;
 use tokio::net::TcpListener;
@@ -144,9 +144,39 @@ impl ArcDatabase {
     /// Note: The method currently assumes a default configuration for the PostgreSQL database, which
     /// may not be suitable for all use cases. Future enhancements could include parameterizing the
     /// configuration or adding support for other database types.
-    pub async fn new() -> Self {
+    pub fn new() -> Self {
         Self {
-            postgres: PostgresDatabase::new(PostgresConfig::default()).await,
+            postgres: PostgresDatabase::new(PostgresConfig::default()),
         }
     }
+
+    /// Asynchronously injects builders into the current instance.
+    ///
+    /// This function is part of the setup or configuration phase of your application, where you
+    /// initialize or inject necessary builders into your components. Specifically, it calls the
+    /// `builder()` async function on the `postgres` field of the struct.
+    ///
+    /// The `postgres.builder().await` expression awaits the completion of the builder setup for
+    /// the PostgreSQL database connection. This is crucial in ensuring that the database connection
+    /// pool or any related resources are properly initialized before the application starts
+    /// performing database operations.
+    ///
+    /// Note: Since this function does not return any value or result, it's assumed that the
+    /// `builder()` function being called here handles its setup internally and modifies the state
+    /// of the `postgres` field accordingly.
+    pub async fn inject_builders(&mut self) {
+        self.postgres.builder().await;
+    }
+
+    /*
+    pub async fn load_schema(&mut self, db_type: &str) {
+        if db_type.eq("postgresql") {
+            // builder field goes from None to builder.
+            self.postgres.builder().await;
+            let pg = self.postgres.get().await;
+            //let pg = self.postgres.get().await;
+        }
+        if db_type.eq("redis") {}
+    }
+    */
 }
