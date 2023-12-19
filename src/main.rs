@@ -1,4 +1,3 @@
-use app::arc::ArcDatabase;
 
 use crate::app::arc::ArcServer;
 
@@ -6,11 +5,26 @@ pub mod app;
 
 #[tokio::main]
 async fn main() {
-    let mut db = ArcDatabase::new();
-    db.inject_builders().await;
+    ArcServer::default();
+    //let mut arc = ArcServer::default();
+    //arc.attach_sector(IamSector::default());
+
+    // start the monstrosity
+    //arc.run().await;
+    
+    //let arc = ArcServer::default();
+    // axum setup.
+    // inject bb8 builders into ArcDatabase.    
+    //let db_inj = db.inject();
+    //db.inject().await;
+    /*
+    db.
+    //db.inject_builders().await;
+    //db.check_schemas().then(|x| db.load_schema(x));
     
     let arc = ArcServer::default();
-    arc.run_http_server().await.unwrap();
+    arc.run().await.unwrap();
+    */
     
     //perform health
     // 
