@@ -1,11 +1,20 @@
-
-use crate::app::arc::ArcServer;
+use app::sector::Sector;
 
 pub mod app;
 
 #[tokio::main]
 async fn main() {
-    ArcServer::default();
+    let mut sector = Sector::default();
+    sector.create_sector("IAM", "/auth", vec![]);
+    sector.create_sector("Dashboard", "/dashboard", vec![]);
+
+
+    //arc.attach_sector(sector);
+    //arc.run();
+
+    //let arc = ArcServer::default();
+
+    //arc.run().await
     //let mut arc = ArcServer::default();
     //arc.attach_sector(IamSector::default());
 
