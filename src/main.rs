@@ -6,12 +6,13 @@ pub mod app;
 async fn main() {
     let arc = ArcServer::default();
     arc.run().await;
-    /*s
+}
+
+/*
     arc.check(Health::Database, () => {
         arc.run():
     })
-    */
-}
+*/
 
 //const ARC_SERVER_ADDRESS: &str = "0.0.0.0:3000";
 

@@ -1,7 +1,9 @@
 use core::fmt;
+use std::env;
 
-use axum::{routing::get, Router};
+use axum::{extract::FromRef, routing::get, Extension, Router};
 use tokio::net::TcpListener;
+use tower_cookies::{CookieManagerLayer, Key};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 static ADDRESS: &str = "0.0.0.0";
@@ -42,7 +44,10 @@ impl Default for ArcServer {
             address: ADDRESS.to_string(),
             port: PORT,
             mode: MODE,
-            router: Router::new().route("/", get(|| async { "Hello, World!" })),
+            router: Router::new()
+                .route("/", get(|| async { "Hello, World!" }))
+                .layer(CookieManagerLayer::new())
+                .layer(Extension(ArcState::default())),
         }
     }
 }
@@ -64,7 +69,7 @@ impl ArcServer {
     /// ```
     pub async fn run(self) {
         let tcp = TcpListener::bind(&self.get_addr()).await.unwrap();
-        println!("[ARC] {}", self.mode.to_string());
+        println!("[ARC] mode: {}", self.mode.to_string());
         match self.mode {
             ServerMode::Production => {}
             ServerMode::Development => {
@@ -149,5 +154,33 @@ impl fmt::Display for ServerMode {
             ServerMode::Development => write!(f, "Development"),
             ServerMode::Maintenance => write!(f, "Maintenance"),
         }
+    }
+}
+
+#[derive(Clone)]
+pub struct ArcState {
+    key: Key,
+}
+
+impl FromRef<ArcState> for Key {
+    fn from_ref(state: &ArcState) -> Self {
+        state.key.clone()
+    }
+}
+
+impl ArcState {
+    fn default() -> Self {
+        Self {
+            key: ArcState::get_key(),
+        }
+    }
+
+    pub fn get_key() -> Key {
+        Key::from(
+            env::var("COOKIE_ENCRYPTION_KEY")
+                .expect("COOKIE_ENCRYPTION_KEY")
+                .into_bytes()
+                .as_slice(),
+        )
     }
 }
