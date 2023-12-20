@@ -48,7 +48,7 @@ impl PostgresDatabase {
     pub fn new(pg_config: PostgresConfig) -> Self {
         let manager =
             PostgresConnectionManager::new_from_stringlike(pg_config.to_conn_string(), NoTls)
-                .expect("Error: failed to create connection from PostgreSQL Config.");
+                .unwrap();
         Self {
             manager,
             builder: None,
@@ -56,12 +56,7 @@ impl PostgresDatabase {
     }
 
     pub async fn builder(&mut self) {
-        self.builder = Some(
-            Pool::builder()
-                .build(self.manager.clone())
-                .await
-                .expect("Error: failed to build PostgreSQL pool."),
-        );
+        self.builder = Some(Pool::builder().build(self.manager.clone()).await.unwrap());
     }
 
     pub async fn get(&self) -> PooledConnection<'_, PostgresConnectionManager<NoTls>> {
