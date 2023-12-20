@@ -16,67 +16,66 @@ async fn main() {
 
 //const ARC_SERVER_ADDRESS: &str = "0.0.0.0:3000";
 
+// routes
+/*
+let app: Router = Router::new()
+    .route("/", get(|| async { "Hello, World!" }));
 
-    // routes
-    /*
-    let app: Router = Router::new()
-        .route("/", get(|| async { "Hello, World!" }));
+let listener = tokio::net::TcpListener::bind(ARC_SERVER_ADDRESS).await.unwrap();
+axum::serve(listener, app).await.unwrap();
+*/
 
-    let listener = tokio::net::TcpListener::bind(ARC_SERVER_ADDRESS).await.unwrap();
-    axum::serve(listener, app).await.unwrap();
-    */
+/*
+// sector
+let mut sector = Sector::default();
+sector.create_sector("IAM", "/auth", vec![
+    Arc::new(AuthPartial::new()),
+]);
+*/
 
-    /*
-    // sector
-    let mut sector = Sector::default();
-    sector.create_sector("IAM", "/auth", vec![
-        Arc::new(AuthPartial::new()),
-    ]);
-    */
+// arc
+//arc.attach_sector(sector);
+//arc.run();
+//arc.attach_sector(sector);
+//arc.run();
 
-    // arc
-    //arc.attach_sector(sector);
-    //arc.run();
-    //arc.attach_sector(sector);
-    //arc.run();
+//let arc = ArcServer::default();
 
-    //let arc = ArcServer::default();
+//arc.run().await
+//let mut arc = ArcServer::default();
+//arc.attach_sector(IamSector::default());
 
-    //arc.run().await
-    //let mut arc = ArcServer::default();
-    //arc.attach_sector(IamSector::default());
+// start the monstrosity
+//arc.run().await;
 
-    // start the monstrosity
-    //arc.run().await;
+//let arc = ArcServer::default();
+// axum setup.
+// inject bb8 builders into ArcDatabase.
+//let db_inj = db.inject();
+//db.inject().await;
+/*
+db.
+//db.inject_builders().await;
+//db.check_schemas().then(|x| db.load_schema(x));
 
-    //let arc = ArcServer::default();
-    // axum setup.
-    // inject bb8 builders into ArcDatabase.
-    //let db_inj = db.inject();
-    //db.inject().await;
-    /*
-    db.
-    //db.inject_builders().await;
-    //db.check_schemas().then(|x| db.load_schema(x));
+let arc = ArcServer::default();
+arc.run().await.unwrap();
+*/
 
-    let arc = ArcServer::default();
-    arc.run().await.unwrap();
-    */
+//perform health
+//
+// order:
+// 1. check if databases are good.
+// 2. check if sectors are good?
 
-    //perform health
-    //
-    // order:
-    // 1. check if databases are good.
-    // 2. check if sectors are good?
+// sector system
+// used to ping and communicate with a server via grpc.
+// sector.ping("iam")
+// sector.ping("iam").run("tests").execute():
+//db.sector("cache").run()
+//let arc = ArcServer::default();
 
-    // sector system
-    // used to ping and communicate with a server via grpc.
-    // sector.ping("iam")
-    // sector.ping("iam").run("tests").execute():
-    //db.sector("cache").run()
-    //let arc = ArcServer::default();
-
-    //arc.run_http_server().await.unwrap();
+//arc.run_http_server().await.unwrap();
 
 //println!("{} running on {}", PREFIX, self.address);
 
