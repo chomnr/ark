@@ -1,6 +1,6 @@
 use core::fmt;
 
-use axum::Router;
+use axum::{routing::get, Router};
 use tokio::net::TcpListener;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
@@ -42,7 +42,7 @@ impl Default for ArcServer {
             address: ADDRESS.to_string(),
             port: PORT,
             mode: MODE,
-            router: Router::new(),
+            router: Router::new().route("/", get(|| async { "Hello, World!" })),
         }
     }
 }
