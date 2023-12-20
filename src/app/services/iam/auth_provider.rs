@@ -1,8 +1,8 @@
 use core::fmt;
-use std::{env, error::Error, io};
+use std::env;
 
 use oauth2::{
-    basic::BasicClient, AuthType, AuthUrl, ClientId, ClientSecret, RedirectUrl, RevocationUrl,
+    basic::BasicClient, AuthUrl, ClientId, ClientSecret, RedirectUrl, RevocationUrl,
     TokenUrl,
 };
 
