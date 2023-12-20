@@ -1,3 +1,5 @@
+use core::fmt;
+
 use axum::Router;
 use tokio::net::TcpListener;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
@@ -62,6 +64,7 @@ impl ArcServer {
     /// ```
     pub async fn run(self) {
         let tcp = TcpListener::bind(&self.get_addr()).await.unwrap();
+        println!("[ARC] {}", self.mode.to_string());
         match self.mode {
             ServerMode::Production => {}
             ServerMode::Development => {
@@ -137,4 +140,14 @@ enum ServerMode {
     Production,
     Development,
     Maintenance,
+}
+
+impl fmt::Display for ServerMode {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            ServerMode::Production => write!(f, "Production"),
+            ServerMode::Development => write!(f, "Development"),
+            ServerMode::Maintenance => write!(f, "Maintenance"),
+        }
+    }
 }
