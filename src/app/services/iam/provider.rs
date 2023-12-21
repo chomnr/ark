@@ -55,5 +55,3 @@ impl OAuthProvider {
         .set_revocation_uri(RevocationUrl::new(provider.revoke_url).unwrap())
     }
 }
-
-//OAuthProvider::from("ddd");
