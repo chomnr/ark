@@ -1,10 +1,26 @@
 use core::fmt;
 use std::env;
 
+use axum::{extract::Path, Extension};
 use oauth2::{
     basic::BasicClient, AuthUrl, ClientId, ClientSecret, RedirectUrl, RevocationUrl, TokenUrl,
 };
+use tower_cookies::Cookies;
 
+/*
+struct Authness;
+
+impl IamAuth {
+    pub fn oauth_sign_in() {}
+    pub fn oauth_callback() {}
+}
+*/
+
+/*
+AuthClient::new(AuthType::Discord);
+*/
+
+/*
 ///
 /// Prerequisites
 ///
@@ -112,10 +128,7 @@ impl AuthClient {
         Self { client }
     }
 }
-
-///
-/// Routing
-///
+*/
 
 /*
 struct AuthClient;

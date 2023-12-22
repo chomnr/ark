@@ -80,7 +80,7 @@ impl ArcServer {
             }
         }
         println!(
-            "[ARC] router initialized, now listening on port {}",
+            "[ARC] router initialized, now listening on port {}.",
             &self.port
         );
         axum::serve(tcp, self.router).await.unwrap();
@@ -130,7 +130,7 @@ impl ArcServer {
             )
             .with(tracing_subscriber::fmt::layer())
             .init();
-        println!("[ARC] initializing router...");
+        println!("[ARC] tracer initialized.");
     }
 }
 
