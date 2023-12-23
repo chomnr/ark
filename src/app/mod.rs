@@ -1,3 +1,3 @@
 pub mod arc;
-pub mod services;
+pub mod service;
 pub mod database;
