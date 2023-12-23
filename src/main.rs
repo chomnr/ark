@@ -5,6 +5,15 @@ pub mod app;
 #[tokio::main]
 async fn main() {
     let arc = ArcServer::default();
+    /*
+    let test = UserIdentity::new()
+        .username("username")
+        .email("username@gmail.com")
+        .oauth_provider("discord")
+        .oauth_id("132132132312312")
+        .verified(false)
+        .build();
+    */
     arc.run().await;
 }
 
