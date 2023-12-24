@@ -1,4 +1,4 @@
-use crate::app::service::iam::identity::model::UserIdentityBuilder;
+use crate::app::database::postgres::PostgresDatabase;
 
 use super::model::UserAccount;
 
@@ -6,8 +6,10 @@ use super::model::UserAccount;
 ///
 /// Variants:
 /// - `All`: Indicates that all user-related fields should be included in the insertion.
+#[derive(PartialEq)]
 pub(crate) enum UserInsertionField {
     All,
+    Permission
 }
 
 /// A repository responsible for managing user data storage and retrieval.
@@ -19,7 +21,7 @@ pub(crate) struct UserRepository;
 impl UserRepository {
     // insert stuff.
     pub fn insert<'a>(account: UserAccount) -> UserInsertionBuilder<'static> {
-        UserInsertion::new()
+        UserInsertion::new(account)
     }
 }
 
@@ -31,36 +33,52 @@ impl UserRepository {
 /// - `field`: Optional enum specifying which fields of the user data to insert (`UserInsertionField`).
 /// - `value`: Reference to an array of string slices representing the values to be inserted.
 pub(crate) struct UserInsertion<'a> {
-    field: Option<UserInsertionField>,
+    account: UserAccount,
+    field: UserInsertionField,
     value: &'a [&'a str],
 }
 
 impl UserInsertion<'_> {
-    pub fn new() -> UserInsertionBuilder<'static> {
+    pub fn new(account: UserAccount) -> UserInsertionBuilder<'static> {
         UserInsertionBuilder {
-            field: None,
+            account,
+            field: UserInsertionField::All,
             value: &[],
         }
     }
 }
 
 pub(crate) struct UserInsertionBuilder<'a> {
-    field: Option<UserInsertionField>,
+    account: UserAccount,
+    field: UserInsertionField,
     value: &'a [&'a str],
 }
 
 impl UserInsertionBuilder<'_> {
     pub fn modify(&mut self, field: UserInsertionField) -> &mut Self {
-        self.field = Some(field);
+        self.field = field;
         self
+    }
+
+    pub fn value<'a>(&mut self, value: &'static[&'a str]) -> &mut Self {
+        self.value = value;
+        self
+    }
+
+    pub async fn execute_on(&self, pg: PostgresDatabase) {
+        if self.field.eq(&UserInsertionField::All) && self.value.len() == 0 {
+            // insert stuff here...
+        }
+
+        if self.field.eq(&UserInsertionField::Permission) && self.value.len() > 0 {
+            // insert stuff here...
+        }
     }
 }
 
-
 /*
-pub(crate) struct UserInsertionBuilder;
-
-impl UserInsertionBuilder {
-    pub fn modify(self, field: UserInsertionField) {}
+pub fn value<'a>(&mut self, value: &'static[&'a str]) -> &mut Self {
+    self.value = value;
+    self
 }
 */

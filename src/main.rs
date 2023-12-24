@@ -1,18 +1,38 @@
 #![forbid(unsafe_code)]
-use app::{arc::ArcServer, service::iam::{identity::model::UserIdentity, access::model::UserAccess, account::{model::UserAccount, repository::{UserRepository, UserInsertionField}}}};
+use app::{arc::ArcServer, service::iam::{identity::model::UserIdentity, access::model::UserAccess, account::{model::UserAccount, repository::{UserRepository, UserInsertionField}}}, database::postgres::{PostgresDatabase, PostgresConfig}};
 
 pub mod app;
 
 #[tokio::main]
 async fn main() {
     let arc = ArcServer::default();
+    let database = PostgresDatabase::new(PostgresConfig::default());
     
     let mut one = UserIdentity::new().build();
     let mut two = UserAccess::new().build();
     let three = UserAccount::new(one, two);
 
+    // user repository
+    /*
     UserRepository::insert(three)
-        .modify(UserInsertionField::All);
+        .modify(UserInsertionField::All)
+        .execute_on(database)
+        .await;
+    */
+
+    UserRepository::insert(three)
+        .modify(UserInsertionField::All)
+        .execute_on(database)
+        .await;
+
+    // User Repo\
+    /*
+    UserRepository::insert(three)
+        .modify(UserInsertionField::All)
+        .execute_on(database)
+        .await;
+    */
+        //.execute_on(pg);
 
     //UserRepository::insert(three)
       //  .modify(UserInsertionField::All);
