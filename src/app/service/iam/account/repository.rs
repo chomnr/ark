@@ -23,6 +23,13 @@ impl UserRepository {
     }
 }
 
+/// Represents the data for inserting a user record.
+///
+/// This struct is used to specify which fields and corresponding values to include when inserting a user record into a repository.
+///
+/// Fields:
+/// - `field`: Optional enum specifying which fields of the user data to insert (`UserInsertionField`).
+/// - `value`: Reference to an array of string slices representing the values to be inserted.
 pub(crate) struct UserInsertion<'a> {
     field: Option<UserInsertionField>,
     value: &'a [&'a str],
@@ -37,6 +44,13 @@ impl UserInsertion<'_> {
     }
 }
 
+/// Builder for creating a `UserInsertion` instance.
+///
+/// Provides a way to construct a `UserInsertion` object incrementally, allowing optional configuration of fields and values.
+///
+/// Fields:
+/// - `field`: Optional enum specifying the user data fields to be included in the insertion.
+/// - `value`: Reference to an array of string slices representing the values for the insertion.
 pub(crate) struct UserInsertionBuilder<'a> {
     field: Option<UserInsertionField>,
     value: &'a [&'a str],
