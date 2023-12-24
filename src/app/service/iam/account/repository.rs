@@ -1,4 +1,4 @@
-use crate::app::service::iam::identity::model::{UserIdentity, UserIdentityBuilder};
+use crate::app::service::iam::identity::model::UserIdentityBuilder;
 
 use super::model::UserAccount;
 
@@ -18,7 +18,7 @@ pub(crate) struct UserRepository;
 
 impl UserRepository {
     // insert stuff.
-    pub fn insert<'a>(account: UserAccount) -> UserInsertion<'a> {
+    pub fn insert<'a>(account: UserAccount) -> UserInsertionBuilder<'static> {
         UserInsertion::new()
     }
 }
@@ -36,28 +36,24 @@ pub(crate) struct UserInsertion<'a> {
 }
 
 impl UserInsertion<'_> {
-    pub fn new() -> Self {
-        Self {
+    pub fn new() -> UserInsertionBuilder<'static> {
+        UserInsertionBuilder {
             field: None,
             value: &[],
         }
     }
 }
 
-/// Builder for creating a `UserInsertion` instance.
-///
-/// Provides a way to construct a `UserInsertion` object incrementally, allowing optional configuration of fields and values.
-///
-/// Fields:
-/// - `field`: Optional enum specifying the user data fields to be included in the insertion.
-/// - `value`: Reference to an array of string slices representing the values for the insertion.
 pub(crate) struct UserInsertionBuilder<'a> {
     field: Option<UserInsertionField>,
     value: &'a [&'a str],
 }
 
 impl UserInsertionBuilder<'_> {
-
+    pub fn modify(&mut self, field: UserInsertionField) -> &mut Self {
+        self.field = Some(field);
+        self
+    }
 }
 
 
