@@ -1,13 +1,39 @@
 #![forbid(unsafe_code)]
-use app::{arc::ArcServer, service::iam::{identity::model::UserIdentity, access::model::UserAccess}};
+use app::{arc::ArcServer, service::iam::{identity::model::UserIdentity, access::model::UserAccess, account::{model::UserAccount, repository::{UserRepository, UserInsertionField}}}};
 
 pub mod app;
 
 #[tokio::main]
 async fn main() {
     let arc = ArcServer::default();
-    let mut one = UserIdentity::new();
-    let mut two = UserAccess::new();
+    
+    let mut one = UserIdentity::new().build();
+    let mut two = UserAccess::new().build();
+    let three = UserAccount::new(one, two);
+
+    //UserRepository::insert(three)
+      //  .modify(UserInsertionField::All);
+
+    //let mut three = UserAccount::new(one, two);
+    //UserAccount::new(one, two)
+        //.create();
+    /*
+    //insert
+    UserAccount::insert()
+        .modify(UserField::Username)
+        .field(&[&"username"])
+        .execute();
+    //update
+    UserAccount::update(one)
+        .modify(&[&UserField::Password, UserField::Username])
+        .value(&[&"adsadsasdsa", "asddasadssda"])
+        .execute();
+    //find
+    UserAccount::find()
+        .find(UserFind::Username)
+        .value("dasdasd")
+        .execute();
+    */
 
     //one.email("{username}@{email}.com").build();
     //two.role("admin").build();
