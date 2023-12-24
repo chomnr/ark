@@ -101,16 +101,16 @@ impl UserIdentityBuilder {
         self
     }
 
-    pub fn build(&mut self) -> UserIdentity {
+    pub fn build(self) -> UserIdentity {
         UserIdentity {
             id: 0,
-            username: self.username.clone(),
-            email: self.email.clone(),
+            username: self.username,
+            email: self.email,
             verified: self.verified,
-            oauth_provider: self.oauth_provider.clone(),
-            oauth_id: self.oauth_id.clone(),
-            created_at: self.created_at.clone(),
-            last_login: self.last_login.clone(),
+            oauth_provider: self.oauth_provider,
+            oauth_id: self.oauth_id,
+            created_at: self.created_at,
+            last_login: self.last_login,
         }
     }
 }

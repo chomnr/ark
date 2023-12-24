@@ -11,7 +11,8 @@ async fn main() {
     let mut two = UserAccess::new().build();
     let three = UserAccount::new(one, two);
 
-    UserRepository::insert(three);
+    UserRepository::insert(three)
+        .modify(UserInsertionField::All);
 
     //UserRepository::insert(three)
       //  .modify(UserInsertionField::All);

@@ -50,10 +50,10 @@ impl UserAccessBuilder {
         self
     }
 
-    pub fn build(&mut self) -> UserAccess {
+    pub fn build(self) -> UserAccess {
         UserAccess {
             role: self.role,
-            permission: self.permission.clone(),
+            permission: self.permission,
         }
     }
 }
