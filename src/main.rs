@@ -1,10 +1,31 @@
-use app::arc::ArcServer;
+#![forbid(unsafe_code)]
+use app::{arc::ArcServer, service::iam::{identity::model::UserIdentity, access::model::UserAccess}};
 
 pub mod app;
 
 #[tokio::main]
 async fn main() {
     let arc = ArcServer::default();
+    let mut one = UserIdentity::new();
+    let mut two = UserAccess::new();
+
+    //one.email("{username}@{email}.com").build();
+    //two.role("admin").build();
+    /*
+    let testie = UserIdentity::new()
+        .email("email")
+        .oauth_id("oauth_id")
+        .oauth_provider("oauth_provider")
+        .username("username")
+        .verified(false)
+        .build();
+
+    UserIdentityQuery::create_account(testie).on_success(() {
+        Ok() => UserIdentityQuery::create_session(testie);;
+        Err() => Failed
+    });
+    UserIdentityQuery::create_session(testie);
+    */
     /*
     let test = UserIdentity::new()
         .username("username")
