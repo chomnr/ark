@@ -73,7 +73,7 @@ impl UserRepository {
                 Ok(())
             },
             Err(_) => {
-                event!(Level::INFO, "[ARC] failed to created an identity for {}({})", identity.username, identity.id);
+                event!(Level::ERROR, "[ARC] failed to created an identity for {}({})", identity.username, identity.id);
                 Err(UserRepositoryError::FailedToCreateIdentity)
             },
         }

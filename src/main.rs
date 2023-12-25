@@ -15,7 +15,6 @@ async fn main() {
     let database = PostgresDatabase::new(PostgresConfig::default()).await;
 
     let repo = UserRepository::new(database);
-
     /*
     let one = UserIdentity::new()
         .email("test@gmail.com")
