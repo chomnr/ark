@@ -16,7 +16,7 @@ impl Default for PostgresConfig {
             host: env::var("PG_HOST").expect("PG_HOST"),
             user: env::var("PG_USER").expect("PG_USER"),
             password: env::var("PG_PASSWORD").expect("PG_PASSWORD"),
-            dbname: env::var("PG_DBNAME").expect("PG_DBNAME"),
+            dbname: env::var("PG_DBNAME").expect("PG_DBNAME")
         }
     }
 }

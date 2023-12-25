@@ -13,6 +13,7 @@ async fn main() {
     let database = PostgresDatabase::new(PostgresConfig::default()).await;
 
     let repo = UserRepository::new(database);
+    //repo.create_new_identity(todo!()).await.unwrap();
 
     // let one = UserIdentity::new().clone().build();
     // repo.create_new_identity(&one).await.unwrap();
