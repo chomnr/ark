@@ -92,25 +92,3 @@ impl UserInsertionBuilder<'_> {
         Err(AccountRepositoryError::FieldMismatch)
     }
 }
-
-/*
-let query = "INSERT INTO users (username, email, oauth_provider, oauth_id)
-            VALUES ($1, $2, $3, $4)
-            ON CONFLICT (oauth_id)
-            DO UPDATE SET last_login = CURRENT_TIMESTAMP
-            RETURNING *;";
-let stmt = pg
-    .get()
-    .await
-    .prepare(query)
-    .await
-    .expect("Error: unable to prepare query.");
-pg.get()
-    .await
-    .execute(&stmt, &[&"username", &"email", &"oauth_provider", &"oauth_id8"])
-    .await
-    .unwrap();
-*/
-// after successful insertion trigger an event in session
-// to update the redis cache.
-// insert stuff here...
