@@ -91,16 +91,6 @@ impl UserInsertionBuilder<'_> {
         }
         Err(AccountRepositoryError::FieldMismatch)
     }
-
-    async fn create_identity(&self, pg: PostgresDatabase) -> AccountRepositoryResult<()> {
-        let client = pg.get().await;
-        let statement = client.prepare(CREATE_IDENTITY_QUERY).await;
-        client
-            .execute(&statement.unwrap(), &[&""])
-            .await
-            .map_err(|e| AccountRepositoryError::FailedToCreateIdentity)?;
-        Ok(())
-    }
 }
 
 /*
