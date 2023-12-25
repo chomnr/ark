@@ -1,6 +1,6 @@
 #![forbid(unsafe_code)]
 use app::{
-    arc::ArcServer,
+    arc::ArkServer,
     database::{postgres::{PostgresConfig, PostgresDatabase}, redis::{RedisDatabase, RedisConfig}},
 };
 
@@ -8,11 +8,11 @@ pub mod app;
 
 #[tokio::main]
 async fn main() {
-    let arc = ArcServer::default().await;
+    let ark = ArkServer::default().await;
     let pg_db = PostgresDatabase::new(PostgresConfig::default()).await;
     let redis_db = RedisDatabase::new(RedisConfig::default()).await;
 
-    arc.run().await;
+    ark.run().await;
 
 
     //let repo = UserRepository::new(pg_db);

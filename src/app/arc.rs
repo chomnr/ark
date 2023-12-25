@@ -33,14 +33,14 @@ static MODE: ServerMode = ServerMode::Development;
 /// };
 /// // The server is now configured to run on localhost port 8080 in development mode with tracing enabled.
 /// ```
-pub struct ArcServer {
+pub struct ArkServer {
     address: String,
     port: usize,
     mode: ServerMode,
     router: Router,
 }
 
-impl ArcServer {
+impl ArkServer {
     pub async fn default() -> Self {
         Self {
             address: ADDRESS.to_string(),
@@ -49,7 +49,7 @@ impl ArcServer {
             router: Router::new()
                 .route("/", get(|| async { "Hello, World!" }))
                 .layer(CookieManagerLayer::new())
-                .layer(Extension(ArcState::default().await)),
+                .layer(Extension(ArkState::default().await)),
         }
     }
     /// Executes server operations based on the current server mode.
@@ -63,7 +63,7 @@ impl ArcServer {
     /// Basic usage:
     ///
     /// ```
-    /// let arc = ArcServer::default();
+    /// let arc = ArkServer::default();
     /// arc.run().await; // starts the server in self.mode mode
     /// ```
     pub async fn run(self) {
@@ -98,7 +98,7 @@ impl ArcServer {
     /// # Example
     ///
     /// ```
-    /// let server = ArcServer { address: "127.0.0.1".to_string(), port: 8080, ... };
+    /// let server = ArkServer { address: "127.0.0.1".to_string(), port: 8080, ... };
     /// let address = server.get_addr();
     /// assert_eq!(address, "127.0.0.1:8080");
     /// ```
@@ -157,22 +157,22 @@ impl fmt::Display for ServerMode {
 }
 
 #[derive(Clone)]
-pub struct ArcState {
+pub struct ArkState {
     key: Key,
     postgres: PostgresDatabase,
     redis: RedisDatabase,
 }
 
-impl FromRef<ArcState> for Key {
-    fn from_ref(state: &ArcState) -> Self {
+impl FromRef<ArkState> for Key {
+    fn from_ref(state: &ArkState) -> Self {
         state.key.clone()
     }
 }
 
-impl ArcState {
+impl ArkState {
     async fn default() -> Self {
         Self {
-            key: ArcState::get_key(),
+            key: ArkState::get_key(),
             postgres: PostgresDatabase::new(PostgresConfig::default()).await,
             redis: RedisDatabase::new(RedisConfig::default()).await,
         }
