@@ -1,18 +1,21 @@
 #![forbid(unsafe_code)]
 use app::{
     arc::ArcServer,
-    database::postgres::{PostgresConfig, PostgresDatabase},
-    service::iam::{account::repository::UserRepository, identity::model::UserIdentity},
+    database::{postgres::{PostgresConfig, PostgresDatabase}, redis::{RedisDatabase, RedisConfig}},
 };
 
 pub mod app;
 
 #[tokio::main]
 async fn main() {
-    let arc = ArcServer::default();
-    let database = PostgresDatabase::new(PostgresConfig::default()).await;
+    let arc = ArcServer::default().await;
+    let pg_db = PostgresDatabase::new(PostgresConfig::default()).await;
+    let redis_db = RedisDatabase::new(RedisConfig::default()).await;
 
-    let repo = UserRepository::new(database);
+    arc.run();
+
+
+    //let repo = UserRepository::new(pg_db);
     //repo.create_new_identity(todo!()).await.unwrap();
 
     // let one = UserIdentity::new().clone().build();
@@ -138,7 +141,6 @@ async fn main() {
         .verified(false)
         .build();
     */
-    arc.run().await;
 }
 
 /*

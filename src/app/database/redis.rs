@@ -19,12 +19,13 @@ impl Default for RedisConfig {
     }
 }
 
+#[derive(Clone)]
 pub struct RedisDatabase {
     pool: Pool<RedisConnectionManager>,
 }
 
 impl RedisDatabase {
-    pub async fn new() -> Self {
+    pub async fn new(redis_config: RedisConfig) -> Self {
         todo!()
     }
 }

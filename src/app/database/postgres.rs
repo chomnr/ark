@@ -39,6 +39,7 @@ impl PostgresConfig {
     }
 }
 
+#[derive(Clone)]
 pub struct PostgresDatabase {
     pool: Pool<PostgresConnectionManager<NoTls>>,
 }

@@ -6,6 +6,8 @@ use tokio::net::TcpListener;
 use tower_cookies::{CookieManagerLayer, Key};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
+use super::database::{redis::{RedisDatabase, RedisConfig}, postgres::{PostgresDatabase, PostgresConfig}};
+
 static ADDRESS: &str = "0.0.0.0";
 static PORT: usize = 3000;
 static MODE: ServerMode = ServerMode::Development;
@@ -38,8 +40,8 @@ pub struct ArcServer {
     router: Router,
 }
 
-impl Default for ArcServer {
-    fn default() -> Self {
+impl ArcServer {
+    pub async fn default() -> Self {
         Self {
             address: ADDRESS.to_string(),
             port: PORT,
@@ -47,12 +49,9 @@ impl Default for ArcServer {
             router: Router::new()
                 .route("/", get(|| async { "Hello, World!" }))
                 .layer(CookieManagerLayer::new())
-                .layer(Extension(ArcState::default())),
+                .layer(Extension(ArcState::default().await)),
         }
     }
-}
-
-impl ArcServer {
     /// Executes server operations based on the current server mode.
     ///
     /// This function checks the server mode (`self.mode`) and executes the corresponding
@@ -160,6 +159,8 @@ impl fmt::Display for ServerMode {
 #[derive(Clone)]
 pub struct ArcState {
     key: Key,
+    postgres: PostgresDatabase,
+    redis: RedisDatabase,
 }
 
 impl FromRef<ArcState> for Key {
@@ -169,9 +170,11 @@ impl FromRef<ArcState> for Key {
 }
 
 impl ArcState {
-    fn default() -> Self {
+    async fn default() -> Self {
         Self {
             key: ArcState::get_key(),
+            postgres: PostgresDatabase::new(PostgresConfig::default()).await,
+            redis: RedisDatabase::new(RedisConfig::default()).await,
         }
     }
 
