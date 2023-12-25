@@ -1,3 +1,5 @@
+use tracing::{event, Level};
+
 use crate::app::{
     database::postgres::PostgresDatabase, service::iam::{identity::model::UserIdentity, account::error::UserRepositoryError},
 };
@@ -67,14 +69,13 @@ impl UserRepository {
             ],
         ).await {
             Ok(_) => {
-                println!("[ARC] created a new identity for {}({})", identity.username, identity.id);
+                event!(Level::INFO, "[ARC] created a new identity for {}({})", identity.username, identity.id);
                 Ok(())
-            }, // Return an Ok result if the execution is successful
+            },
             Err(_) => {
-                println!("[ARC] failed to create an identity for {}({})", identity.username, identity.id);
+                event!(Level::INFO, "[ARC] failed to created an identity for {}({})", identity.username, identity.id);
                 Err(UserRepositoryError::FailedToCreateIdentity)
-            }, // Convert the error to your custom error type
+            },
         }
     }
 }
-//SessionHandler::trigger(SessionEvent::UPDATE_CACHE, identity, identity)

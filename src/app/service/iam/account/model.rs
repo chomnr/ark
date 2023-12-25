@@ -1,4 +1,5 @@
 use crate::app::service::iam::{identity::model::UserIdentity, access::model::UserAccess};
+// SessionHandler::trigger(SessionEvent::UPDATE_CACHE, identity, identity)
 
 /// Represents a user's account, encompassing identity and access control details.
 ///

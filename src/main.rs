@@ -2,10 +2,9 @@
 use app::{
     arc::ArcServer,
     database::postgres::{PostgresConfig, PostgresDatabase},
-    service::iam::{
-        access::model::UserAccess, account::repository::UserRepository,
-        identity::model::UserIdentity,
-    },
+    service::iam::
+        account::repository::UserRepository
+    ,
 };
 
 pub mod app;
@@ -17,6 +16,7 @@ async fn main() {
 
     let repo = UserRepository::new(database);
 
+    /*
     let one = UserIdentity::new()
         .email("test@gmail.com")
         .oauth_id("1233333333")
@@ -25,8 +25,9 @@ async fn main() {
         .verified(false)
         .clone()
         .build();
-    
+
     repo.create_new_identity(&one).await.unwrap();
+    */
     //let mut two = UserAccess::new().build();
 
     //
