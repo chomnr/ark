@@ -1,5 +1,16 @@
 #![forbid(unsafe_code)]
-use app::{arc::ArcServer, service::iam::{identity::model::UserIdentity, access::model::UserAccess, account::{model::UserAccount, repository::{UserRepository, UserInsertionField}}}, database::postgres::{PostgresDatabase, PostgresConfig}};
+use app::{
+    arc::ArcServer,
+    database::postgres::{PostgresConfig, PostgresDatabase},
+    service::iam::{
+        access::model::UserAccess,
+        account::{
+            model::UserAccount,
+            repository::{UserInsertionField, UserRepository},
+        },
+        identity::model::UserIdentity
+    },
+};
 
 pub mod app;
 
@@ -7,10 +18,35 @@ pub mod app;
 async fn main() {
     let arc = ArcServer::default();
     let database = PostgresDatabase::new(PostgresConfig::default());
-    
+
     let mut one = UserIdentity::new().build();
     let mut two = UserAccess::new().build();
     let three = UserAccount::new(one, two);
+
+    /*
+    UserRepository::insert_mode(three)
+        .field(UserInsertionField::Permission)
+        .value(&[
+            "permission.name",
+            "permission.name",
+            "permission.name",
+            "permission.name",
+        ])
+        .execute_on(database)
+        .await.unwrap();
+    */
+
+    /*
+    UserRepository::insert_mode(three)
+        .modify(UserInsertionField::Permission)
+        .value(&[
+            "admin.ban.timeout.1123",
+            "admin.ban.timeout.1123",
+            "admin.ban.timeout.1123",
+        ])
+        .execute_on(database)
+        .await;
+    */
 
     // user repository
     /*
@@ -20,10 +56,12 @@ async fn main() {
         .await;
     */
 
-    UserRepository::insert(three)
+    /*
+    UserRepository::insert_mode(three)
         .modify(UserInsertionField::All)
         .execute_on(database)
         .await;
+    */
 
     // User Repo\
     /*
@@ -32,14 +70,14 @@ async fn main() {
         .execute_on(database)
         .await;
     */
-        //.execute_on(pg);
+    //.execute_on(pg);
 
     //UserRepository::insert(three)
-      //  .modify(UserInsertionField::All);
+    //  .modify(UserInsertionField::All);
 
     //let mut three = UserAccount::new(one, two);
     //UserAccount::new(one, two)
-        //.create();
+    //.create();
     /*
     //insert
     UserAccount::insert()

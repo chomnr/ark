@@ -1,16 +1,16 @@
-use crate::app::database::postgres::PostgresDatabase;
+use crate::app::{
+    database::postgres::PostgresDatabase, service::iam::account::error::AccountRepositoryError,
+};
 
-use super::model::UserAccount;
+use super::{error::AccountRepositoryResult, model::UserAccount};
 
-/// Enumerates the fields used for inserting user data into the `UserRepository`.
-///
-/// Variants:
-/// - `All`: Indicates that all user-related fields should be included in the insertion.
-#[derive(PartialEq)]
-pub(crate) enum UserInsertionField {
-    All,
-    Permission
-}
+/// Inserts a user into identity.
+static CREATE_IDENTITY_QUERY: &str =
+    "INSERT INTO identity (username, email, oauth_provider, oauth_id)
+                VALUES ($1, $2, $3, $4)
+                ON CONFLICT (oauth_id) 
+                DO UPDATE SET last_login = CURRENT_TIMESTAMP
+                RETURNING *;";
 
 /// A repository responsible for managing user data storage and retrieval.
 ///
@@ -20,9 +20,19 @@ pub(crate) struct UserRepository;
 
 impl UserRepository {
     // insert stuff.
-    pub fn insert<'a>(account: UserAccount) -> UserInsertionBuilder<'static> {
+    pub fn insert_mode<'a>(account: UserAccount) -> UserInsertionBuilder<'static> {
         UserInsertion::new(account)
     }
+}
+
+/// Enumerates the fields used for inserting user data into the `UserRepository`.
+///
+/// Variants:
+/// - `All`: Indicates that all user-related fields should be included in the insertion.
+#[derive(PartialEq)]
+pub(crate) enum UserInsertionField {
+    Identity,
+    Permission,
 }
 
 /// Represents the data for inserting a user record.
@@ -39,10 +49,10 @@ pub(crate) struct UserInsertion<'a> {
 }
 
 impl UserInsertion<'_> {
-    pub fn new(account: UserAccount) -> UserInsertionBuilder<'static> {
+    fn new(account: UserAccount) -> UserInsertionBuilder<'static> {
         UserInsertionBuilder {
             account,
-            field: UserInsertionField::All,
+            field: UserInsertionField::Identity,
             value: &[],
         }
     }
@@ -55,30 +65,62 @@ pub(crate) struct UserInsertionBuilder<'a> {
 }
 
 impl UserInsertionBuilder<'_> {
-    pub fn modify(&mut self, field: UserInsertionField) -> &mut Self {
+    pub fn field(&mut self, field: UserInsertionField) -> &mut Self {
         self.field = field;
         self
     }
 
-    pub fn value<'a>(&mut self, value: &'static[&'a str]) -> &mut Self {
+    pub fn value<'a>(&mut self, value: &'static [&'a str]) -> &mut Self {
         self.value = value;
         self
     }
 
-    pub async fn execute_on(&self, pg: PostgresDatabase) {
-        if self.field.eq(&UserInsertionField::All) && self.value.len() == 0 {
-            // insert stuff here...
+    pub async fn execute_on(&self, pg: PostgresDatabase) -> AccountRepositoryResult<()> {
+        let client = pg.get().await;
+        // identity
+        if self.field.eq(&UserInsertionField::Identity) && self.value.len() == 0 {
+            let statement = client.prepare(CREATE_IDENTITY_QUERY).await;
+            client
+                .execute(&statement.unwrap(), &[&"1", &"2", &"3", &"4"])
+                .await
+                .map_err(|e| AccountRepositoryError::FailedToCreateIdentity)?;
         }
-
+        // permission
         if self.field.eq(&UserInsertionField::Permission) && self.value.len() > 0 {
-            // insert stuff here...
+            // test 2
         }
+        Err(AccountRepositoryError::FieldMismatch)
+    }
+
+    async fn create_identity(&self, pg: PostgresDatabase) -> AccountRepositoryResult<()> {
+        let client = pg.get().await;
+        let statement = client.prepare(CREATE_IDENTITY_QUERY).await;
+        client
+            .execute(&statement.unwrap(), &[&""])
+            .await
+            .map_err(|e| AccountRepositoryError::FailedToCreateIdentity)?;
+        Ok(())
     }
 }
 
 /*
-pub fn value<'a>(&mut self, value: &'static[&'a str]) -> &mut Self {
-    self.value = value;
-    self
-}
+let query = "INSERT INTO users (username, email, oauth_provider, oauth_id)
+            VALUES ($1, $2, $3, $4)
+            ON CONFLICT (oauth_id)
+            DO UPDATE SET last_login = CURRENT_TIMESTAMP
+            RETURNING *;";
+let stmt = pg
+    .get()
+    .await
+    .prepare(query)
+    .await
+    .expect("Error: unable to prepare query.");
+pg.get()
+    .await
+    .execute(&stmt, &[&"username", &"email", &"oauth_provider", &"oauth_id8"])
+    .await
+    .unwrap();
 */
+// after successful insertion trigger an event in session
+// to update the redis cache.
+// insert stuff here...
