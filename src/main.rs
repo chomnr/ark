@@ -12,7 +12,7 @@ async fn main() {
     let pg_db = PostgresDatabase::new(PostgresConfig::default()).await;
     let redis_db = RedisDatabase::new(RedisConfig::default()).await;
 
-    arc.run();
+    arc.run().await;
 
 
     //let repo = UserRepository::new(pg_db);
