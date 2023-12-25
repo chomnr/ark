@@ -15,7 +15,6 @@ async fn main() {
     ark.run().await;
 
 
-    //let repo = UserRepository::new(pg_db);
     //repo.create_new_identity(todo!()).await.unwrap();
 
     // let one = UserIdentity::new().clone().build();
