@@ -1,95 +1,80 @@
 use crate::app::{
-    database::postgres::PostgresDatabase, service::iam::account::error::AccountRepositoryError,
+    database::postgres::PostgresDatabase, service::iam::{identity::model::UserIdentity, account::error::UserRepositoryError},
 };
 
-use super::{error::AccountRepositoryResult, model::UserAccount};
+use super::error::UserRepositoryResult;
 
-/// Inserts a user into identity.
 static CREATE_IDENTITY_QUERY: &str =
     "INSERT INTO identity (username, email, oauth_provider, oauth_id)
-                VALUES ($1, $2, $3, $4)
-                ON CONFLICT (oauth_id) 
-                DO UPDATE SET last_login = CURRENT_TIMESTAMP
-                RETURNING *;";
+            VALUES ($1, $2, $3, $4)
+            ON CONFLICT (oauth_id)
+            DO UPDATE SET last_login = CURRENT_TIMESTAMP
+            RETURNING *;";
 
-/// A repository responsible for managing user data storage and retrieval.
-///
-/// This struct encapsulates the operations and mechanisms needed to interact with the storage layer for user accounts.
-/// It typically includes methods for creating, updating, retrieving, and deleting user records.
-pub(crate) struct UserRepository;
-
-impl UserRepository {
-    // insert stuff.
-    pub fn insert_mode<'a>(account: UserAccount) -> UserInsertionBuilder<'static> {
-        UserInsertion::new(account)
-    }
-}
-
-/// Enumerates the fields used for inserting user data into the `UserRepository`.
-///
-/// Variants:
-/// - `All`: Indicates that all user-related fields should be included in the insertion.
-#[derive(PartialEq)]
-pub(crate) enum UserInsertionField {
-    Identity,
-    Permission,
-}
-
-/// Represents the data for inserting a user record.
-///
-/// This struct is used to specify which fields and corresponding values to include when inserting a user record into a repository.
+/// Repository for managing user-related data within a PostgreSQL database.
 ///
 /// Fields:
-/// - `field`: Optional enum specifying which fields of the user data to insert (`UserInsertionField`).
-/// - `value`: Reference to an array of string slices representing the values to be inserted.
-pub(crate) struct UserInsertion<'a> {
-    account: UserAccount,
-    field: UserInsertionField,
-    value: &'a [&'a str],
+/// - `pg`: An instance of `PostgresDatabase` representing the connection and operations specific to PostgreSQL.
+pub(crate) struct UserRepository {
+    pg: PostgresDatabase,
 }
 
-impl UserInsertion<'_> {
-    fn new(account: UserAccount) -> UserInsertionBuilder<'static> {
-        UserInsertionBuilder {
-            account,
-            field: UserInsertionField::Identity,
-            value: &[],
+impl UserRepository {
+    pub fn new(pg: PostgresDatabase) -> Self {
+        Self { pg }
+    }
+
+    /// Asynchronously creates a new user identity in the repository.
+    ///
+    /// This function is responsible for adding a new `UserIdentity` record to the database.
+    ///
+    /// Arguments:
+    /// - `identity`: Reference to a `UserIdentity` object containing the information for the new identity.
+    ///
+    /// Returns:
+    /// - `UserRepositoryResult<()>`: A result type indicating success or failure of the operation.
+    ///
+    /// Note: Currently, the function body is not implemented (marked with `todo!()`).
+    ///
+    /// Example:
+    /// ```
+    /// let user_repo = UserRepository::new(database);
+    /// let new_identity = UserIdentity {
+    ///     id: 123,
+    ///     username: "new_user".to_string(),
+    ///     email: "user@example.com".to_string(),
+    ///     // other fields...
+    /// };
+    /// let result = user_repo.create_new_identity(&new_identity).await;
+    /// match result {
+    ///     Ok(_) => println!("New identity created successfully"),
+    ///     Err(e) => println!("Error creating new identity: {:?}", e),
+    /// }
+    /// ```
+    pub async fn create_new_identity(&self, identity: &UserIdentity) -> UserRepositoryResult<()> {
+        let client = self.pg.get().await;
+        let stmt = client
+            .prepare(CREATE_IDENTITY_QUERY)
+            .await
+            .expect("Error: failed to prepare query.");
+        match client.execute(
+            &stmt,
+            &[
+                &identity.username,
+                &identity.email,
+                &identity.oauth_provider,
+                &identity.oauth_id,
+            ],
+        ).await {
+            Ok(_) => {
+                println!("[ARC] created a new identity for {}({})", identity.username, identity.id);
+                Ok(())
+            }, // Return an Ok result if the execution is successful
+            Err(_) => {
+                println!("[ARC] failed to create an identity for {}({})", identity.username, identity.id);
+                Err(UserRepositoryError::FailedToCreateIdentity)
+            }, // Convert the error to your custom error type
         }
     }
 }
-
-pub(crate) struct UserInsertionBuilder<'a> {
-    account: UserAccount,
-    field: UserInsertionField,
-    value: &'a [&'a str],
-}
-
-impl UserInsertionBuilder<'_> {
-    pub fn field(&mut self, field: UserInsertionField) -> &mut Self {
-        self.field = field;
-        self
-    }
-
-    pub fn value<'a>(&mut self, value: &'static [&'a str]) -> &mut Self {
-        self.value = value;
-        self
-    }
-
-    pub async fn execute_on(&self, pg: PostgresDatabase) -> AccountRepositoryResult<()> {
-        let client = pg.get().await;
-        // identity
-        if self.field.eq(&UserInsertionField::Identity) && self.value.len() == 0 {
-            let statement = client.prepare(CREATE_IDENTITY_QUERY).await;
-            client
-                .execute(&statement.unwrap(), &[&"1", &"2", &"3", &"4"])
-                .await
-                .map_err(|e| AccountRepositoryError::FailedToCreateIdentity)?;
-        }
-        // permission
-        if self.field.eq(&UserInsertionField::Permission) && self.value.len() > 0 {
-            // test 2
-            // todo with permission ensure i update the cache. (trigger the event somehow.)
-        }
-        Err(AccountRepositoryError::FieldMismatch)
-    }
-}
+//SessionHandler::trigger(SessionEvent::UPDATE_CACHE, identity, identity)

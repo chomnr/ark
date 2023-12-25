@@ -3,12 +3,8 @@ use app::{
     arc::ArcServer,
     database::postgres::{PostgresConfig, PostgresDatabase},
     service::iam::{
-        access::model::UserAccess,
-        account::{
-            model::UserAccount,
-            repository::{UserInsertionField, UserRepository},
-        },
-        identity::model::UserIdentity
+        access::model::UserAccess, account::repository::UserRepository,
+        identity::model::UserIdentity,
     },
 };
 
@@ -17,11 +13,28 @@ pub mod app;
 #[tokio::main]
 async fn main() {
     let arc = ArcServer::default();
-    let database = PostgresDatabase::new(PostgresConfig::default());
+    let database = PostgresDatabase::new(PostgresConfig::default()).await;
 
-    let mut one = UserIdentity::new().build();
-    let mut two = UserAccess::new().build();
-    let three = UserAccount::new(one, two);
+    let repo = UserRepository::new(database);
+
+    let one = UserIdentity::new()
+        .email("test@gmail.com")
+        .oauth_id("1233333333")
+        .oauth_provider("discord")
+        .username("hello")
+        .verified(false)
+        .clone()
+        .build();
+    
+    repo.create_new_identity(&one).await.unwrap();
+    //let mut two = UserAccess::new().build();
+
+    //
+    //let three = UserAccount::new(one, two);
+
+    //user_repo.create_new_identity(&one);
+
+    //user_repo.create_new_identity(&one).await.unwrap();
 
     /*
     UserRepository::insert_mode(three)

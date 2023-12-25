@@ -31,7 +31,7 @@ impl PostgresConfig {
         }
     }
 
-    fn to_conn_string(self) -> String {
+    fn to_conn_string(&self) -> String {
         format!(
             "host={} user={} password={} dbname={}",
             self.host, self.user, self.password, self.dbname
@@ -40,29 +40,21 @@ impl PostgresConfig {
 }
 
 pub struct PostgresDatabase {
-    manager: PostgresConnectionManager<NoTls>,
-    builder: Option<Pool<PostgresConnectionManager<NoTls>>>,
+    pool: Pool<PostgresConnectionManager<NoTls>>,
 }
 
 impl PostgresDatabase {
-    pub fn new(pg_config: PostgresConfig) -> Self {
+    pub async fn new(pg_config: PostgresConfig) -> Self {
         let manager =
             PostgresConnectionManager::new_from_stringlike(pg_config.to_conn_string(), NoTls)
                 .unwrap();
         Self {
-            manager,
-            builder: None,
+            pool: Pool::builder().build(manager).await.unwrap(),
         }
     }
 
-    pub async fn builder(&mut self) {
-        self.builder = Some(Pool::builder().build(self.manager.clone()).await.unwrap());
-    }
-
     pub async fn get(&self) -> PooledConnection<'_, PostgresConnectionManager<NoTls>> {
-        self.builder
-            .as_ref()
-            .expect("Error: failed to connect to PostgreSQL pool")
+        self.pool
             .get()
             .await
             .unwrap()

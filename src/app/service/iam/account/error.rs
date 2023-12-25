@@ -1,20 +1,20 @@
 use core::fmt;
 
-pub type AccountRepositoryResult<T> = Result<T, AccountRepositoryError>;
+pub type UserRepositoryResult<T> = Result<T, UserRepositoryError>;
 
 #[derive(Debug)]
-pub enum AccountRepositoryError {
+pub enum UserRepositoryError {
     FieldMismatch,
     FailedToCreateIdentity
 }
 
 static PREFIX: &str = "[ARC] error: ";
 
-impl fmt::Display for AccountRepositoryError {
+impl fmt::Display for UserRepositoryError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            AccountRepositoryError::FieldMismatch => write!(f, "{} A field has an incompatiable method binded with it.", PREFIX),
-            AccountRepositoryError::FailedToCreateIdentity => write!(f, "{} Failed to create an identity for an individual.", PREFIX),
+            UserRepositoryError::FieldMismatch => write!(f, "{} A field has an incompatiable method binded with it.", PREFIX),
+            UserRepositoryError::FailedToCreateIdentity => write!(f, "{} Failed to create an identity for an individual.", PREFIX),
         }
     }
 }

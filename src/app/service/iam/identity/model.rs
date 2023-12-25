@@ -10,14 +10,14 @@
 /// - `created_at`: Timestamp of when the account was created.
 /// - `last_login`: Timestamp of the user's last login.
 pub(crate) struct UserIdentity {
-    id: usize,
-    username: String,
-    email: String,
-    verified: bool,
-    oauth_provider: String,
-    oauth_id: String,
-    created_at: String,
-    last_login: String,
+    pub id: usize,
+    pub username: String,
+    pub email: String,
+    pub verified: bool,
+    pub oauth_provider: String,
+    pub oauth_id: String,
+    pub created_at: String,
+    pub last_login: String,
 }
 
 impl Default for UserIdentity {
@@ -64,6 +64,7 @@ impl UserIdentity {
 /// - `oauth_id`: The user's identifier from the OAuth provider.
 /// - `created_at`: Timestamp of account creation.
 /// - `last_login`: Timestamp of the user's last login.
+#[derive(Clone)]
 pub(crate) struct UserIdentityBuilder {
     id: usize,
     username: String,
@@ -77,12 +78,12 @@ pub(crate) struct UserIdentityBuilder {
 
 impl UserIdentityBuilder {
     pub fn username(&mut self, username: &str) -> &mut Self {
-        self.username = String::with_capacity(username.len());
+        self.username = String::from(username);
         self
     }
     
     pub fn email(&mut self, email: &str) -> &mut Self {
-        self.email = String::with_capacity(email.len());
+        self.email = String::from(email);
         self
     }
 
@@ -92,12 +93,12 @@ impl UserIdentityBuilder {
     }
 
     pub fn oauth_provider(&mut self, oauth_provider: &str) -> &mut Self {
-        self.username = String::with_capacity(oauth_provider.len());
+        self.oauth_provider = String::from(oauth_provider);
         self
     }
 
     pub fn oauth_id(&mut self, oauth_id: &str) -> &mut Self {
-        self.oauth_id = String::with_capacity(oauth_id.len());
+        self.oauth_id = String::from(oauth_id);
         self
     }
 
