@@ -1,14 +1,3 @@
-/// Represents the identity of a user within the system.
-///
-/// Fields:
-/// - `id`: A unique identifier for the user.
-/// - `username`: The user's chosen username.
-/// - `email`: The user's email address.
-/// - `verified`: Boolean flag indicating if the user's account is verified.
-/// - `oauth_provider`: The name of the OAuth provider used for authentication.
-/// - `oauth_id`: The user's identifier from the OAuth provider.
-/// - `created_at`: Timestamp of when the account was created.
-/// - `last_login`: Timestamp of the user's last login.
 pub(crate) struct UserIdentity {
     pub id: usize,
     pub username: String,
@@ -51,19 +40,6 @@ impl UserIdentity {
     }
 }
 
-/// Builder for creating a `UserIdentity` instance.
-///
-/// Provides a way to construct a `UserIdentity` with optional settings. Each field can be set independently.
-///
-/// Fields:
-/// - `id`: A unique identifier for the user.
-/// - `username`: The user's chosen username.
-/// - `email`: The user's email address.
-/// - `verified`: Boolean flag for the account's verification status.
-/// - `oauth_provider`: The OAuth provider used for authentication.
-/// - `oauth_id`: The user's identifier from the OAuth provider.
-/// - `created_at`: Timestamp of account creation.
-/// - `last_login`: Timestamp of the user's last login.
 #[derive(Clone)]
 pub(crate) struct UserIdentityBuilder {
     id: usize,

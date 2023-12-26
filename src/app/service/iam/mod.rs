@@ -1,11 +1,32 @@
 pub mod access;
 pub mod account;
 pub mod identity;
+pub mod integrity;
 pub mod session;
-pub mod repository;
 
 /*
+pub struct Iam {
+    pg: PostgresDatabase
+}
 
+impl Iam {
+    pub fn new(pg: PostgresDatabase) -> Self {
+        Self {
+            pg,
+        }
+    }
+}
+*/
+
+
+/*
+Iam::attach_identity(identity)
+        .create_session();
+
+    Iam::attach_identity(identity)
+        .create_user();
+*/
+/*
 use tracing::{event, Level};
 
 use crate::app::{

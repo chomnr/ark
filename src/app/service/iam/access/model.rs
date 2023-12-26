@@ -1,8 +1,3 @@
-/// Represents the access control information for a user.
-///
-/// Fields:
-/// - `role`: Numeric representation of the user's role.
-/// - `permission`: A list of strings representing the specific permissions granted to the user.
 pub(crate) struct UserAccess {
     role: usize,
     permission: Vec<String>,
@@ -27,13 +22,6 @@ impl UserAccess {
     }
 }
 
-/// Builder for constructing a `UserAccess` instance.
-///
-/// This builder allows setting the user's role and permissions incrementally before building the final `UserAccess` object.
-///
-/// Fields:
-/// - `role`: Numeric value representing the user's role.
-/// - `permission`: A collection of permissions to be assigned to the user.
 pub(crate) struct UserAccessBuilder {
     role: usize,
     permission: Vec<String>,

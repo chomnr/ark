@@ -1,4 +1,18 @@
 pub mod model;
+
+//let test = IdentityRepository::new(postgres_db);
+//test.create_identity(identity);
+
+//let test2 = AccessRepository::new(postgres_db);
+//test2.add_permission(identity, "ban.account");
+
+//let test3 = SessionRepository::new(redis_db)
+//test3.create_session("ddsdadasdas, dsaadsasd") checks in cache
+
+//let test4 = IamRepository::new(postgres_db)
+//test4.create_identity("dasdsad")
+
+
 /*
 static CREATE_IDENTITY_QUERY: &str ="INSERT INTO identity (username, email, oauth_provider, oauth_id)
             VALUES ($1, $2, $3, $4)
