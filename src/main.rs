@@ -1,6 +1,6 @@
 #![forbid(unsafe_code)]
 use app::
-    arc::ArkServer
+    ark::ArkServer
 ;
 
 pub mod app;
