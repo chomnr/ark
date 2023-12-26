@@ -158,9 +158,9 @@ impl fmt::Display for ServerMode {
 
 #[derive(Clone)]
 pub struct ArkState {
-    key: Key,
-    postgres: PostgresDatabase,
-    redis: RedisDatabase,
+    pub key: Key,
+    pub postgres: PostgresDatabase,
+    pub redis: RedisDatabase,
 }
 
 impl FromRef<ArkState> for Key {

@@ -1,3 +1,4 @@
+/*
 pub(crate) struct UserIdentity {
     pub id: usize,
     pub username: String,
@@ -90,4 +91,4 @@ impl UserIdentityBuilder {
             last_login: self.last_login,
         }
     }
-}
+}*/

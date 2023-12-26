@@ -1,3 +1,22 @@
+/*
+use crate::app::service::iam::{identity::model::UserIdentity, access::model::UserAccess};
+
+pub(crate) struct User {
+    identity: UserIdentity,
+    access: UserAccess
+}
+
+impl User {
+    pub fn new(identity: UserIdentity, access: UserAccess) -> Self {
+        Self {
+            identity,
+            access,
+        }
+    }
+}
+*/
+
+/*
 pub(crate) struct UserAccess {
     role: usize,
     permission: Vec<String>,
@@ -45,3 +64,4 @@ impl UserAccessBuilder {
         }
     }
 }
+*/

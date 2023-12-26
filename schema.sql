@@ -26,13 +26,19 @@ CREATE TABLE identity (
     username VARCHAR(255) NOT NULL UNIQUE,
     email VARCHAR(255) NOT NULL UNIQUE,
     verified BOOLEAN NOT NULL DEFAULT FALSE,
-    oauth_provider VARCHAR(255) NOT NULL,
-    oauth_id VARCHAR(255) NOT NULL UNIQUE, -- the oauth_id possibly can be conflicted if you use multiple auth providers ensure that there oauth_provider and id are not the same compared to other account.
     created_at TIMESTAMP WITH TIME ZONE DEFAULT (now() AT TIME ZONE 'UTC'),
-    last_login TIMESTAMP WITH TIME ZONE DEFAULT (now() AT TIME ZONE 'UTC'),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT (now() AT TIME ZONE 'UTC'),
     PRIMARY KEY(id)
 );
 
+CREATE TABLE identity_oauth (
+    identity_id INTEGER NOT NULL,
+    oauth_id VARCHAR(255) NOT NULL,
+    oauth_provider VARCHAR(255) NOT NULL,
+    UNIQUE(oauth_id, oauth_provider),
+    FOREIGN KEY (identity_id) REFERENCES identity(id),
+    PRIMARY KEY(identity_id)
+);
 
 -- This table links roles with permissions, enabling a many-to-many 
 -- relationship where a role can have multiple permissions, and a 

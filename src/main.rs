@@ -1,7 +1,9 @@
 #![forbid(unsafe_code)]
-use app::
-    ark::ArkServer
-;
+use app::{
+    ark::ArkServer,
+    database::postgres::{PostgresConfig, PostgresDatabase},
+    service::iam::access::role::RoleManager,
+};
 
 pub mod app;
 
@@ -9,151 +11,154 @@ pub mod app;
 async fn main() {
     let ark = ArkServer::default().await;
     // UserRepository::call_event("identity_create", serde_json)
+    let pg = PostgresDatabase::new(PostgresConfig::default()).await;
+    let role = RoleManager::new(pg);
+
+    role.delete_role("admin").await.unwrap();
+
     ark.run().await;
 }
 
 /*
-    let one = UserIdentity::new()
-        .email("hello@gmail.com")
-        .oauth_id("32141341")
-        .oauth_provider("discord")
-        .username("123312")
-        .verified(false)
-        .clone()
-        .build();
+let one = UserIdentity::new()
+    .email("hello@gmail.com")
+    .oauth_id("32141341")
+    .oauth_provider("discord")
+    .username("123312")
+    .verified(false)
+    .clone()
+    .build();
 
 
-    let repo = UserRepository::new(database_1);
-    repo.create_new_identity(&one).await.unwrap();
-    */
+let repo = UserRepository::new(database_1);
+repo.create_new_identity(&one).await.unwrap();
+*/
 
-    //repo.create_new_identity(todo!()).await.unwrap();
+//repo.create_new_identity(todo!()).await.unwrap();
 
-    // let one = UserIdentity::new().clone().build();
-    // repo.create_new_identity(&one).await.unwrap();
+// let one = UserIdentity::new().clone().build();
+// repo.create_new_identity(&one).await.unwrap();
 
-    /*
-    let one = UserIdentity::new()
-        .email("test@gmail.com")
-        .oauth_id("1233333333")
-        .oauth_provider("discord")
-        .username("hello")
-        .verified(false)
-        .clone()
-        .build();
+/*
+let one = UserIdentity::new()
+    .email("test@gmail.com")
+    .oauth_id("1233333333")
+    .oauth_provider("discord")
+    .username("hello")
+    .verified(false)
+    .clone()
+    .build();
 
-    repo.create_new_identity(&one).await.unwrap();
-    */
-    //let mut two = UserAccess::new().build();
+repo.create_new_identity(&one).await.unwrap();
+*/
+//let mut two = UserAccess::new().build();
 
-    //
-    //let three = UserAccount::new(one, two);
+//
+//let three = UserAccount::new(one, two);
 
-    //user_repo.create_new_identity(&one);
+//user_repo.create_new_identity(&one);
 
-    //user_repo.create_new_identity(&one).await.unwrap();
+//user_repo.create_new_identity(&one).await.unwrap();
 
-    /*
-    UserRepository::insert_mode(three)
-        .field(UserInsertionField::Permission)
-        .value(&[
-            "permission.name",
-            "permission.name",
-            "permission.name",
-            "permission.name",
-        ])
-        .execute_on(database)
-        .await.unwrap();
-    */
+/*
+UserRepository::insert_mode(three)
+    .field(UserInsertionField::Permission)
+    .value(&[
+        "permission.name",
+        "permission.name",
+        "permission.name",
+        "permission.name",
+    ])
+    .execute_on(database)
+    .await.unwrap();
+*/
 
-    /*
-    UserRepository::insert_mode(three)
-        .modify(UserInsertionField::Permission)
-        .value(&[
-            "admin.ban.timeout.1123",
-            "admin.ban.timeout.1123",
-            "admin.ban.timeout.1123",
-        ])
-        .execute_on(database)
-        .await;
-    */
+/*
+UserRepository::insert_mode(three)
+    .modify(UserInsertionField::Permission)
+    .value(&[
+        "admin.ban.timeout.1123",
+        "admin.ban.timeout.1123",
+        "admin.ban.timeout.1123",
+    ])
+    .execute_on(database)
+    .await;
+*/
 
-    // user repository
-    /*
-    UserRepository::insert(three)
-        .modify(UserInsertionField::All)
-        .execute_on(database)
-        .await;
-    */
+// user repository
+/*
+UserRepository::insert(three)
+    .modify(UserInsertionField::All)
+    .execute_on(database)
+    .await;
+*/
 
-    /*
-    UserRepository::insert_mode(three)
-        .modify(UserInsertionField::All)
-        .execute_on(database)
-        .await;
-    */
+/*
+UserRepository::insert_mode(three)
+    .modify(UserInsertionField::All)
+    .execute_on(database)
+    .await;
+*/
 
-    // User Repo\
-    /*
-    UserRepository::insert(three)
-        .modify(UserInsertionField::All)
-        .execute_on(database)
-        .await;
-    */
-    //.execute_on(pg);
+// User Repo\
+/*
+UserRepository::insert(three)
+    .modify(UserInsertionField::All)
+    .execute_on(database)
+    .await;
+*/
+//.execute_on(pg);
 
-    //UserRepository::insert(three)
-    //  .modify(UserInsertionField::All);
+//UserRepository::insert(three)
+//  .modify(UserInsertionField::All);
 
-    //let mut three = UserAccount::new(one, two);
-    //UserAccount::new(one, two)
-    //.create();
-    /*
-    //insert
-    UserAccount::insert()
-        .modify(UserField::Username)
-        .field(&[&"username"])
-        .execute();
-    //update
-    UserAccount::update(one)
-        .modify(&[&UserField::Password, UserField::Username])
-        .value(&[&"adsadsasdsa", "asddasadssda"])
-        .execute();
-    //find
-    UserAccount::find()
-        .find(UserFind::Username)
-        .value("dasdasd")
-        .execute();
-    */
+//let mut three = UserAccount::new(one, two);
+//UserAccount::new(one, two)
+//.create();
+/*
+//insert
+UserAccount::insert()
+    .modify(UserField::Username)
+    .field(&[&"username"])
+    .execute();
+//update
+UserAccount::update(one)
+    .modify(&[&UserField::Password, UserField::Username])
+    .value(&[&"adsadsasdsa", "asddasadssda"])
+    .execute();
+//find
+UserAccount::find()
+    .find(UserFind::Username)
+    .value("dasdasd")
+    .execute();
+*/
 
-    //one.email("{username}@{email}.com").build();
-    //two.role("admin").build();
-    /*
-    let testie = UserIdentity::new()
-        .email("email")
-        .oauth_id("oauth_id")
-        .oauth_provider("oauth_provider")
-        .username("username")
-        .verified(false)
-        .build();
+//one.email("{username}@{email}.com").build();
+//two.role("admin").build();
+/*
+let testie = UserIdentity::new()
+    .email("email")
+    .oauth_id("oauth_id")
+    .oauth_provider("oauth_provider")
+    .username("username")
+    .verified(false)
+    .build();
 
-    UserIdentityQuery::create_account(testie).on_success(() {
-        Ok() => UserIdentityQuery::create_session(testie);;
-        Err() => Failed
-    });
-    UserIdentityQuery::create_session(testie);
-    */
-    /*
-    let test = UserIdentity::new()
-        .username("username")
-        .email("username@gmail.com")
-        .oauth_provider("discord")
-        .oauth_id("132132132312312")
-        .verified(false)
-        .build();
-    */
-
-    
+UserIdentityQuery::create_account(testie).on_success(() {
+    Ok() => UserIdentityQuery::create_session(testie);;
+    Err() => Failed
+});
+UserIdentityQuery::create_session(testie);
+*/
+/*
+let test = UserIdentity::new()
+    .username("username")
+    .email("username@gmail.com")
+    .oauth_provider("discord")
+    .oauth_id("132132132312312")
+    .verified(false)
+    .build();
+*/
 
 /*
     arc.check(Health::Database, () => {

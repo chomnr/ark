@@ -1,6 +1,37 @@
-pub mod access;
+use crate::app::ark::ArkState;
+
+use self::access::role::RoleManager;
+
 pub mod identity;
+pub mod access;
+pub mod user;
+
+pub struct IamManager {
+    role: RoleManager,
+}
+
+impl IamManager {
+    pub fn new_with_state(state: ArkState) -> Self { 
+        Self {
+            role: RoleManager::new(state.postgres)
+        }
+    }
+}
+
+pub type IamResult<T> = Result<T, IamError>;
+
+#[derive(Debug)]
+pub enum IamError {
+    RoleAlreadyFound,
+    RoleCannotBeFound
+}
+
 /*
+
+pub fn test(){
+    let test = IamManager::new_with_state(todo!());
+}
+
 pub struct Iam {
     pg: PostgresDatabase
 }
