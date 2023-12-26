@@ -63,4 +63,17 @@ impl PermissionManager {
         let result = pool.execute(&stmt, &[&role_id, &permission_id]).await?;
         Ok(result)
     }
+
+    pub async fn add_identity_permission(
+        &self,
+        role_id: i64,
+        permission_id: i64,
+    ) -> Result<u64, Error> {
+        let pool = self.pg.pool.get().await.unwrap();
+        let stmt = pool
+            .prepare("INSERT INTO identity_permission (identity_id, permission_id) VALUES ($1, $2)")
+            .await?;
+        let result = pool.execute(&stmt, &[&role_id, &permission_id]).await?;
+        Ok(result)
+    }
 }
