@@ -63,10 +63,10 @@ impl PermissionManager {
         let result = pool.execute(&stmt, &[&role_id, &permission_id]).await?;
         Ok(result)
     }
+}
 
-    // add_role_permission()
+// add_role_permission()
     // remove_role_permission()
 
     // add_user_permission()
     // remove_user_permission()
-}

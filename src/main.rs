@@ -1,7 +1,7 @@
 #![forbid(unsafe_code)]
 use app::{
     ark::ArkServer,
-    database::postgres::{PostgresConfig, PostgresDatabase}, service::iam::access::permission::PermissionManager,
+    database::postgres::{PostgresConfig, PostgresDatabase}, service::iam::access::{permission::PermissionManager, role::RoleManager},
 };
 
 pub mod app;
@@ -11,9 +11,8 @@ async fn main() {
     let ark = ArkServer::default().await;
     let pg = PostgresDatabase::new(PostgresConfig::default()).await;
 
-    let test = PermissionManager::new(pg);
-    test.create_permission("BAN USER", "admin.ban.user").await.unwrap();
-    
+    let test = RoleManager::new(pg);
+
     ark.run().await;
 }
 
