@@ -10,11 +10,9 @@ pub mod app;
 #[tokio::main]
 async fn main() {
     let ark = ArkServer::default().await;
-    // UserRepository::call_event("identity_create", serde_json)
     let pg = PostgresDatabase::new(PostgresConfig::default()).await;
-    let role = RoleManager::new(pg);
-
-    role.delete_role("admin").await.unwrap();
+    // UserRepository::call_event("identity_create", serde_json)
+    //let role = RoleManager::new(pg);
 
     ark.run().await;
 }
