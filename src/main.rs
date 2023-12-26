@@ -1,19 +1,30 @@
 #![forbid(unsafe_code)]
-use app::{
-    arc::ArkServer,
-    database::{postgres::{PostgresConfig, PostgresDatabase}, redis::{RedisDatabase, RedisConfig}},
-};
+use app::
+    arc::ArkServer
+;
 
 pub mod app;
 
 #[tokio::main]
 async fn main() {
     let ark = ArkServer::default().await;
-    let pg_db = PostgresDatabase::new(PostgresConfig::default()).await;
-    let redis_db = RedisDatabase::new(RedisConfig::default()).await;
-
     ark.run().await;
+}
 
+/*
+    let one = UserIdentity::new()
+        .email("hello@gmail.com")
+        .oauth_id("32141341")
+        .oauth_provider("discord")
+        .username("123312")
+        .verified(false)
+        .clone()
+        .build();
+
+
+    let repo = UserRepository::new(database_1);
+    repo.create_new_identity(&one).await.unwrap();
+    */
 
     //repo.create_new_identity(todo!()).await.unwrap();
 
@@ -140,7 +151,8 @@ async fn main() {
         .verified(false)
         .build();
     */
-}
+
+    
 
 /*
     arc.check(Health::Database, () => {

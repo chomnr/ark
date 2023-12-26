@@ -1,7 +1,8 @@
 use tracing::{event, Level};
 
 use crate::app::{
-    database::postgres::PostgresDatabase, service::iam::{identity::model::UserIdentity, account::error::UserRepositoryError},
+    database::postgres::PostgresDatabase,
+    service::iam::{account::error::UserRepositoryError, identity::model::UserIdentity},
 };
 
 use super::error::UserRepositoryResult;
@@ -59,23 +60,36 @@ impl UserRepository {
             .prepare(CREATE_IDENTITY_QUERY)
             .await
             .expect("Error: failed to prepare query.");
-        match client.execute(
-            &stmt,
-            &[
-                &identity.username,
-                &identity.email,
-                &identity.oauth_provider,
-                &identity.oauth_id,
-            ],
-        ).await {
+        match client
+            .execute(
+                &stmt,
+                &[
+                    &identity.username,
+                    &identity.email,
+                    &identity.oauth_provider,
+                    &identity.oauth_id,
+                ],
+            )
+            .await
+        {
             Ok(_) => {
-                event!(Level::INFO, "[ARC] created a new identity for {}({})", identity.username, identity.id);
+                event!(
+                    Level::INFO,
+                    "[ARC] created a new identity for {}({})",
+                    identity.username,
+                    identity.id
+                );
                 Ok(())
-            },
+            }
             Err(_) => {
-                event!(Level::ERROR, "[ARC] failed to created an identity for {}({})", identity.username, identity.id);
+                event!(
+                    Level::ERROR,
+                    "[ARC] failed to created an identity for {}({})",
+                    identity.username,
+                    identity.id
+                );
                 Err(UserRepositoryError::FailedToCreateIdentity)
-            },
+            }
         }
     }
 }

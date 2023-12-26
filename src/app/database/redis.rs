@@ -19,13 +19,31 @@ impl Default for RedisConfig {
     }
 }
 
+impl RedisConfig {
+    pub fn new(host: String, user: String, password: String) -> Self {
+        Self {
+            host,
+            user,
+            password,
+        }
+    }
+
+    pub fn to_conn_string(&self) -> String {
+        format!("redis://{}:{}@{}/", self.user, self.password, self.host)
+    }
+}
+
 #[derive(Clone)]
 pub struct RedisDatabase {
-    pool: Pool<RedisConnectionManager>,
+    pub pool: Pool<RedisConnectionManager>,
 }
 
 impl RedisDatabase {
     pub async fn new(redis_config: RedisConfig) -> Self {
-        todo!()
+        let manager = RedisConnectionManager::new(redis_config.to_conn_string()).unwrap();
+        let pool = Pool::builder().build(manager).await.unwrap();
+        Self {
+            pool
+        }
     }
 }
