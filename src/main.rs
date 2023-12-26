@@ -8,6 +8,7 @@ pub mod app;
 #[tokio::main]
 async fn main() {
     let ark = ArkServer::default().await;
+    // UserRepository::call_event("identity_create", serde_json)
     ark.run().await;
 }
 
