@@ -11,6 +11,7 @@ async fn main() {
     let ark = ArkServer::default().await;
     let pg = PostgresDatabase::new(PostgresConfig::default()).await;
 
+    let test2 = PermissionManager::new(pg.clone());
     let test = RoleManager::new(pg);
 
     ark.run().await;
