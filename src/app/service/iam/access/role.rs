@@ -47,7 +47,6 @@ impl RoleManager {
 
     pub async fn update_role(&self, role_name: &str, new_role_name: &str) -> Result<u64, Error> {
         let pool = self.pg.pool.get().await.unwrap();
-        println!("{} : {}", role_name, new_role_name);
         let stmt = pool.prepare("UPDATE role SET role_name = $1 WHERE role_name = $2").await?;
         let result = pool
             .execute(&stmt, &[&new_role_name, &role_name])

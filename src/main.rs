@@ -2,7 +2,6 @@
 use app::{
     ark::ArkServer,
     database::postgres::{PostgresConfig, PostgresDatabase},
-    service::iam::access::role::RoleManager,
 };
 
 pub mod app;
@@ -11,17 +10,19 @@ pub mod app;
 async fn main() {
     let ark = ArkServer::default().await;
     let pg = PostgresDatabase::new(PostgresConfig::default()).await;
-    // UserRepository::call_event("identity_create", serde_json)
-    //let role = RoleManager::new(pg);
-    let role = RoleManager::new(pg);
-
-    //role.create_role("admin").await.unwrap();
-    role.update_role("admin", "hello").await.unwrap();
-    
     ark.run().await;
 }
 
 /*
+
+// UserRepository::call_event("identity_create", serde_json)
+    //let role = RoleManager::new(pg);
+    let role = RoleManager::new(pg);
+    
+    //role.create_role("admin").await.unwrap();
+    role.update_role("admin", "hello").await.unwrap();
+
+
 let one = UserIdentity::new()
     .email("hello@gmail.com")
     .oauth_id("32141341")
