@@ -1,7 +1,4 @@
 pub mod model;
-pub mod repository;
-pub mod error;
-
 /*
 static CREATE_IDENTITY_QUERY: &str ="INSERT INTO identity (username, email, oauth_provider, oauth_id)
             VALUES ($1, $2, $3, $4)
