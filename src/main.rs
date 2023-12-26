@@ -13,7 +13,11 @@ async fn main() {
     let pg = PostgresDatabase::new(PostgresConfig::default()).await;
     // UserRepository::call_event("identity_create", serde_json)
     //let role = RoleManager::new(pg);
+    let role = RoleManager::new(pg);
 
+    //role.create_role("admin").await.unwrap();
+    role.update_role("admin", "hello").await.unwrap();
+    
     ark.run().await;
 }
 

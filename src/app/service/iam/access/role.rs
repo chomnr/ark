@@ -1,10 +1,8 @@
-use bb8::Pool;
-use bb8_postgres::{tokio_postgres::{NoTls, Error}, PostgresConnectionManager};
+use bb8_postgres::tokio_postgres::Error;
 
-use crate::app::{
-    database::postgres::PostgresDatabase,
-    service::iam::{IamError, IamResult},
-};
+use crate::app::
+    database::postgres::PostgresDatabase
+;
 
 pub struct Role {
     id: usize,
@@ -43,6 +41,16 @@ impl RoleManager {
         let stmt = pool.prepare("DELETE FROM role WHERE role_name = $1").await?;
         let result = pool
             .execute(&stmt, &[&role_name])
+            .await?;
+        Ok(result)
+    }
+
+    pub async fn update_role(&self, role_name: &str, new_role_name: &str) -> Result<u64, Error> {
+        let pool = self.pg.pool.get().await.unwrap();
+        println!("{} : {}", role_name, new_role_name);
+        let stmt = pool.prepare("UPDATE role SET role_name = $1 WHERE role_name = $2").await?;
+        let result = pool
+            .execute(&stmt, &[&new_role_name, &role_name])
             .await?;
         Ok(result)
     }
