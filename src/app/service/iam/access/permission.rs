@@ -64,9 +64,3 @@ impl PermissionManager {
         Ok(result)
     }
 }
-
-// add_role_permission()
-    // remove_role_permission()
-
-    // add_user_permission()
-    // remove_user_permission()
