@@ -17,11 +17,11 @@ CREATE TABLE permission (
 CREATE TABLE user_role (
     user_id VARCHAR(255),
     role_id INTEGER NOT NULL,
-    PRIMARY KEY (user, role_id)
+    PRIMARY KEY (user_id, role_id)
 );
 
 -- This table stores information about the user
-CREATE TABLE user (
+CREATE TABLE users (
     id INTEGER GENERATED ALWAYS AS IDENTITY,
     username VARCHAR(255) NOT NULL UNIQUE,
     email VARCHAR(255) NOT NULL UNIQUE,
@@ -36,7 +36,7 @@ CREATE TABLE user_oauth (
     oauth_id VARCHAR(255) NOT NULL,
     oauth_provider VARCHAR(255) NOT NULL,
     UNIQUE(oauth_id, oauth_provider),
-    FOREIGN KEY (user_id) REFERENCES user(id),
+    FOREIGN KEY (user_id) REFERENCES users(id),
     PRIMARY KEY(user_id)
 );
 
@@ -52,7 +52,7 @@ CREATE TABLE role_permission (
 -- This table links identities with permissions, enabling a many-to-many 
 -- relationship where a identity can specific permissions for themselves.
 CREATE TABLE user_permission (
-    user_id INTEGER REFERENCES user(id),
+    user_id INTEGER REFERENCES users(id),
     permission_id INTEGER REFERENCES permission(id),
     PRIMARY KEY (user_id, permission_id)
 );
