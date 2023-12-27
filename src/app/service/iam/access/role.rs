@@ -16,6 +16,7 @@ impl Role {
     }
 }
 
+#[derive(Clone)]
 pub struct RoleManager {
     pg: PostgresDatabase,
 }

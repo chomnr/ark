@@ -1,28 +1,28 @@
 #![forbid(unsafe_code)]
-use app::{
-    ark::ArkServer,
-    database::postgres::{PostgresConfig, PostgresDatabase}, service::iam::access::{permission::PermissionManager, role::RoleManager},
-};
+use app::{ark::{ArkServer, ArkState}, service::iam::access::role::RoleManager};
 
 pub mod app;
 
 #[tokio::main]
 async fn main() {
     let ark = ArkServer::default().await;
-    let pg = PostgresDatabase::new(PostgresConfig::default()).await;
-
-    let test2 = PermissionManager::new(pg.clone());
-    let test = RoleManager::new(pg);
-    test2.delete_role_permission(9, 1).await.unwrap();
     ark.run().await;
 }
+
+//let pg = PostgresDatabase::new(PostgresConfig::default()).await;
+
+//let test2 = PermissionManager::new(pg.clone());
+//let test = RoleManager::new(pg);
+
+//test2.delete_role_permission(9, 1).await.unwrap();
+//test.create_role("admin").await.unwrap();
 
 /*
 
 // UserRepository::call_event("identity_create", serde_json)
     //let role = RoleManager::new(pg);
     let role = RoleManager::new(pg);
-    
+
     //role.create_role("admin").await.unwrap();
     role.update_role("admin", "hello").await.unwrap();
 

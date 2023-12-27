@@ -18,6 +18,7 @@ impl Permission {
     }
 }
 
+#[derive(Clone)]
 pub struct PermissionManager {
     pg: PostgresDatabase,
 }
