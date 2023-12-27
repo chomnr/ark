@@ -52,7 +52,7 @@ impl RoleManager {
         Ok(result)
     }
 
-    pub async fn find_role_info(&self, role_name: &str) -> Result<Role, Error> {
+    pub async fn find_role(&self, role_name: &str) -> Result<Role, Error> {
         let pool = self.pg.pool.get().await.unwrap();
         let stmt = pool
             .prepare("SELECT * FROM role WHERE role_name = $1")

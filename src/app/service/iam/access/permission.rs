@@ -63,4 +63,17 @@ impl PermissionManager {
         let result = pool.execute(&stmt, &[&role_id, &permission_id]).await?;
         Ok(result)
     }
+
+    pub async fn delete_role_permission(
+        &self,
+        role_id: i32,
+        permission_id: i32,
+    ) -> Result<u64, Error> {
+        let pool = self.pg.pool.get().await.unwrap();
+        let stmt = pool
+            .prepare("DELETE FROM role_permission WHERE role_id = $1 and permission_id = $2")
+            .await?;
+        let result = pool.execute(&stmt, &[&role_id, &permission_id]).await?;
+        Ok(result)
+    }
 }

@@ -13,7 +13,7 @@ async fn main() {
 
     let test2 = PermissionManager::new(pg.clone());
     let test = RoleManager::new(pg);
-
+    test2.delete_role_permission(9, 1).await.unwrap();
     ark.run().await;
 }
 
