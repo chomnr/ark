@@ -13,15 +13,15 @@ CREATE TABLE permission (
     PRIMARY KEY (id)
 );
 
--- This table links identities with specific roles
-CREATE TABLE identity_role (
-    identity_id VARCHAR(255),
+-- This table links user with specific roles
+CREATE TABLE user_role (
+    user_id VARCHAR(255),
     role_id INTEGER NOT NULL,
-    PRIMARY KEY (identity_id, role_id)
+    PRIMARY KEY (user, role_id)
 );
 
--- This table stores information about the identity
-CREATE TABLE identity (
+-- This table stores information about the user
+CREATE TABLE user (
     id INTEGER GENERATED ALWAYS AS IDENTITY,
     username VARCHAR(255) NOT NULL UNIQUE,
     email VARCHAR(255) NOT NULL UNIQUE,
@@ -31,13 +31,13 @@ CREATE TABLE identity (
     PRIMARY KEY(id)
 );
 
-CREATE TABLE identity_oauth (
-    identity_id INTEGER NOT NULL,
+CREATE TABLE user_oauth (
+    user_id INTEGER NOT NULL,
     oauth_id VARCHAR(255) NOT NULL,
     oauth_provider VARCHAR(255) NOT NULL,
     UNIQUE(oauth_id, oauth_provider),
-    FOREIGN KEY (identity_id) REFERENCES identity(id),
-    PRIMARY KEY(identity_id)
+    FOREIGN KEY (user_id) REFERENCES user(id),
+    PRIMARY KEY(user_id)
 );
 
 -- This table links roles with permissions, enabling a many-to-many 
@@ -51,8 +51,8 @@ CREATE TABLE role_permission (
 
 -- This table links identities with permissions, enabling a many-to-many 
 -- relationship where a identity can specific permissions for themselves.
-CREATE TABLE identity_permission (
-    identity_id INTEGER REFERENCES identity(id),
+CREATE TABLE user_permission (
+    user_id INTEGER REFERENCES user(id),
     permission_id INTEGER REFERENCES permission(id),
-    PRIMARY KEY (identity_id, permission_id)
+    PRIMARY KEY (user_id, permission_id)
 );
