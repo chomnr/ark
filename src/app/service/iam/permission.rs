@@ -1,5 +1,3 @@
-use bb8_postgres::tokio_postgres::{Statement, Error, types::Kind};
-
 use crate::app::database::postgres::PostgresDatabase;
 
 /// Represents a permission entity with an ID, name, and key.
@@ -105,9 +103,7 @@ impl PermissionBuilder {
 /// ```
 ///
 /// The `new` method creates a `PermissionRepoBuilder` preset to create new permissions, allowing further customization through the builder's methods.
-pub struct PermissionRepo {
-    pg: PostgresDatabase,
-}
+pub struct PermissionRepo;
 
 #[derive(PartialEq, Eq)]
 pub enum PermissionAction {
@@ -146,7 +142,6 @@ impl PermissionAction {
         }
     }
 }
-
 /// Builder for constructing and executing actions in a `PermissionRepo`.
 ///
 /// Allows configuring a `PermissionRepo` operation with a specific database, action, and parameters.
@@ -164,6 +159,9 @@ impl PermissionAction {
 /// 
 /// Parameters: 
 /// - `Create`: ("permission name", "permission.key")
+/// - `Delete`: ("permission_key")
+/// - `CreateWithRole`: ("role_id", "permission_id")
+/// - `DeleteWithRole`: ("role_id", "permission_id")
 ///
 /// Example:
 /// ```
@@ -205,7 +203,15 @@ impl<'a> PermissionRepoBuilder<'a> {
         if self.parameter.len() != self.action.parameter_amt() {
             // throw parameter mismatch
         }
-        // pool.execute(&stmt, &[&""]).await.unwrap();
-        todo!()
+        pool.execute(&stmt, &[&self.parameter]).await.unwrap();
     }
+}
+
+pub fn test() {
+    /*
+    PermissionRepo::new(todo!())
+        .action(PermissionAction::Create)
+        .parameter(&[&""])
+        .execute();
+    */
 }
