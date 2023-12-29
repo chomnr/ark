@@ -1,11 +1,18 @@
 #![forbid(unsafe_code)]
-use app::ark::ArkServer;
+use app::{
+    ark::ArkServer,
+    database::postgres::{PostgresConfig, PostgresDatabase},
+    service::iam::permission::{PermissionAction, PermissionRepoBuilder},
+};
 
 pub mod app;
 
 #[tokio::main]
 async fn main() {
     let ark = ArkServer::default().await;
+    let database = PostgresDatabase::new(PostgresConfig::default()).await;
+
+    //PermissionRepoBuilder::new()
     ark.run().await;
 }
 

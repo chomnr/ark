@@ -31,17 +31,6 @@ CREATE TABLE users (
     PRIMARY KEY(id)
 );
 
-/*
-CREATE TABLE user_oauth (
-    user_id INTEGER NOT NULL,
-    oauth_id VARCHAR(255) NOT NULL,
-    oauth_provider VARCHAR(255) NOT NULL,
-    UNIQUE(oauth_id, oauth_provider),
-    FOREIGN KEY (user_id) REFERENCES users(id),
-    PRIMARY KEY(user_id)
-);
-*/
-
 -- This table links roles with permissions, enabling a many-to-many 
 -- relationship where a role can have multiple permissions, and a 
 -- permission can belong to multiple roles.
@@ -58,3 +47,14 @@ CREATE TABLE user_permission (
     permission_id INTEGER REFERENCES permission(id),
     PRIMARY KEY (user_id, permission_id)
 );
+
+/*
+CREATE TABLE user_oauth (
+    user_id INTEGER NOT NULL,
+    oauth_id VARCHAR(255) NOT NULL,
+    oauth_provider VARCHAR(255) NOT NULL,
+    UNIQUE(oauth_id, oauth_provider),
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    PRIMARY KEY(user_id)
+);
+*/

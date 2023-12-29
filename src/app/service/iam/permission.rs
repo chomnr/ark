@@ -1,5 +1,6 @@
-use crate::app::database::postgres::PostgresDatabase;
+use bb8_postgres::tokio_postgres::{Error, types::ToSql};
 
+use crate::app::database::postgres::PostgresDatabase;
 /// Represents a permission entity with an ID, name, and key.
 ///
 /// Fields:
@@ -110,15 +111,15 @@ pub enum PermissionAction {
     Create,
     Delete,
     CreateWithRole,
-    DeleteWithRole
+    DeleteWithRole,
 }
 
 impl<'a> PermissionRepo {
     pub fn new(pg: PostgresDatabase) -> PermissionRepoBuilder<'a> {
-        PermissionRepoBuilder { 
-            pg, 
-            action: PermissionAction::Create, 
-            parameter: &[] 
+        PermissionRepoBuilder {
+            pg,
+            action: PermissionAction::Create,
+            parameter: &[],
         }
     }
 }
@@ -126,10 +127,16 @@ impl<'a> PermissionRepo {
 impl PermissionAction {
     fn to_query(&self) -> &'static str {
         match self {
-            PermissionAction::Create => "INSERT INTO permission (permission_name, permission_key) VALUES ($1, $2)",
+            PermissionAction::Create => {
+                "INSERT INTO permission (permission_name, permission_key) VALUES ($1, $2)"
+            }
             PermissionAction::Delete => "DELETE FROM permission WHERE permission_key = $1",
-            PermissionAction::CreateWithRole => "INSERT INTO role_permission (role_id, permission_id) VALUES ($1, $2)",
-            PermissionAction::DeleteWithRole => "DELETE FROM role_permission WHERE role_id = $1 and permission_id = $2",
+            PermissionAction::CreateWithRole => {
+                "INSERT INTO role_permission (role_id, permission_id) VALUES ($1, $2)"
+            }
+            PermissionAction::DeleteWithRole => {
+                "DELETE FROM role_permission WHERE role_id = $1 and permission_id = $2"
+            }
         }
     }
 
@@ -156,8 +163,8 @@ impl PermissionAction {
 /// - `action`: Sets the action to be performed by the repository.
 /// - `parameter`: Sets the parameters for the action.
 /// - `execute`: Executes the configured action on the repository.
-/// 
-/// Parameters: 
+///
+/// Parameters:
 /// - `Create`: ("permission name", "permission.key")
 /// - `Delete`: ("permission_key")
 /// - `CreateWithRole`: ("role_id", "permission_id")
@@ -175,7 +182,7 @@ impl PermissionAction {
 pub struct PermissionRepoBuilder<'a> {
     pg: PostgresDatabase,
     action: PermissionAction,
-    parameter: &'a [&'a str]
+    parameter: &'a [&'a (dyn ToSql + Sync)],
 }
 
 impl<'a> PermissionRepoBuilder<'a> {
@@ -192,26 +199,17 @@ impl<'a> PermissionRepoBuilder<'a> {
         self
     }
 
-    pub fn parameter(&mut self, parameter: &'a [&str]) -> &mut Self {
+    pub fn parameter(&mut self, parameter: &'a [&'a (dyn ToSql + Sync)]) -> &mut Self {
         self.parameter = parameter;
         self
     }
 
-    pub async fn execute(&self) {
+    pub async fn execute(&self) -> Result<u64, Error> {
         let pool = self.pg.pool.get().await.unwrap();
-        let stmt = pool.prepare(self.action.to_query()).await.unwrap();
+        let stmt = pool.prepare(self.action.to_query()).await?;
         if self.parameter.len() != self.action.parameter_amt() {
-            // throw parameter mismatch
+            todo!()
         }
-        pool.execute(&stmt, &[&self.parameter]).await.unwrap();
+        Ok(pool.execute(&stmt, self.parameter).await?)
     }
-}
-
-pub fn test() {
-    /*
-    PermissionRepo::new(todo!())
-        .action(PermissionAction::Create)
-        .parameter(&[&""])
-        .execute();
-    */
 }
