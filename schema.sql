@@ -22,15 +22,16 @@ CREATE TABLE user_role (
 
 -- This table stores information about the user
 CREATE TABLE users (
-    id INTEGER GENERATED ALWAYS AS IDENTITY,
-    username VARCHAR(255) NOT NULL UNIQUE,
-    email VARCHAR(255) NOT NULL UNIQUE,
+    id INTEGER,
+    username VARCHAR(255) UNIQUE,
+    email VARCHAR(255) UNIQUE,
     verified BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT (now() AT TIME ZONE 'UTC'),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT (now() AT TIME ZONE 'UTC'),
     PRIMARY KEY(id)
 );
 
+/*
 CREATE TABLE user_oauth (
     user_id INTEGER NOT NULL,
     oauth_id VARCHAR(255) NOT NULL,
@@ -39,6 +40,7 @@ CREATE TABLE user_oauth (
     FOREIGN KEY (user_id) REFERENCES users(id),
     PRIMARY KEY(user_id)
 );
+*/
 
 -- This table links roles with permissions, enabling a many-to-many 
 -- relationship where a role can have multiple permissions, and a 
