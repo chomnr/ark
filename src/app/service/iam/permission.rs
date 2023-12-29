@@ -88,9 +88,33 @@ impl PermissionBuilder {
         }
     }
 }
-// ignore here todo;
+/// Repository for managing permission-related data in a database.
+///
+/// Encapsulates database interactions specifically for permission-related operations.
+///
+/// Field:
+/// - `pg`: An instance of `PostgresDatabase` representing the database connection and operations.
+///
+/// Methods:
+/// - `new`: Initializes a `PermissionRepoBuilder` with default settings for creating permissions.
+///
+/// Example:
+/// ```
+/// let permission_repo = PermissionRepo::new(postgres_database);
+/// // Use permission_repo to perform permission-related operations.
+/// ```
+///
+/// The `new` method creates a `PermissionRepoBuilder` preset to create new permissions, allowing further customization through the builder's methods.
 pub struct PermissionRepo {
     pg: PostgresDatabase,
+}
+
+#[derive(PartialEq, Eq)]
+pub enum PermissionAction {
+    Create,
+    Delete,
+    CreateWithRole,
+    DeleteWithRole
 }
 
 impl<'a> PermissionRepo {
@@ -101,14 +125,6 @@ impl<'a> PermissionRepo {
             parameter: &[] 
         }
     }
-}
-
-#[derive(PartialEq, Eq)]
-pub enum PermissionAction {
-    Create,
-    Delete,
-    CreateWithRole,
-    DeleteWithRole
 }
 
 impl PermissionAction {
@@ -193,103 +209,3 @@ impl<'a> PermissionRepoBuilder<'a> {
         todo!()
     }
 }
-
-pub fn test() {
-    /*
-    PermissionRepo::new(todo!())
-        .action(PermissionAction::Create)
-        .parameter(&[&"Create User", "user.create"])
-        .execute();
-    */
-}
-
-//static CREATE_PERMISSION_QUERY: &str = "INSERT INTO permission (permission_name, permission_key) VALUES ($1, $2)";
-
-/*
-static CREATE_PERMISSION_QUERY: &str = "INSERT INTO permission (permission_name, permission_key) VALUES ($1, $2)";
-static DELETE_PERMISSION_QUERY: &str = "DELETE FROM permission WHERE permission_key = $1";
-static CREATE_ROLE_PERMISSION_QUERY: &str = "INSERT INTO role_permission (role_id, permission_id) VALUES ($1, $2)";
-static DELETE_ROLE_PERMISSION_QUERY: &str = "DELETE FROM role_permission WHERE role_id = $1 and permission_id = $2";
-*/
-
-//let x = "INSERT INTO permission (permission_name, permission_key) VALUES ($1, $2)";
-//let stmt = pool.prepare(x).await.unwrap();
-
-/*
-pub struct Permission {
-    id: usize,
-    permission_name: String,
-    permission_key: String,
-}
-
-impl Permission {
-    pub fn new(id: usize, permission_name: &str, permission_key: &str) -> Self {
-        Self {
-            id,
-            permission_name: String::from(permission_name),
-            permission_key: String::from(permission_key),
-        }
-    }
-}
-
-#[derive(Clone)]
-pub struct PermissionManager {
-    pg: PostgresDatabase,
-}
-
-impl PermissionManager {
-    pub fn new(pg: PostgresDatabase) -> Self {
-        Self { pg }
-    }
-
-    pub async fn create_permission(
-        &self,
-        permission_name: &str,
-        permission_key: &str,
-    ) -> Result<u64, Error> {
-        let pool = self.pg.pool.get().await.unwrap();
-        let stmt = pool
-            .prepare("INSERT INTO permission (permission_name, permission_key) VALUES ($1, $2)")
-            .await?;
-        let result = pool
-            .execute(&stmt, &[&permission_name, &permission_key])
-            .await?;
-        Ok(result)
-    }
-
-    pub async fn delete_permission(&self, permission_key: &str) -> Result<u64, Error> {
-        let pool = self.pg.pool.get().await.unwrap();
-        let stmt = pool
-            .prepare("DELETE FROM permission WHERE permission_key = $1")
-            .await?;
-        let result = pool.execute(&stmt, &[&permission_key]).await?;
-        Ok(result)
-    }
-
-    pub async fn add_role_permission(
-        &self,
-        role_id: i64,
-        permission_id: i64,
-    ) -> Result<u64, Error> {
-        let pool = self.pg.pool.get().await.unwrap();
-        let stmt = pool
-            .prepare("INSERT INTO role_permission (role_id, permission_id) VALUES ($1, $2)")
-            .await?;
-        let result = pool.execute(&stmt, &[&role_id, &permission_id]).await?;
-        Ok(result)
-    }
-
-    pub async fn delete_role_permission(
-        &self,
-        role_id: i32,
-        permission_id: i32,
-    ) -> Result<u64, Error> {
-        let pool = self.pg.pool.get().await.unwrap();
-        let stmt = pool
-            .prepare("DELETE FROM role_permission WHERE role_id = $1 and permission_id = $2")
-            .await?;
-        let result = pool.execute(&stmt, &[&role_id, &permission_id]).await?;
-        Ok(result)
-    }
-}
-*/
