@@ -7,7 +7,8 @@ use serde::Deserialize;
 
 use crate::app::{database::postgres::PostgresDatabase, ark::ArkState};
 
-use super::error::{IamResult, IamError};
+use super::error::{IamError, IamResult};
+
 /// Represents a permission entity with an ID, name, and key.
 ///
 /// Fields:
@@ -149,10 +150,10 @@ impl PermissionAction {
 
     fn error(&self) -> IamError {
         match self {
-            PermissionAction::Create => IamError::UnableToCreatePermission,
-            PermissionAction::Delete => IamError::UnableToDeletePermission,
-            PermissionAction::CreateWithRole => IamError::UnableToLinkRoleToPermission,
-            PermissionAction::DeleteWithRole => IamError::UnableToDeleteRoleToPermission,
+            PermissionAction::Create => IamError::PermissionCreationFailed,
+            PermissionAction::Delete => IamError::PermissionDeletionFailed,
+            PermissionAction::CreateWithRole => IamError::PermissionCreationFailed,
+            PermissionAction::DeleteWithRole => IamError::PermissionFailedToDeleteLinkToRole,
         }
     }
 
@@ -224,18 +225,26 @@ impl<'a> PermissionRepoBuilder<'a> {
         }
     }
 }
-
-// Permission routes
+/// Structure representing the payload for creating a new permission.
+///
+/// Fields:
+/// - `name`: The name of the permission to be created.
+/// - `key`: A unique key associated with the permission.
 #[derive(Deserialize)]
 struct CreatePermission {
     name: String,
     key: String
 }
 
+//#[role="admin", permission="admin.permission.create"]
 async fn post_permission_create(
     Json(payload): Json<CreatePermission>,
     Extension(state): Extension<Arc<ArkState>>,
     cookies: Cookies,
 ) {
-
+    // get session cookie
+    // check if user has a certain permission
+    // 
+    
+    todo!()
 }

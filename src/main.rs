@@ -1,4 +1,3 @@
-#![forbid(unsafe_code)]
 use app::{
     ark::ArkServer,
     database::postgres::{PostgresConfig, PostgresDatabase}, service::iam::permission::PermissionRepo,
@@ -11,7 +10,10 @@ async fn main() {
     let ark = ArkServer::default().await;
     let database = PostgresDatabase::new(PostgresConfig::default()).await;
     let mut repo = PermissionRepo::new(database);
-
+    //if let Err(e) = repo.action(PermissionAction::Create).parameter(&[&"Admin Ban", &"admin.ban"]).execute().await {
+        //eprintln!("[ARC] Execution failed: {}", e);
+    //}
+    
     /*
     if let Err(e) = repo.action(PermissionAction::Create).parameter(&[]).execute().await {
         eprintln!("[ARC] Execution failed: {}", e);
