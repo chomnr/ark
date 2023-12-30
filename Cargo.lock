@@ -87,6 +87,7 @@ dependencies = [
  "bb8-redis",
  "nanoid",
  "oauth2",
+ "serde",
  "serde_json",
  "tokio",
  "tower-cookies",

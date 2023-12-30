@@ -1,8 +1,7 @@
 #![forbid(unsafe_code)]
 use app::{
     ark::ArkServer,
-    database::postgres::{PostgresConfig, PostgresDatabase},
-    service::iam::permission::{PermissionAction, PermissionRepoBuilder},
+    database::postgres::{PostgresConfig, PostgresDatabase}, service::iam::permission::PermissionRepo,
 };
 
 pub mod app;
@@ -11,7 +10,33 @@ pub mod app;
 async fn main() {
     let ark = ArkServer::default().await;
     let database = PostgresDatabase::new(PostgresConfig::default()).await;
+    let mut repo = PermissionRepo::new(database);
 
+    /*
+    if let Err(e) = repo.action(PermissionAction::Create).parameter(&[]).execute().await {
+        eprintln!("[ARC] Execution failed: {}", e);
+        // Handle the error case
+    }
+    */
+    /*
+    repo
+        .action(PermissionAction::Create).parameter(&[])
+        .parameter(&[])
+        .execute().await.unwrap();
+
+    repo
+        .action(PermissionAction::Create).parameter(&[])
+        .parameter(&[])
+        .execute().await.unwrap();
+    */
+    /*
+    PermissionRepoBuilder::new(database)
+        .action(PermissionAction::Delete)
+        .parameter(&[&"Test Permission", &"test.permission"])
+        .execute()
+        .await
+        .unwrap();
+    */
     //PermissionRepoBuilder::new()
     ark.run().await;
 }

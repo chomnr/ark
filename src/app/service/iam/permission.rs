@@ -1,6 +1,13 @@
-use bb8_postgres::tokio_postgres::{Error, types::ToSql};
+use std::sync::Arc;
 
-use crate::app::database::postgres::PostgresDatabase;
+use axum::{Extension, Json};
+use bb8_postgres::tokio_postgres::types::ToSql;
+use tower_cookies::Cookies;
+use serde::Deserialize;
+
+use crate::app::{database::postgres::PostgresDatabase, ark::ArkState};
+
+use super::error::{IamResult, IamError};
 /// Represents a permission entity with an ID, name, and key.
 ///
 /// Fields:
@@ -140,6 +147,15 @@ impl PermissionAction {
         }
     }
 
+    fn error(&self) -> IamError {
+        match self {
+            PermissionAction::Create => IamError::UnableToCreatePermission,
+            PermissionAction::Delete => IamError::UnableToDeletePermission,
+            PermissionAction::CreateWithRole => IamError::UnableToLinkRoleToPermission,
+            PermissionAction::DeleteWithRole => IamError::UnableToDeleteRoleToPermission,
+        }
+    }
+
     fn parameter_amt(&self) -> usize {
         match self {
             PermissionAction::Create => 2,
@@ -186,14 +202,6 @@ pub struct PermissionRepoBuilder<'a> {
 }
 
 impl<'a> PermissionRepoBuilder<'a> {
-    pub fn new(pg: PostgresDatabase) -> PermissionRepoBuilder<'a> {
-        Self {
-            pg,
-            action: PermissionAction::Create,
-            parameter: &[],
-        }
-    }
-
     pub fn action(&mut self, action: PermissionAction) -> &mut Self {
         self.action = action;
         self
@@ -204,12 +212,30 @@ impl<'a> PermissionRepoBuilder<'a> {
         self
     }
 
-    pub async fn execute(&self) -> Result<u64, Error> {
+    pub async fn execute(&self) -> IamResult<u64> {
         let pool = self.pg.pool.get().await.unwrap();
-        let stmt = pool.prepare(self.action.to_query()).await?;
+        let stmt = pool.prepare(self.action.to_query()).await.unwrap();
         if self.parameter.len() != self.action.parameter_amt() {
-            todo!()
+            return Err(IamError::PermissionParameterMismatch)
         }
-        Ok(pool.execute(&stmt, self.parameter).await?)
+        match pool.execute(&stmt, self.parameter).await {
+            Ok(v) => Ok(v),
+            Err(_) => Err(self.action.error()),
+        }
     }
+}
+
+// Permission routes
+#[derive(Deserialize)]
+struct CreatePermission {
+    name: String,
+    key: String
+}
+
+async fn post_permission_create(
+    Json(payload): Json<CreatePermission>,
+    Extension(state): Extension<Arc<ArkState>>,
+    cookies: Cookies,
+) {
+
 }

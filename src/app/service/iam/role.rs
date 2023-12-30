@@ -1,7 +1,3 @@
-use bb8_postgres::tokio_postgres::Error;
-
-use crate::app::database::postgres::PostgresDatabase;
-
 pub struct Role {
     pub id: i32,
     pub role_name: String,
@@ -16,6 +12,8 @@ impl Role {
     }
 }
 
+/*
+///
 #[derive(Clone)]
 pub struct RoleManager {
     pg: PostgresDatabase,
@@ -65,3 +63,4 @@ impl RoleManager {
         })
     }
 }
+*/
