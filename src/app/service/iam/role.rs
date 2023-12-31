@@ -174,7 +174,6 @@ impl RoleAction {
 /// ```
 ///
 /// In this example, `builder` is configured to create a new role with the specified parameters, and then executes this action asynchronously.
-
 pub struct RoleRepoBuilder<'a> {
     pg: PostgresDatabase,
     action: RoleAction,
