@@ -22,12 +22,12 @@ CREATE TABLE user_role (
 
 -- This table stores information about the user
 CREATE TABLE users (
-    id INTEGER,
+    id BIGINT,
     username VARCHAR(255) UNIQUE,
     email VARCHAR(255) UNIQUE,
     verified BOOLEAN NOT NULL DEFAULT FALSE,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT (now() AT TIME ZONE 'UTC'),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT (now() AT TIME ZONE 'UTC'),
+    created_at BIGINT NOT NULL DEFAULT (EXTRACT(EPOCH FROM NOW()) * 1000)::BIGINT,
+    updated_at BIGINT NOT NULL DEFAULT (EXTRACT(EPOCH FROM NOW()) * 1000)::BIGINT,
     PRIMARY KEY(id)
 );
 

@@ -1,129 +1,137 @@
-use bb8_postgres::tokio_postgres::Error;
-
-use crate::app::database::postgres::PostgresDatabase;
-
-/*
+/// Represents a user in the system.
+///
+/// This struct encapsulates key information and attributes associated with a user.
+///
+/// Fields:
+/// - `id`: An `i32` representing the unique identifier of the user.
+/// - `username`: A `String` containing the user's username.
+/// - `email`: A `String` representing the user's email address.
+/// - `verified`: A `bool` indicating whether the user's account has been verified.
+/// - `created_at`: A `String` specifying the timestamp when the user account was created.
+/// - `updated_at`: A `String` indicating the timestamp of the last update made to the user account.
+///
+/// The structure is designed to capture essential user-related data, including identification, contact information, and acc
 pub struct User {
-    info: UserInfo,
-    perm: Vec<Permission>,
-    role: Vec<Role>,
-}
-
-pub struct UserInfo {
-    id: i32,
+    id: i64,
     username: String,
     email: String,
     verified: bool,
-    created_at: String,
-    updated_at: String,
+    created_at: i64,
+    updated_at: i64,
 }
 
 impl User {
     pub fn new(
+        id: i64,
         username: &str,
         email: &str,
         verified: bool,
-        perm: Vec<Permission>,
-        role: Vec<Role>,
+        created_at: i64,
+        updated_at: i64,
     ) -> Self {
         Self {
-            info: UserInfo {
-                id: 0,
-                username: String::from(username),
-                email: String::from(email),
-                verified,
-                created_at: String::default(),
-                updated_at: String::default(),
-            },
-            perm,
-            role,
+            id,
+            username: String::from(username),
+            email: String::from(email),
+            verified,
+            created_at,
+            updated_at,
         }
     }
-}
 
-pub struct UserManager {
-    pg: PostgresDatabase,
-}
-
-impl UserManager {
-    pub fn new(pg: PostgresDatabase) -> Self {
-        Self { pg }
+    pub fn builder() -> UserBuilder {
+        UserBuilder::default()
     }
-
-    pub async fn create_user(&self, id: i32) -> Result<u64, Error> {
-        let pool = self.pg.pool.get().await.unwrap();
-        let stmt = todo!();
-        todo!()
-    }
-
-    pub async fn set_username(&self, id: i32, username: &str) {}
-
-    pub async fn set_email(&self, id: i32, email: &str) {}
-    
-    pub async fn set_verified(&self, verified: bool) {}
-}
-*/
-
-//let stmt = pool.prepare("INSERT INTO users (username, email, verified) VALUES($1, $2, $3)").await?;
-        // create user 
-        /*
-        let stmt = pool
-            .prepare(
-                "INSERT INTO identity (username, email, verified, created_at)
-                VALUES ($1, $2, $3, $4)
-                ON CONFLICT (oauth_id)
-                DO UPDATE SET updated_at = CURRENT_TIMESTAMP
-                RETURNING *;",
-            )
-            .await?;
-        */
-        //let result = pool.execute(&stmt, &[&role_id, &permission_id]).await?;
-        //Ok(result)
-
-/*
-
-fn test(){
-    //UserManager::new(pg)
-      //  .create_user();
 }
 
-
-
-pub struct User {
-    id: i32,
+/// Builder for constructing a `User` instance.
+///
+/// Provides a flexible way to build a `User` object, allowing for incremental setting of user attributes.
+///
+/// Fields:
+/// - `id`: A `i64` representing the unique identifier of the user.
+/// - `username`: A `String` for the user's username.
+/// - `email`: A `String` for the user's email address.
+/// - `verified`: A `bool` indicating whether the user's account is verified.
+/// - `created_at`: A `String` denoting the timestamp when the user account was created.
+/// - `updated_at`: A `String` representing the timestamp of the last update to the user account.
+///
+/// The `UserBuilder` pattern allows for more readable and maintainable code when creating `User` objects with multiple fields.
+///
+/// Example:
+/// ```
+/// let user = UserBuilder {
+///     id: 1,
+///     username: "user123".to_string(),
+///     email: "user@example.com".to_string(),
+///     verified: true,
+///     created_at: 000000,
+///     updated_at: 000000,
+/// }.build();
+/// ```
+///
+/// This example demonstrates creating a `User` object with specified details using the `UserBuilder`.
+pub struct UserBuilder {
+    id: i64,
     username: String,
     email: String,
     verified: bool,
-    created_at: String,
-    updated_at: String,
-    perms: Vec<Permission>,
-    role: Role,
+    created_at: i64,
+    updated_at: i64,
 }
 
-impl User {
-    pub fn new(username: &str, email: &str, perms: Vec<Permission>, role: Role) -> Self {
+impl Default for UserBuilder {
+    fn default() -> Self {
         Self {
-            id: i32::default(),
-            username: String::from(username),
-            email: String::from(email),
-            verified: false,
-            created_at: String::default(),
-            updated_at: String::default(),
-            perms,
-            role,
+            id: Default::default(),
+            username: Default::default(),
+            email: Default::default(),
+            verified: Default::default(),
+            created_at: Default::default(),
+            updated_at: Default::default(),
         }
     }
 }
 
-pub struct UserManager {
-    pg: PostgresDatabase
-}
+impl UserBuilder {
+    pub fn id(&mut self, id: i64) -> &mut Self {
+        self.id = id;
+        self
+    }
 
-impl UserManager {
-    pub fn new(pg: PostgresDatabase) -> Self {
-        Self {
-            pg
+    pub fn username(&mut self, username: &str) -> &mut Self {
+        self.username = String::from(username);
+        self
+    }
+
+    pub fn email(&mut self, email: &str) -> &mut Self {
+        self.email = String::from(email);
+        self
+    }
+
+    pub fn verified(&mut self, verified: bool) -> &mut Self {
+        self.verified = verified;
+        self
+    }
+
+    pub fn created_at(&mut self, created_at: i64) -> &mut Self {
+        self.created_at = created_at;
+        self
+    }
+
+    pub fn updated_at(&mut self, updated_at: i64) -> &mut Self {
+        self.updated_at = updated_at;
+        self
+    }
+
+    pub fn build(&self) -> User {
+        User {
+            id: self.id,
+            username: self.username.clone(),
+            email: self.email.clone(),
+            verified: self.verified,
+            created_at: self.created_at,
+            updated_at: self.updated_at,
         }
     }
 }
-*/
