@@ -1,7 +1,7 @@
 use core::fmt;
 use std::env;
 
-use axum::{extract::FromRef, routing::get, Extension, Router};
+use axum::{extract::FromRef, Extension, Router};
 use tokio::net::TcpListener;
 use tower_cookies::{CookieManagerLayer, Key};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
@@ -47,7 +47,7 @@ impl ArkServer {
             port: PORT,
             mode: MODE,
             router: Router::new()
-                .route("/", get(|| async { "Hello, World!" }))
+                .nest("/permission", todo!())
                 .layer(CookieManagerLayer::new())
                 .layer(Extension(ArkState::default().await)),
         }

@@ -1,11 +1,6 @@
-use std::sync::Arc;
-
-use axum::{Extension, Json};
 use bb8_postgres::tokio_postgres::types::ToSql;
-use tower_cookies::Cookies;
-use serde::Deserialize;
 
-use crate::app::{database::postgres::PostgresDatabase, ark::ArkState};
+use crate::app::database::postgres::PostgresDatabase;
 
 use super::error::{IamError, IamResult};
 
@@ -77,6 +72,11 @@ impl Default for PermissionBuilder {
 }
 
 impl PermissionBuilder {
+    pub fn id(&mut self, id: i32) -> &mut Self {
+        self.id = id;
+        self
+    }
+
     pub fn name(&mut self, name: &str) -> &mut Self {
         self.name = String::from(name);
         self
@@ -182,7 +182,7 @@ impl PermissionAction {
 /// - `execute`: Executes the configured action on the repository.
 ///
 /// Parameters:
-/// - `Create`: ("permission name", "permission.key")
+/// - `Create`: ("permission_name", "permission_key")
 /// - `Delete`: ("permission_key")
 /// - `CreateWithRole`: ("role_id", "permission_id")
 /// - `DeleteWithRole`: ("role_id", "permission_id")
@@ -217,34 +217,11 @@ impl<'a> PermissionRepoBuilder<'a> {
         let pool = self.pg.pool.get().await.unwrap();
         let stmt = pool.prepare(self.action.to_query()).await.unwrap();
         if self.parameter.len() != self.action.parameter_amt() {
-            return Err(IamError::PermissionParameterMismatch)
+            return Err(IamError::ParameterMismatch);
         }
         match pool.execute(&stmt, self.parameter).await {
             Ok(v) => Ok(v),
             Err(_) => Err(self.action.error()),
         }
     }
-}
-/// Structure representing the payload for creating a new permission.
-///
-/// Fields:
-/// - `name`: The name of the permission to be created.
-/// - `key`: A unique key associated with the permission.
-#[derive(Deserialize)]
-struct CreatePermission {
-    name: String,
-    key: String
-}
-
-//#[role="admin", permission="admin.permission.create"]
-async fn post_permission_create(
-    Json(payload): Json<CreatePermission>,
-    Extension(state): Extension<Arc<ArkState>>,
-    cookies: Cookies,
-) {
-    // get session cookie
-    // check if user has a certain permission
-    // 
-    
-    todo!()
 }
