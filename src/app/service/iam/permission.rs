@@ -94,9 +94,9 @@ impl PermissionBuilder {
 
     pub fn build(&self) -> Permission {
         Permission {
-            id: Default::default(),
-            name: Default::default(),
-            key: Default::default(),
+            id: self.id,
+            name: self.name.clone(),
+            key: self.key.clone(),
         }
     }
 }

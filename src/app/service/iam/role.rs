@@ -81,8 +81,8 @@ impl RoleBuilder {
 
     pub fn build(&self) -> Role {
         Role {
-            id: Default::default(),
-            name: Default::default(),
+            id: self.id,
+            name: self.name.clone(),
         }
     }
 }
