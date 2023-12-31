@@ -4,18 +4,19 @@ use crate::app::database::postgres::PostgresDatabase;
 
 use super::error::{IamError, IamResult};
 
-/// Represents a user role within the system.
+/// Represents a role entity with an ID and name.
 ///
 /// Fields:
-/// - `id`: An `i32` identifier for the role.
-/// - `role_name`: A `String` representing the name of the role.
+/// - `id`: Integer identifier for the role. (auto generated on insert)
+/// - `name`: Human-readable name of the role.
 ///
 /// Methods:
-/// - `new`: Constructor for creating a new `Role`. It takes an `id` and a `role_name` and returns an instance of `Role`.
-///
+/// - `new`: Constructs a new `Role` instance with the given id, name, and key.
+/// - `builder`: Returns a `RoleBuilder` for constructing a `Role` instance using the builder pattern.
+/// 
 /// Example:
 /// ```
-/// let admin_role = Role::new(1, "Administrator");
+/// let role = Role::new(1, "Admin");
 /// ```
 pub struct Role {
     pub id: i32,
@@ -86,7 +87,6 @@ impl RoleBuilder {
         }
     }
 }
-
 /// Repository for managing role data within a database.
 ///
 /// `RoleRepo` is responsible for handling storage, retrieval, update, and deletion operations related to roles.

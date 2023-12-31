@@ -47,7 +47,6 @@ impl ArkServer {
             port: PORT,
             mode: MODE,
             router: Router::new()
-                .nest("/permission", todo!())
                 .layer(CookieManagerLayer::new())
                 .layer(Extension(ArkState::default().await)),
         }

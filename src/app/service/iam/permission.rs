@@ -14,6 +14,11 @@ use super::error::{IamError, IamResult};
 /// Methods:
 /// - `new`: Constructs a new `Permission` instance with the given id, name, and key.
 /// - `builder`: Returns a `PermissionBuilder` for constructing a `Permission` instance using the builder pattern.
+/// 
+/// Example:
+/// ```
+/// let permission = Role::new(1, "Ban User", "ban.user");
+/// ```
 pub struct Permission {
     id: i32,
     name: String,

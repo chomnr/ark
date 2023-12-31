@@ -45,7 +45,7 @@ pub enum IamError {
 impl fmt::Display for IamError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            IamError::ParameterMismatch => write!(f, "Permission Parameter mismatch: provided values don't match expected count for this action."),
+            IamError::ParameterMismatch => write!(f, "Parameter mismatch: provided values don't match expected count for this action."),
             IamError::PermissionCreationFailed => write!(f, "Failed to create permission: permission with the given key or name already exists."),
             IamError::PermissionDeletionFailed => write!(f, "Failed to delete permission: permission with the given key does not exists."),
             IamError::PermissionFailedToLinkToRole => write!(f, "Failed to link role and permission: either role or permission does not exist."),
