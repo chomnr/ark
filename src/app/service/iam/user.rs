@@ -12,12 +12,12 @@
 ///
 /// The structure is designed to capture essential user-related data, including identification, contact information, and acc
 pub struct User {
-    id: i64,
-    username: String,
-    email: String,
-    verified: bool,
-    created_at: i64,
-    updated_at: i64,
+    pub id: i64,
+    pub username: String,
+    pub email: String,
+    pub verified: bool,
+    pub created_at: i64,
+    pub updated_at: i64,
 }
 
 impl User {

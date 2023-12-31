@@ -20,9 +20,9 @@ use super::error::{IamError, IamResult};
 /// let permission = Role::new(1, "Ban User", "ban.user");
 /// ```
 pub struct Permission {
-    id: i32,
-    name: String,
-    key: String,
+    pub id: i32,
+    pub name: String,
+    pub key: String,
 }
 
 impl Permission {
