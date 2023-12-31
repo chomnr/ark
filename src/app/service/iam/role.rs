@@ -35,7 +35,6 @@ impl Role {
         RoleBuilder::default()
     }
 }
-
 /// Builder for creating instances of `Role`.
 ///
 /// This builder pattern allows for constructing a `Role` object with optional configurations.
@@ -141,7 +140,6 @@ impl RoleAction {
         }
     }
 }
-
 /// Builder for constructing and executing actions within a `RoleRepo`.
 ///
 /// This builder facilitates setting up and performing database operations related to role management.
