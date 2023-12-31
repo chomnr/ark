@@ -39,7 +39,8 @@ pub enum IamError {
     PermissionFailedToLinkToRole,
     PermissionFailedToDeleteLinkToRole,
     RoleCreationFailed,
-    RoleDeletionFailed
+    RoleDeletionFailed,
+    UserCreationFailed
 }
 
 impl fmt::Display for IamError {
@@ -52,6 +53,7 @@ impl fmt::Display for IamError {
             IamError::PermissionFailedToDeleteLinkToRole => write!(f, "Failed to unlink role and permission: either role or permission does not exist."),
             IamError::RoleCreationFailed => write!(f, "Failed to create role: role with the given name already exists."),
             IamError::RoleDeletionFailed => write!(f, "Failed to delete role: role with the given name does not exists."),
+            IamError::UserCreationFailed => write!(f, "Failed to create user: this should not be possible."),
         }
     }
 }
@@ -86,7 +88,11 @@ impl IntoResponse for IamError {
             IamError::RoleDeletionFailed => (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 Json(ErrorResponse::new(StatusCode::INTERNAL_SERVER_ERROR, "RoleDeletionFailed", "The system encountered an issue while attempting to delete the specified role.")),
-            ).into_response()
+            ).into_response(),
+            IamError::UserCreationFailed => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ErrorResponse::new(StatusCode::INTERNAL_SERVER_ERROR, "UserCreationFailed", "The system encountered an issue while attempting to create the specified user.")),
+            ).into_response(),
         }
     }
 }

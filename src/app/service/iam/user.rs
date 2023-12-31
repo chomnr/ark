@@ -1,3 +1,9 @@
+use bb8_postgres::tokio_postgres::types::ToSql;
+
+use crate::app::database::postgres::PostgresDatabase;
+
+use super::error::{IamError, IamResult};
+
 /// Represents a user in the system.
 ///
 /// This struct encapsulates key information and attributes associated with a user.
@@ -43,7 +49,6 @@ impl User {
         UserBuilder::default()
     }
 }
-
 /// Builder for constructing a `User` instance.
 ///
 /// Provides a flexible way to build a `User` object, allowing for incremental setting of user attributes.
@@ -132,6 +137,94 @@ impl UserBuilder {
             verified: self.verified,
             created_at: self.created_at,
             updated_at: self.updated_at,
+        }
+    }
+}
+/// Repository for managing user-related data within the system.
+///
+/// `UserRepo` is designed to handle various database operations related to users, such as creating, updating, or disabling user accounts.
+/// It typically interacts with a database or other persistent storage mechanisms to perform these operations.
+///
+/// The implementation of `UserRepo` should define methods that carry out specific user-related tasks using database queries or transactions.
+///
+/// Note: The current implementation of `UserRepo` is empty (`impl<'a> UserRepo {}`). It should be expanded with methods for user data management.
+pub struct UserRepo;
+
+#[derive(PartialEq, Eq)]
+pub enum UserAction {
+    Create,
+}
+
+impl UserAction {
+    fn to_query(&self) -> &'static str {
+        match self {
+            UserAction::Create => "INSERT INTO users (verified) VALUES ($1)",
+        }
+    }
+
+    fn error(&self) -> IamError {
+        match self {
+            UserAction::Create => IamError::UserCreationFailed,
+        }
+    }
+
+    fn parameter_amt(&self) -> usize {
+        match self {
+            UserAction::Create => 1,
+        }
+    }
+}
+/// Builder for creating and configuring a `UserRepo` instance for user-related database operations.
+///
+/// This struct provides a way to set up a `UserRepo` with specific database settings and operational parameters.
+/// It uses the builder pattern for incremental and flexible configuration.
+///
+/// Fields:
+/// - `pg`: An instance of `PostgresDatabase`, representing the database connection and operations.
+/// - `action`: A `UserAction` enum specifying the type of action (e.g., Create, Disable) to perform on user data.
+/// - `parameter`: A slice of references to objects that implement `ToSql` and `Sync`, representing the SQL parameters for the action.
+///
+/// Lifetimes:
+/// - `'a`: Ensures that the references in the `parameter` field are valid for the duration of the `UserRepoBuilder`.
+///
+/// The builder allows for specifying the action to be taken on the user repository and the parameters required for that action, facilitating complex user data management tasks.
+///
+/// Example:
+/// ```
+/// let user_repo_builder = UserRepoBuilder {
+///     pg: postgres_database,
+///     action: UserAction::Create,
+///     parameter: &[&"username", &"email"],
+/// };
+/// // Additional configuration can be applied to the builder here.
+/// // Finally, build and execute the action on the UserRepo.
+/// ```
+pub struct UserRepoBuilder<'a> {
+    pg: PostgresDatabase,
+    action: UserAction,
+    parameter: &'a [&'a (dyn ToSql + Sync)],
+}
+
+impl<'a> UserRepoBuilder<'a> {
+    pub fn action(&mut self, action: UserAction) -> &mut Self {
+        self.action = action;
+        self
+    }
+
+    pub fn parameter(&mut self, parameter: &'a [&'a (dyn ToSql + Sync)]) -> &mut Self {
+        self.parameter = parameter;
+        self
+    }
+
+    pub async fn execute(&self) -> IamResult<u64> {
+        let pool = self.pg.pool.get().await.unwrap();
+        let stmt = pool.prepare(self.action.to_query()).await.unwrap();
+        if self.parameter.len() != self.action.parameter_amt() {
+            return Err(IamError::ParameterMismatch);
+        }
+        match pool.execute(&stmt, self.parameter).await {
+            Ok(v) => Ok(v),
+            Err(_) => Err(self.action.error()),
         }
     }
 }
