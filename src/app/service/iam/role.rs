@@ -110,7 +110,13 @@ pub enum RoleAction {
 }
 
 impl<'a> RoleRepo {
-    //BUILDER HERE..
+    pub fn new(pg: PostgresDatabase) -> RoleRepoBuilder<'a> {
+        RoleRepoBuilder {
+            pg,
+            action: RoleAction::Create,
+            parameter: &[],
+        }
+    }
 }
 
 impl RoleAction {

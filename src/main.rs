@@ -11,6 +11,7 @@ async fn main() {
     let database = PostgresDatabase::new(PostgresConfig::default()).await;
     let mut repo = PermissionRepo::new(database);
     
+    
     /*
     if let Err(e) = repo.action(PermissionAction::Create).parameter(&[]).execute().await {
         eprintln!("[ARC] Execution failed: {}", e);
