@@ -1,6 +1,6 @@
 use app::{
     ark::ArkServer,
-    database::postgres::{PostgresConfig, PostgresDatabase}, service::iam::permission::PermissionRepo,
+    database::postgres::{PostgresConfig, PostgresDatabase}, service::iam::{permission::PermissionRepo, role::{RoleAction, RoleRepo}},
 };
 
 pub mod app;
@@ -9,8 +9,12 @@ pub mod app;
 async fn main() {
     let ark = ArkServer::default().await;
     let database = PostgresDatabase::new(PostgresConfig::default()).await;
-    let mut repo = PermissionRepo::new(database);
-    
+    let mut repo = RoleRepo::new(database);
+
+    if let Err(e) = repo.action(RoleAction::Create).parameter(&[]).execute().await {
+        eprintln!("[ARC] Execution failed: {}", e);
+        // Handle the error case
+    }
     
     /*
     if let Err(e) = repo.action(PermissionAction::Create).parameter(&[]).execute().await {
