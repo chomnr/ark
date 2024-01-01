@@ -1,3 +1,4 @@
+use axum::{Router, routing::post};
 use bb8_postgres::tokio_postgres::types::ToSql;
 use serde::Deserialize;
 
@@ -113,9 +114,6 @@ impl PermissionBuilder {
 /// Repository for managing permission-related data in a database.
 ///
 /// Encapsulates database interactions specifically for permission-related operations.
-///
-/// Field:
-/// - `pg`: An instance of `PostgresDatabase` representing the database connection and operations.
 ///
 /// Methods:
 /// - `new`: Initializes a `PermissionRepoBuilder` with default settings for creating permissions.
@@ -248,4 +246,42 @@ impl<'a> PermissionRepoBuilder<'a> {
             Err(_) => Err(self.action.error()),
         }
     }
+}
+
+/// Struct for setting up a nested router specifically for permission-related endpoints in an Axum application.
+///
+/// `PermissionNest` provides a method to create a new `Router` instance, which can then be configured with routes dedicated to handling permission operations.
+///
+/// Method:
+/// - `new`: Creates a new `Router` instance, ready to be populated with permission-related routes.
+///
+/// Example Usage:
+/// ```
+/// use axum::{Router, routing::post};
+/// use your_crate::PermissionNest;
+///
+/// let permission_router = PermissionNest::new();
+///
+/// // Example route handler functions (to be implemented)
+/// async fn add_permission_handler() {
+///     // Logic for adding a permission
+/// }
+///
+/// async fn delete_permission_handler() {
+///     // Logic for deleting a permission
+/// }
+/// ```
+///
+/// In this example, `PermissionNest::new()` initializes a new router that is then configured with specific routes for adding and deleting permissions.
+pub struct PermissionNest;
+
+impl PermissionNest {
+    pub fn new() -> Router {
+        Router::new()
+            .route("/create", post(PermissionNest::add_permission_handler))
+            .route("/delete", post(PermissionNest::delete_permission_handler))
+    }
+
+    async fn add_permission_handler() {}
+    async fn delete_permission_handler() {}
 }
