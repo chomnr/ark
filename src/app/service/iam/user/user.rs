@@ -1,9 +1,7 @@
 use bb8_postgres::tokio_postgres::types::ToSql;
 use serde::{Deserialize, Serialize};
 
-use crate::app::database::postgres::PostgresDatabase;
-
-use super::error::{IamError, IamResult};
+use crate::app::{database::postgres::PostgresDatabase, service::iam::error::{IamError, IamResult}};
 
 /// Represents a user in the system.
 ///
