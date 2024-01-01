@@ -66,32 +66,32 @@ impl IntoResponse for IamError {
                 Json(ErrorResponse::new(StatusCode::INTERNAL_SERVER_ERROR, "ParameterMismatch", "The provided parameters do not align with the expected parameters for the specified action.")),
             ).into_response(),
             IamError::PermissionCreationFailed => (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(ErrorResponse::new(StatusCode::INTERNAL_SERVER_ERROR, "PermissionCreationFailed", "The system encountered an issue while attempting to create the specified permission.")),
+                StatusCode::CONFLICT,
+                Json(ErrorResponse::new(StatusCode::CONFLICT, "PermissionCreationFailed", "The system encountered an issue while attempting to create the specified permission.")),
             ).into_response(),
             IamError::PermissionDeletionFailed => (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(ErrorResponse::new(StatusCode::INTERNAL_SERVER_ERROR, "PermissionDeletionFailed", "The system encountered an issue while attempting to delete the specified permission.")),
+                StatusCode::NOT_FOUND,
+                Json(ErrorResponse::new(StatusCode::NOT_FOUND, "PermissionDeletionFailed", "The system encountered an issue while attempting to delete the specified permission.")),
             ).into_response(),
             IamError::PermissionFailedToLinkToRole => (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(ErrorResponse::new(StatusCode::INTERNAL_SERVER_ERROR, "PermissionFailedToLinkToRole", "Unable to establish a connection between the specified role and permission. Either the role or permission does not exist in the system.")),
+                StatusCode::CONFLICT,
+                Json(ErrorResponse::new(StatusCode::CONFLICT, "PermissionFailedToLinkToRole", "Unable to establish a connection between the specified role and permission. Either the role or permission does not exist in the system.")),
             ).into_response(),
             IamError::PermissionFailedToDeleteLinkToRole => (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(ErrorResponse::new(StatusCode::INTERNAL_SERVER_ERROR, "PermissionFailedToDeleteLinkToRole", "The system is unable to remove the association between the specified role and permission, as either the role or permission does not exist.")),
+                StatusCode::NOT_FOUND,
+                Json(ErrorResponse::new(StatusCode::NOT_FOUND, "PermissionFailedToDeleteLinkToRole", "The system is unable to remove the association between the specified role and permission, as either the role or permission does not exist.")),
             ).into_response(),
             IamError::RoleCreationFailed => (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(ErrorResponse::new(StatusCode::INTERNAL_SERVER_ERROR, "RoleCreationFailed", "The system encountered an issue while attempting to create the specified role.")),
+                StatusCode::CONFLICT,
+                Json(ErrorResponse::new(StatusCode::CONFLICT, "RoleCreationFailed", "The system encountered an issue while attempting to create the specified role.")),
             ).into_response(),
             IamError::RoleDeletionFailed => (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(ErrorResponse::new(StatusCode::INTERNAL_SERVER_ERROR, "RoleDeletionFailed", "The system encountered an issue while attempting to delete the specified role.")),
+                StatusCode::NOT_FOUND,
+                Json(ErrorResponse::new(StatusCode::NOT_FOUND, "RoleDeletionFailed", "The system encountered an issue while attempting to delete the specified role.")),
             ).into_response(),
             IamError::UserCreationFailed => (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(ErrorResponse::new(StatusCode::INTERNAL_SERVER_ERROR, "UserCreationFailed", "The system encountered an issue while attempting to create the specified user.")),
+                StatusCode::CONFLICT,
+                Json(ErrorResponse::new(StatusCode::CONFLICT, "UserCreationFailed", "The system encountered an issue while attempting to create the specified user.")),
             ).into_response(),
         }
     }
