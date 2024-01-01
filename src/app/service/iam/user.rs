@@ -1,4 +1,5 @@
 use bb8_postgres::tokio_postgres::types::ToSql;
+use serde::Deserialize;
 
 use crate::app::database::postgres::PostgresDatabase;
 
@@ -16,7 +17,8 @@ use super::error::{IamError, IamResult};
 /// - `created_at`: A `String` specifying the timestamp when the user account was created.
 /// - `updated_at`: A `String` indicating the timestamp of the last update made to the user account.
 ///
-/// The structure is designed to capture essential user-related data, including identification, contact information, and acc
+/// The structure is designed to capture essential user-related data, including identification, contact information, and account
+#[derive(Deserialize)]
 pub struct User {
     pub id: i64,
     pub username: String,

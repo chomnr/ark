@@ -1,4 +1,5 @@
 use bb8_postgres::tokio_postgres::types::ToSql;
+use serde::Deserialize;
 
 use crate::app::database::postgres::PostgresDatabase;
 
@@ -18,6 +19,7 @@ use super::error::{IamError, IamResult};
 /// ```
 /// let role = Role::new(1, "Admin");
 /// ```
+#[derive(Deserialize)]
 pub struct Role {
     pub id: i32,
     pub name: String,
