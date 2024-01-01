@@ -1,6 +1,6 @@
 use axum::{Router, routing::post};
 use bb8_postgres::tokio_postgres::types::ToSql;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::app::database::postgres::PostgresDatabase;
 
@@ -21,7 +21,7 @@ use super::error::{IamError, IamResult};
 /// ```
 /// let permission = Role::new(1, "Ban User", "ban.user");
 /// ```
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct Permission {
     pub id: i32,
     pub name: String,
