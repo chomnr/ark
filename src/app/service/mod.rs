@@ -1,4 +1,5 @@
 pub mod iam;
+pub mod auth;
 
 /*
 #[proc_macro_attribute]
