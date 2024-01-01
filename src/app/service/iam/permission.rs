@@ -282,6 +282,9 @@ impl PermissionNest {
             .route("/delete", post(PermissionNest::delete_permission_handler))
     }
 
-    async fn add_permission_handler() {}
+    async fn add_permission_handler() {
+        //Session::from(dd).has_permission("session.fuck.this");
+    }
+    
     async fn delete_permission_handler() {}
 }
