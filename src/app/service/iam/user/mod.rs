@@ -8,8 +8,6 @@ use crate::app::{
     service::iam::error::{IamError, IamResult},
 };
 
-use self::integrity::UserIntegrity;
-
 /// Represents a user in the system.
 ///
 /// This struct encapsulates key information and attributes associated with a user.
