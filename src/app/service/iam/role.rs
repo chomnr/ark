@@ -1,3 +1,4 @@
+use axum::{Router, routing::post};
 use bb8_postgres::tokio_postgres::types::ToSql;
 use serde::Deserialize;
 
@@ -202,4 +203,20 @@ impl<'a> RoleRepoBuilder<'a> {
             Err(_) => Err(self.action.error()),
         }
     }
+}
+
+pub struct RoleNest;
+
+impl RoleNest {
+    pub fn new() -> Router {
+        Router::new()
+            .route("/create", post(RoleNest::add_role_handler))
+            .route("/delete", post(RoleNest::delete_role_handler))
+    }
+
+    async fn add_role_handler() {
+        //Session::from(dd).has_permission("session.fuck.this");
+    }
+    
+    async fn delete_role_handler() {}
 }

@@ -6,7 +6,7 @@ use tokio::net::TcpListener;
 use tower_cookies::{CookieManagerLayer, Key};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
-use super::{database::{redis::{RedisDatabase, RedisConfig}, postgres::{PostgresDatabase, PostgresConfig}}, service::iam::permission::PermissionNest};
+use super::{database::{redis::{RedisDatabase, RedisConfig}, postgres::{PostgresDatabase, PostgresConfig}}, service::iam::{permission::PermissionNest, role::RoleNest}};
 
 static ADDRESS: &str = "0.0.0.0";
 static PORT: usize = 3000;
@@ -48,6 +48,7 @@ impl ArkServer {
             mode: MODE,
             router: Router::new()
                 .nest("/permission", PermissionNest::new())
+                .nest("/role", RoleNest::new())
                 .layer(Extension(Arc::new(ArkState::default().await)))
                 .layer(CookieManagerLayer::new()),
         }
