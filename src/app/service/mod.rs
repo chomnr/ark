@@ -1,6 +1,38 @@
 pub mod iam;
 
 /*
+#[proc_macro_attribute]
+pub fn permission(args: TokenStream, input: TokenStream) -> TokenStream {
+    let args = parse_macro_input!(args as AttributeArgs);
+    let function = parse_macro_input!(input as ItemFn);
+
+    // here you'd parse 'args' and do something meaningful with it
+
+    let result = quote! {
+        #function
+    };
+
+    result.into()
+}
+*/
+
+/*
+#[proc_macro_attribute]
+pub fn permission(args: TokenStream, input: TokenStream) -> TokenStream {
+    let args = parse_macro_input!(args as AttributeArgs);
+    let function = parse_macro_input!(input as ItemFn);
+
+    // here you'd parse 'args' and do something meaningful with it
+
+    let result = quote! {
+        #function
+    };
+
+    result.into()
+}
+*/
+
+/*
 pub struct User {
     info: UserInfo,
     perm: Vec<Permission>,

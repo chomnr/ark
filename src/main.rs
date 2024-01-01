@@ -1,6 +1,6 @@
 use app::{
     ark::ArkServer,
-    database::postgres::{PostgresConfig, PostgresDatabase}, service::iam::role::RoleRepo,
+    database::postgres::{PostgresConfig, PostgresDatabase},
 };
 
 pub mod app;
@@ -9,7 +9,7 @@ pub mod app;
 async fn main() {
     let ark = ArkServer::default().await;
     let database = PostgresDatabase::new(PostgresConfig::default()).await;
-    let mut repo = RoleRepo::new(database);
+    //let mut repo = RoleRepo::new(database);
 
     /*
     if let Err(e) = repo.action(RoleAction::Create).parameter(&[&"Admin"]).execute().await {
