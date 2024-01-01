@@ -15,7 +15,7 @@ use super::error::{IamError, IamResult};
 /// Methods:
 /// - `new`: Constructs a new `Permission` instance with the given id, name, and key.
 /// - `builder`: Returns a `PermissionBuilder` for constructing a `Permission` instance using the builder pattern.
-/// 
+///
 /// Example:
 /// ```
 /// let permission = Role::new(1, "Ban User", "ban.user");
@@ -38,6 +38,14 @@ impl Permission {
 
     pub fn builder() -> PermissionBuilder {
         PermissionBuilder::default()
+    }
+
+    pub fn to_builder(permission: Permission) -> PermissionBuilder {
+        PermissionBuilder {
+            id: 0,
+            name: String::from(permission.name),
+            key: String::from(permission.key),
+        }
     }
 }
 /// Builder for constructing a `Permission` instance.
@@ -227,6 +235,15 @@ impl<'a> PermissionRepoBuilder<'a> {
             return Err(IamError::ParameterMismatch);
         }
         match pool.execute(&stmt, self.parameter).await {
+            Ok(v) => Ok(v),
+            Err(_) => Err(self.action.error()),
+        }
+    }
+
+    pub async fn execute_without_parameters(&self, perm: Permission) -> IamResult<u64> {
+        let pool = self.pg.pool.get().await.unwrap();
+        let stmt = pool.prepare(self.action.to_query()).await.unwrap();
+        match pool.execute(&stmt, &[&perm.name, &perm.key]).await {
             Ok(v) => Ok(v),
             Err(_) => Err(self.action.error()),
         }
