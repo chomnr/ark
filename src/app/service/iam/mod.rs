@@ -2,6 +2,7 @@ pub mod permission;
 pub mod role;
 pub mod user;
 pub mod error;
+pub mod route;
 
 /*
 use self::access::{role::RoleManager, permission::PermissionManager};

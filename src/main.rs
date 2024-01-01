@@ -11,10 +11,12 @@ async fn main() {
     let database = PostgresDatabase::new(PostgresConfig::default()).await;
     let mut repo = RoleRepo::new(database);
 
-    if let Err(e) = repo.action(RoleAction::Delete).parameter(&[&"Administrator"]).execute().await {
-        eprintln!("[ARC] Execution failed: {}", e);
+    /*
+    if let Err(e) = repo.action(RoleAction::Create).parameter(&[&"Admin"]).execute().await {
+        eprintln!("[ARC] {}", e);
         // Handle the error case
     }
+    */
     
     /*
     if let Err(e) = repo.action(PermissionAction::Create).parameter(&[]).execute().await {
