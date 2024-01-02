@@ -18,6 +18,9 @@ static ADDRESS: &str = "0.0.0.0";
 static PORT: usize = 3000;
 static MODE: ServerMode = ServerMode::Development;
 
+pub static SESSION_COOKIE_NAME: &str = "pl.session";
+pub static INTEGRITY_COOKIE_NAME: &str = "pl.integrity";
+
 /// Represents a server configuration.
 ///
 /// This struct holds the necessary configuration details for setting up and running a server.
