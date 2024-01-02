@@ -19,7 +19,7 @@ use super::error::{IamError, IamResult};
 ///
 /// Example:
 /// ```
-/// let permission = Role::new(1, "Ban User", "ban.user");
+/// let permission = Permission::new(1, "Ban User", "ban.user");
 /// ```
 #[derive(Serialize, Deserialize)]
 pub struct Permission {
