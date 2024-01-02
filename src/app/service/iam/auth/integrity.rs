@@ -42,7 +42,6 @@ impl UserIntegrity {
         cookie
     }
 }
-
 /// Shorthand for generating PKCE Challenge
 ///
 /// `UserIntegritySuite` combines PKCE (Proof Key for Code Exchange) challenge and user-specific integrity measures to provide a robust authentication process.
