@@ -7,8 +7,6 @@ use crate::app::{
     service::iam::error::{IamError, IamResult},
 };
 
-use super::{permission::Permission, role::Role};
-
 /// Represents a user in the system.
 ///
 /// This struct encapsulates key information and attributes associated with a user.

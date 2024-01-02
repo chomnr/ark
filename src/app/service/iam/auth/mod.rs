@@ -1,9 +1,7 @@
-use serde::{Serialize, Deserialize};
-
-use crate::app::adapter::oauth::OAuthCollectionAdapter;
-
 pub mod integrity;
 
+
+/*
 pub struct Auth {
     provider: String
 }
@@ -20,3 +18,4 @@ impl Auth {
         
     }
 }
+*/

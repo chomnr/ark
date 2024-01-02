@@ -30,8 +30,8 @@ use crate::app::ark::INTEGRITY_COOKIE_NAME;
 /// This example demonstrates creating a `UserIntegrity` instance and converting it into a cookie, which can then be used in the context of web authentication.
 #[derive(Serialize, Deserialize)]
 pub struct UserIntegrity {
-    state: CsrfToken,
-    verifier: PkceCodeVerifier,
+    pub state: CsrfToken,
+    pub verifier: PkceCodeVerifier,
 }
 
 impl UserIntegrity {
@@ -61,8 +61,8 @@ impl UserIntegrity {
 ///
 /// In this example, `UserIntegritySuite::gen` is used to create a new instance of `UserIntegritySuite` with a fresh PKCE challenge and CSRF token, enhancing the security of user authentication.
 pub struct UserIntegritySuite {
-    pkce_challenge: PkceCodeChallenge,
-    user: UserIntegrity
+    pub pkce_challenge: PkceCodeChallenge,
+    pub user: UserIntegrity
 }
 
 impl UserIntegritySuite {

@@ -1,6 +1,6 @@
 use app::{
     ark::ArkServer,
-    database::postgres::{PostgresConfig, PostgresDatabase},
+    database::postgres::{PostgresConfig, PostgresDatabase}, service::iam::auth::integrity::UserIntegritySuite,
 };
 
 pub mod app;
@@ -9,6 +9,7 @@ pub mod app;
 async fn main() {
     let ark = ArkServer::default().await;
     let database = PostgresDatabase::new(PostgresConfig::default()).await;
+
     //let mut repo = RoleRepo::new(database);
 
     /*
