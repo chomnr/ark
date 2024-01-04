@@ -3,7 +3,7 @@ use axum::async_trait;
 use super::error::CacheResult;
 
 #[async_trait]
-pub(super) trait Cacheable<T> {
+pub trait Cacheable<T> {
     /// Adds an item to the cache.
     ///
     /// # Arguments
@@ -63,4 +63,35 @@ pub(super) trait Cacheable<T> {
     /// let result = LocalCache::read(lookup_key).await;
     /// ```
     fn read<L>(value: L) -> CacheResult<bool>;
+}
+
+/// Generic struct for caching objects of types that implement `Cacheable`.
+///
+/// `Cache` is designed to work with any type `T` that satisfies the `Cacheable` trait, enabling flexible and type-safe caching mechanisms.
+///
+/// # Type Parameters
+/// - `T`: The type of object being cached. Must implement the `Cacheable` trait.
+///
+/// # Fields
+/// - `cache`: An instance of the type `T` that represents the actual cache storage or mechanism.
+///
+/// # Examples
+///
+/// Creating a cache for a specific type:
+///
+/// ```
+/// struct MyCacheableType;
+/// impl Cacheable<MyCacheableType> for MyCacheableType {
+///     // Implementation details
+/// }
+///
+/// let my_cache = Cache { cache: MyCacheableType };
+/// ```
+///
+/// This example demonstrates how to create a `Cache` instance for a custom type that implements the `Cacheable` trait.
+pub struct Cache<T>
+where
+    T: Cacheable<T>,
+{
+    cache: T,
 }
