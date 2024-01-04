@@ -29,7 +29,7 @@ use serde::{Serialize, Deserialize};
 ///
 /// - `new`: Constructs a new `Role`.
 /// - `builder`: Provides a `RoleBuilder` for building a `Role` instance.
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Role {
     pub id: i32,
     pub name: String,

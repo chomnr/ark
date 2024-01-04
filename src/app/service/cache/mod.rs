@@ -65,5 +65,5 @@ pub(super) trait Cacheable<T> {
     /// let lookup_key = ...; // A lookup key of type `L`
     /// let result = LocalCache::read(lookup_key).await;
     /// ```
-    fn read<L>(value: L) -> CacheResult<bool>;
+    fn read(value: T) -> CacheResult<T>;
 }

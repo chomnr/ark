@@ -1,4 +1,4 @@
-use super::{Cacheable, error::CacheResult};
+use super::{error::CacheResult, Cacheable};
 
 /// Generic struct for caching objects of types that implement `Cacheable`.
 ///
@@ -26,12 +26,15 @@ use super::{Cacheable, error::CacheResult};
 /// This example demonstrates how to create a `Cache` instance for a custom type that implements the `Cacheable` trait.
 pub struct Cache<T>
 where
-    T: Cacheable<T>,
+    T: Cacheable<T> + Send + Sync,
 {
     cache: T,
 }
 
-impl<T> Cache<T> where T: Cacheable<T> {
+impl<T> Cache<T>
+where
+    T: Cacheable<T> + Send + Sync,
+{
     pub fn write(value: T) -> CacheResult<bool> {
         T::write(value)
     }
@@ -41,7 +44,7 @@ impl<T> Cache<T> where T: Cacheable<T> {
     pub fn delete(value: T) -> CacheResult<bool> {
         T::delete(value)
     }
-    pub fn read<L>(lookup: L) -> CacheResult<bool> {
-        T::read::<L>(lookup)
+    pub fn read(lookup: T) -> CacheResult<T> {
+        T::read(lookup)
     }
 }
