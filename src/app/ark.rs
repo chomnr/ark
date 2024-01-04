@@ -11,7 +11,6 @@ use super::{
         postgres::{PostgresConfig, PostgresDatabase},
         redis::{RedisConfig, RedisDatabase},
     },
-    service::iam::{permission::PermissionNest, role::RoleNest},
 };
 
 static ADDRESS: &str = "0.0.0.0";
@@ -56,8 +55,6 @@ impl ArkServer {
             port: PORT,
             mode: MODE,
             router: Router::new()
-                .nest("/permission", PermissionNest::new())
-                .nest("/role", RoleNest::new())
                 .layer(Extension(Arc::new(ArkState::default().await)))
                 .layer(CookieManagerLayer::new()),
         }

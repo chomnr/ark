@@ -1,12 +1,12 @@
 -- This table stores information about various identity roles.
-CREATE TABLE role (
+CREATE TABLE roles (
     id INTEGER GENERATED ALWAYS AS IDENTITY,
     role_name VARCHAR(255) NOT NULL UNIQUE,
     PRIMARY KEY(id)
 );
 
 -- This table stores the basic information about each permission.
-CREATE TABLE permission (
+CREATE TABLE permissions (
     id INTEGER GENERATED ALWAYS AS IDENTITY,
     permission_name VARCHAR(255) NOT NULL UNIQUE,
     permission_key VARCHAR(255) NOT NULL UNIQUE,
@@ -35,8 +35,8 @@ CREATE TABLE users (
 -- relationship where a role can have multiple permissions, and a 
 -- permission can belong to multiple roles.
 CREATE TABLE role_permission (
-    role_id INTEGER REFERENCES role(id),
-    permission_id INTEGER REFERENCES permission(id),
+    role_id INTEGER REFERENCES roles(id),
+    permission_id INTEGER REFERENCES permissions(id),
     PRIMARY KEY (role_id, permission_id)
 );
 
@@ -44,7 +44,7 @@ CREATE TABLE role_permission (
 -- relationship where a identity can specific permissions for themselves.
 CREATE TABLE user_permission (
     user_id INTEGER REFERENCES users(id),
-    permission_id INTEGER REFERENCES permission(id),
+    permission_id INTEGER REFERENCES permissions(id),
     PRIMARY KEY (user_id, permission_id)
 );
 

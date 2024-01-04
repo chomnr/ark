@@ -1,6 +1,6 @@
 use app::{
     ark::ArkServer,
-    database::postgres::{PostgresConfig, PostgresDatabase}, service::iam::auth::integrity::UserIntegritySuite,
+    database::postgres::{PostgresConfig, PostgresDatabase},
 };
 
 pub mod app;
@@ -9,8 +9,35 @@ pub mod app;
 async fn main() {
     let ark = ArkServer::default().await;
     let database = PostgresDatabase::new(PostgresConfig::default()).await;
-
+    //Cache::<Role>::write(value);
+    //Cache::<>::delete(Role::builder().id(3).name("33").build());
+    //Cache::<RoleCache>::read("lookup");
     //let mut repo = RoleRepo::new(database);
+    /*
+    Role::cache(CacheAction::Create, Role::new(0, "Admin"))
+        .await
+        .unwrap();
+
+    println!("{}", Role::read(0).await.unwrap().name);
+
+    Role::cache(CacheAction::Create, Role::new(1, "Moderator"))
+        .await
+        .unwrap();
+
+    println!("{}", Role::read(1).await.unwrap().name);
+
+    Role::cache(CacheAction::Create, Role::new(2, "Flutter"))
+        .await
+        .unwrap();
+
+    println!("{}", Role::read(2).await.unwrap().name);
+
+    Role::cache(CacheAction::Create, Role::new(3, "Ridic"))
+        .await
+        .unwrap();
+
+    println!("{}", Role::read(3).await.unwrap().name);
+    */
 
     /*
     if let Err(e) = repo.action(RoleAction::Create).parameter(&[&"Admin"]).execute().await {
@@ -18,7 +45,7 @@ async fn main() {
         // Handle the error case
     }
     */
-    
+
     /*
     if let Err(e) = repo.action(PermissionAction::Create).parameter(&[]).execute().await {
         eprintln!("[ARC] Execution failed: {}", e);
