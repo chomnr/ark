@@ -1,6 +1,6 @@
 use app::{
     ark::ArkServer,
-    database::postgres::{PostgresConfig, PostgresDatabase},
+    database::postgres::{PostgresConfig, PostgresDatabase}, service::{iam::role::model::Role, cache::model::Cache},
 };
 
 pub mod app;
@@ -9,6 +9,9 @@ pub mod app;
 async fn main() {
     let ark = ArkServer::default().await;
     let database = PostgresDatabase::new(PostgresConfig::default()).await;
+
+    //Cache::<Role>::write(value);
+
     //Cache::<Role>::write(value);
     //Cache::<>::delete(Role::builder().id(3).name("33").build());
     //Cache::<RoleCache>::read("lookup");
