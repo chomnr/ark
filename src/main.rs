@@ -1,6 +1,6 @@
 use app::{
     ark::ArkServer,
-    database::postgres::{PostgresConfig, PostgresDatabase}, service::iam::role::model::Role,
+    database::postgres::{PostgresConfig, PostgresDatabase}, service::{iam::role::model::Role, cache::model::Cache},
 };
 
 pub mod app;
@@ -10,11 +10,25 @@ async fn main() {
     let ark = ArkServer::default().await;
     let database = PostgresDatabase::new(PostgresConfig::default()).await;
 
+    
     let role = Role::builder()
         .id(1)
         .name("sadds")
         .build();
+    Cache::<Role>::write(role).unwrap();
+    
+    let read = Cache::<Role>::read(Role::builder().id(1).build()).unwrap();
+    println!("{}", read.name);
 
+    let role2 = Role::builder()
+        .id(1)
+        .name("testupdate")
+        .build();
+    Cache::<Role>::update(role2).unwrap();
+
+    let read2 = Cache::<Role>::read(Role::builder().id(1).build()).unwrap();
+    println!("{}", read2.name);
+    
     /*
     Cache::<Role>::write(role).unwrap();
 

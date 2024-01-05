@@ -14,36 +14,37 @@ static CACHE: Lazy<RwLock<DashMap<i32, Role>>> = Lazy::new(|| RwLock::new(DashMa
 
 impl Cacheable<Role> for Role {
     fn write(value: Role) -> CacheResult<bool> {
-        let cache = CACHE.write().unwrap();
-        if cache.insert(value.id, value).is_some() {
-            Err(CacheError::CacheWriteFailure)
-        } else {
-            Ok(true)
-        }
+        CACHE
+            .write()
+            .map_err(|_| CacheError::CacheWriteFailure)?
+            .insert(value.id, value)
+            .map_or_else(|| Ok(true), |_| Err(CacheError::CacheWriteFailure))
     }
-    
+
     fn update(value: Role) -> CacheResult<bool> {
-        let cache = CACHE.write().unwrap();
-        if cache.contains_key(&value.id) {
-            cache.insert(value.id, value).unwrap(); // No need to remove first
-            Ok(true)
-        } else {
-            Err(CacheError::CacheUpdateFailure)
-        }
+        CACHE
+            .write()
+            .map_err(|_| CacheError::CacheUpdateFailure)?
+            .get_mut(&value.id)
+            .map(|mut entry| {
+                *entry = value;
+                true
+            })
+            .ok_or(CacheError::CacheUpdateFailure)
     }
 
     fn delete(value: Role) -> CacheResult<bool> {
-        let cache = CACHE.write().unwrap();
-        if cache.remove(&value.id).is_some() {
-            Ok(true)
-        } else {
-            Err(CacheError::CacheDeleteFailure)
-        }
+        CACHE
+            .write()
+            .map_err(|_| CacheError::CacheDeleteFailure)?
+            .remove(&value.id)
+            .map_or_else(|| Err(CacheError::CacheDeleteFailure), |_| Ok(true))
     }
 
     fn read(value: Role) -> CacheResult<Role> {
-        let cache = CACHE.write().unwrap();
-        cache
+        CACHE
+            .read()
+            .map_err(|_| CacheError::CacheReadFailure)?
             .get(&value.id)
             .map(|v| Role::new(v.id, &v.name))
             .ok_or(CacheError::CacheReadFailure)
