@@ -6,11 +6,9 @@ use tokio::net::TcpListener;
 use tower_cookies::{CookieManagerLayer, Key};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
-use super::{
-    database::{
+use super::database::{
         postgres::{PostgresConfig, PostgresDatabase},
         redis::{RedisConfig, RedisDatabase},
-    },
 };
 
 static ADDRESS: &str = "0.0.0.0";
