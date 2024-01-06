@@ -1,6 +1,6 @@
 use nanoid::nanoid;
 
-use super::{BridgePriority, BridgeType, send::BridgeSender};
+use super::{BridgePriority, BridgeType, send::BridgeSender, error::BridgeEventResult};
 
 pub struct BridgeEvent {
     bridge_id: String,
@@ -28,8 +28,8 @@ impl BridgeEvent {
         BridgeEventBuilder::default()
     }
 
-    pub fn send(self) -> BridgeSender {
-        BridgeSender::new(self)
+    pub fn send(self) -> BridgeEventResult<bool> {
+        BridgeSender::send(self)
     }
 }
 

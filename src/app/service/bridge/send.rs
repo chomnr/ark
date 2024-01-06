@@ -1,13 +1,12 @@
-use super::model::BridgeEvent;
+use super::{model::BridgeEvent, error::BridgeEventResult};
 
 pub struct BridgeSender {
     event: BridgeEvent
 }
 
 impl BridgeSender {
-    pub fn new(event: BridgeEvent) -> Self {
-        Self {
-            event
-        }
+    pub fn send(event: BridgeEvent) -> BridgeEventResult<bool>  {
+        // execute
+        todo!()
     }
 }
