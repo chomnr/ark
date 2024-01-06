@@ -5,7 +5,6 @@ use self::error::CacheResult;
 pub mod error;
 pub mod model;
 
-#[async_trait]
 pub(super) trait Cacheable<T> {
     /// Adds an item to the cache.
     ///

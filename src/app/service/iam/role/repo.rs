@@ -1,8 +1,5 @@
 use crate::app::{
-    database::postgres::PostgresDatabase,
-    service::
-        iam::error::IamResult
-    ,
+    database::postgres::PostgresDatabase, service::iam::error::IamResult,
 };
 
 use super::model::Role;
@@ -17,6 +14,7 @@ impl RoleRepo {
     }
 
     pub fn create_role(role: Role) -> IamResult<bool> {
+        //Event::trigger("create_role", "");
         //Event::<Role>::add("dasds", "dsad");
         //Event::add(EventTarget::Role, "adssd", "dsadsa");
         //assign an id
@@ -35,6 +33,21 @@ impl RoleRepo {
             .build()
             .send();
         */
+        /*
+        BridgeEvent::builder()
+            .bridge_type(BridgeType::Role)
+            .build()
+            .send();
+        */
+
+        //BridgeEvent::payload(sen d)
+
+        //let payload = BridgeEventPayload::new(
+          //  BridgeType::Role,
+           // BridgePriority::HIGH,
+            //String::from("value"),
+        //);
+
         todo!()
     }
 }
