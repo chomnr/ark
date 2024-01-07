@@ -1,6 +1,6 @@
 use app::{
     ark::ArkServer,
-    database::postgres::{PostgresConfig, PostgresDatabase}, service::{cache::model::Cache, iam::role::{model::Role, repo::RoleRepo}},
+    database::postgres::{PostgresConfig, PostgresDatabase},
 };
 use axum::http::header::DATE;
 
@@ -10,11 +10,14 @@ pub mod app;
 async fn main() {
     let ark = ArkServer::default().await;
     let database = PostgresDatabase::new(PostgresConfig::default()).await;
-
+    //let cache = Cache::new(String, String);
+    
+    /*
     let role = Role::builder()
         .id(1)
         .name("sadds")
         .build();
+    */
 
     //Cache::<Role>::write(role)
         //.unwrap();
