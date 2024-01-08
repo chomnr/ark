@@ -195,14 +195,23 @@ impl RoleRepo {
         }
     }
 
-    pub async fn read_role(&self, role: Role) -> Result<Role, Error> {
+    pub async fn read_role(&self, role_id: i32) -> Result<Role, Error> {
         let pool = self.pg.pool.get().await.unwrap();
         let pstmt = pool
-            .prepare("DELETE FROM roles WHERE id = $1;")
-            .await
-            .unwrap();
-        pool.execute(&pstmt, &[&role.id]).await.unwrap();
-        todo!()
+            .prepare("SELECT id, role_name FROM roles WHERE id = $1;")
+            .await?;
+        
+        // Execute the query
+        match pool.query_one(&pstmt, &[&role_id]).await {
+            Ok(row) => {
+                let role = Role {
+                    id: row.get("id"),
+                    name: row.get("role_name"),
+                };
+                Ok(role)
+            }
+            Err(er) => Err(er),
+        }
     }
 }
 
