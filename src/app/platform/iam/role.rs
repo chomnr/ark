@@ -80,7 +80,7 @@ impl Cacheable<Role> for RoleCache {
     fn write(value: Role) -> CacheResult<bool> {
         ROLE_CACHE.insert(value.id, value.clone()).map_or_else(
             || {
-                println!("[ARC] wrote to 'roles' cache [{}:{}]", value.id, value.role_name);
+                println!("[ARC] wrote to 'iam_roles' cache [{}:{}]", value.id, value.role_name);
                 Ok(true)
             },
             |_| Err(CacheError::CacheWriteFailure),
@@ -92,7 +92,7 @@ impl Cacheable<Role> for RoleCache {
             .get_mut(&value.id)
             .map(|mut entry| {
                 println!(
-                    "[ARC] updated 'roles' cache [{}:{}] ==> [{}:{}]",
+                    "[ARC] updated role from 'iam_roles' cache [{}:{}] ==> [{}:{}]",
                     entry.id, entry.role_name, value.id, value.role_name
                 );
                 *entry = value.clone();
@@ -105,7 +105,7 @@ impl Cacheable<Role> for RoleCache {
         ROLE_CACHE.remove(&value.id).map_or_else(
             || Err(CacheError::CacheDeleteFailure),
             |_| {
-                println!("[ARC] deleted from 'roles' cache [{}]", value.id);
+                println!("[ARC] deleted role from 'iam_roles' with id: {}", value.id);
                 Ok(true)
             },
         )
@@ -126,7 +126,7 @@ pub struct RoleRepo {
 impl RoleRepo {
     pub async fn preload_cache(&self) {
         let pool = self.pg.pool.get().await.unwrap();
-        let pstmt = pool.prepare("SELECT * FROM roles").await.unwrap();
+        let pstmt = pool.prepare("SELECT * FROM iam_roles").await.unwrap();
         let rows = pool.query(&pstmt, &[]).await.unwrap();
         for row in rows {
             let role = Role {
@@ -136,7 +136,7 @@ impl RoleRepo {
             RoleCache::write(role).unwrap();
         }
         println!(
-            "[ARC] preloaded 'roles' cache with {} entries",
+            "[ARC] preloaded 'iam_roles' cache with {} entries",
             ROLE_CACHE.len()
         )
     }
@@ -150,7 +150,7 @@ impl RoleRepo {
     pub async fn create_role(&self, role: Role) -> Result<i32, Error> {
         let pool = self.pg.pool.get().await.unwrap();
         let pstmt = pool
-            .prepare("INSERT INTO roles (role_name) VALUES($1) RETURNING id")
+            .prepare("INSERT INTO iam_roles (role_name) VALUES($1) RETURNING id")
             .await
             .unwrap();
         match pool.query_one(&pstmt, &[&role.role_name]).await {
@@ -166,7 +166,7 @@ impl RoleRepo {
     pub async fn update_role(&self, role: Role) -> Result<u64, Error> {
         let pool = self.pg.pool.get().await.unwrap();
         let pstmt = pool
-            .prepare("UPDATE roles SET role_name = $1 WHERE id = $2;")
+            .prepare("UPDATE iam_roles SET role_name = $1 WHERE id = $2;")
             .await
             .unwrap();
         match pool.execute(&pstmt, &[&role.role_name, &role.id]).await {
@@ -181,7 +181,7 @@ impl RoleRepo {
     pub async fn delete_role(&self, role: Role) -> Result<u64, Error> {
         let pool = self.pg.pool.get().await.unwrap();
         let pstmt = pool
-            .prepare("DELETE FROM roles WHERE id = $1;")
+            .prepare("DELETE FROM iam_roles WHERE id = $1;")
             .await
             .unwrap();
         match pool.execute(&pstmt, &[&role.id]).await {
@@ -196,7 +196,7 @@ impl RoleRepo {
     pub async fn read_role(&self, role_id: i32) -> Result<Role, Error> {
         let pool = self.pg.pool.get().await.unwrap();
         let pstmt = pool
-            .prepare("SELECT id, role_name FROM roles WHERE id = $1;")
+            .prepare("SELECT id, role_name FROM iam_roles WHERE id = $1;")
             .await?;
 
         // Execute the query
