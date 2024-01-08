@@ -2,7 +2,7 @@ use dashmap::DashMap;
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 
-use crate::app::platform::cache::{Cacheable, CacheResult, CacheError};
+use crate::app::service::cache::{Cacheable, CacheResult, CacheError};
 
 static ROLE_CACHE: Lazy<DashMap<i32, Role>> = Lazy::new(|| DashMap::new());
 
