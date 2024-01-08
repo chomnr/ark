@@ -327,21 +327,3 @@ impl RoleRepo {
         todo!()
     }
 }
-
-/*
-// message here
-pub struct RoleWorker;
-pub struct RoleSenderMessage;
-
-#[async_trait]
-impl Worker for RoleWorker {
-    async fn attach_pg_db() {
-        todo!()
-    }
-
-    async fn listen() {
-        let (tx, mut rx) = mpsc::channel(1000);
-        todo!()
-    }
-}
-*/
