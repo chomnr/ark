@@ -6,9 +6,7 @@ use std::{
 use app::{
     ark::ArkServer,
     database::postgres::{PostgresConfig, PostgresDatabase},
-    platform::iam::role::{Role, RoleRepo},
 };
-use tokio::task;
 
 pub mod app;
 
@@ -17,7 +15,6 @@ async fn main() {
     let ark = ArkServer::default().await;
     let database = PostgresDatabase::new(PostgresConfig::default()).await;
     ark.run(database).await;
-
     /*
 
     // WORKING VERSION
@@ -25,7 +22,7 @@ async fn main() {
     let (tx, mut rx) = mpsc::channel(32);
 
     // Spawn a task for receiving and processing messages
-    task::spawn(async move {
+    task::spawn(async move { 
         while let Some(message) = rx.recv().await {
             println!("Received message: {}", message);
             // process the message

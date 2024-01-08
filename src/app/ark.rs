@@ -93,11 +93,6 @@ impl ArkServer {
             &self.port
         );
         Self::preload_cache(pg.clone()).await;
-        let repo = RoleRepo::new(pg);
-        repo
-            .delete_role(Role::builder().id(1).build())
-            .await
-            .unwrap();
         axum::serve(tcp, self.router).await.unwrap();
     }
 

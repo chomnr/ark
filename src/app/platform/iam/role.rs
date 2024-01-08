@@ -184,10 +184,6 @@ impl Cacheable<Role> for RoleCache {
             .get(&value.id)
             .map(|v| Role::new(v.id, &v.name))
             .ok_or({
-                println!(
-                    "[ARC] MISSED retrieving role from 'roles' cache [{}]",
-                    value.id
-                );
                 CacheError::CacheReadFailure
             })
     }
