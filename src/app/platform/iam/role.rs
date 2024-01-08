@@ -380,12 +380,10 @@ impl RoleRoute {
         Extension(state): Extension<Arc<ArkState>>,
         Json(payload): Json<UpdateRole>,
     ) -> impl IntoResponse {
+        // todo add authentication... check for rank etc;
         let repo = RoleRepo::new(state.postgres.clone());
-        let role = Role::builder()
-            .id(payload.role_id as i32)
-            .name(&payload.role_name)
-            .build();
-        match repo.update_role(role).await {
+        let role = Role::new(payload.role_id, &payload.role_name);
+        match repo.update_role(role.clone()).await {
             Ok(_) => {
                 return (StatusCode::ACCEPTED).into_response();
             }
