@@ -6,10 +6,9 @@ use std::{
 use app::{
     ark::ArkServer,
     database::postgres::{PostgresConfig, PostgresDatabase},
-    platform::iam::role::{Role, RoleCache, RoleRepo},
-    service::cache::Cacheable,
+    platform::iam::role::{Role, RoleRepo},
 };
-use tokio::{sync::mpsc, task};
+use tokio::task;
 
 pub mod app;
 

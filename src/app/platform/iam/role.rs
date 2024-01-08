@@ -163,7 +163,6 @@ impl Cacheable<Role> for RoleCache {
         ROLE_CACHE.remove(&value.id).map_or_else(
             || Err(CacheError::CacheDeleteFailure),
             |_| {
-                RoleCache::delete(value.clone()).unwrap();
                 println!("[ARC] deleted from 'roles' cache [{}]", value.id);
                 Ok(true)
             },
@@ -244,7 +243,7 @@ impl RoleRepo {
     /// # Returns
     /// A `Result` containing either the number of rows affected (usually 1 for a successful insert),
     /// or an `Error` in case of any issues during the insert operation.
-    pub async fn create_role(&self, role: Role) -> Result<u64, Error> {
+    pub async fn create_role(&self, role: Role) -> Result<i32, Error> {
         let pool = self.pg.pool.get().await.unwrap();
         let pstmt = pool
             .prepare("INSERT INTO roles (role_name) VALUES($1) RETURNING id")
@@ -254,7 +253,7 @@ impl RoleRepo {
             Ok(row) => {
                 let id: i32 = row.get(0);
                 RoleCache::write(Role::builder().id(id).name(&role.name).build()).unwrap();
-                Ok(1)
+                Ok(id)
             }
             Err(er) => Err(er),
         }
@@ -277,9 +276,6 @@ impl RoleRepo {
             .prepare("UPDATE roles SET role_name = '$1' WHERE id = $2;")
             .await
             .unwrap();
-        //PostgresWorker::queue(HIGHPRIORIOTY, query, ddd)
-        //PostgresWorker::queue()
-        //RoleWorker::task().queue("sql", "the parameters")
         match pool.execute(&pstmt, &[&role.id, &role.name]).await {
             Ok(res) => {
                 RoleCache::update(role).unwrap();
