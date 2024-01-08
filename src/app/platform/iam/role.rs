@@ -10,10 +10,8 @@ use serde::{Deserialize, Serialize};
 use crate::app::{
     ark::ArkState,
     database::postgres::PostgresDatabase,
-    service::cache::{CacheError, CacheResult, Cacheable},
+    service::cache::{CacheError, CacheResult, Cacheable}, platform::response::{ErrorJsonResponse, CustomJsonResponse},
 };
-
-use super::response::{CustomJsonResponse, ErrorJsonResponse};
 
 pub static ROLE_CACHE: Lazy<DashMap<i32, Role>> = Lazy::new(|| DashMap::new());
 
