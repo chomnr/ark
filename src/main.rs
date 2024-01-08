@@ -9,7 +9,7 @@ pub mod app;
 async fn main() {
     let ark = ArkServer::default().await;
     let database = PostgresDatabase::new(PostgresConfig::default()).await;
-    
+
     //slet role = Role::builder()
     //    .id(1)
     //    .name("sadds")
@@ -17,9 +17,22 @@ async fn main() {
 
     //Cache::write::<RoleCache>(role);
 
-    //let role_2 = Role::builder()
-    //    .id(2)
-    //    .build();
+    /*
+    let role = Role::builder()
+        .id(2)
+        .name("Administrator")
+        .build();
+
+    Cache::write::<Role>(role)
+        .unwrap();
+
+    let role2 = Role::builder()
+        .id(2)
+        .build();
+
+    let send = Cache::read::<Role>(role2).unwrap();
+    println!("{:#?}", send);
+    */
 
     // let send = RoleCache::read(role_2);
     // println!("{}", send);

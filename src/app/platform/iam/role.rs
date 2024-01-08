@@ -35,7 +35,7 @@ static ROLE_CACHE: Lazy<DashMap<i32, Role>> = Lazy::new(|| DashMap::new());
 ///
 /// - `new`: Constructs a new `Role`.
 /// - `builder`: Provides a `RoleBuilder` for building a `Role` instance.
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Role {
     pub id: i32,
     pub name: String,

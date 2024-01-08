@@ -1,3 +1,5 @@
+#![allow(private_bounds)]
+
 use thiserror::Error;
 
 pub type CacheResult<T> = Result<T, CacheError>;
@@ -23,7 +25,7 @@ pub enum CacheError {
 /// To ensure flexibility and compatibility with various caching mechanisms, `Cacheable` methods do not
 /// modify the object's state (`&self` instead of `&mut self`). This trait can be implemented by any type
 /// that needs to be cached, allowing it to be used within a concurrent caching system like `DashMap`.
-pub trait Cacheable<T> {
+pub(super) trait Cacheable<T> {
     fn write(value: T) -> CacheResult<bool>;
     fn update(value: T) -> CacheResult<bool>;
     fn delete(value: T) -> CacheResult<bool>;
