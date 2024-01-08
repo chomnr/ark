@@ -190,7 +190,7 @@ impl Cacheable<Role> for RoleCache {
         ROLE_CACHE
             .get(&value.id)
             .map(|v| Role::new(v.id, &v.name))
-            .ok_or({ CacheError::CacheReadFailure })
+            .ok_or(CacheError::CacheReadFailure)
     }
 }
 
