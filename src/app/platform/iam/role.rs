@@ -13,21 +13,21 @@ use crate::app::{
     service::cache::{CacheError, CacheResult, Cacheable},
 };
 
-use super::response::JsonResponse;
+use super::response::{CustomJsonResponse, ErrorJsonResponse};
 
 pub static ROLE_CACHE: Lazy<DashMap<i32, Role>> = Lazy::new(|| DashMap::new());
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Role {
     pub id: i32,
-    pub name: String,
+    pub role_name: String,
 }
 
 impl Role {
     pub fn new(id: i32, role_name: &str) -> Self {
         Self {
             id,
-            name: String::from(role_name),
+            role_name: String::from(role_name),
         }
     }
 
@@ -71,7 +71,7 @@ impl RoleBuilder {
     pub fn build(&self) -> Role {
         Role {
             id: self.id,
-            name: self.name.clone(),
+            role_name: self.name.clone(),
         }
     }
 }
@@ -82,7 +82,7 @@ impl Cacheable<Role> for RoleCache {
     fn write(value: Role) -> CacheResult<bool> {
         ROLE_CACHE.insert(value.id, value.clone()).map_or_else(
             || {
-                println!("[ARC] wrote to 'roles' cache [{}:{}]", value.id, value.name);
+                println!("[ARC] wrote to 'roles' cache [{}:{}]", value.id, value.role_name);
                 Ok(true)
             },
             |_| Err(CacheError::CacheWriteFailure),
@@ -95,7 +95,7 @@ impl Cacheable<Role> for RoleCache {
             .map(|mut entry| {
                 println!(
                     "[ARC] updated 'roles' cache [{}:{}] ==> [{}:{}]",
-                    entry.id, entry.name, value.id, value.name
+                    entry.id, entry.role_name, value.id, value.role_name
                 );
                 *entry = value.clone();
                 true
@@ -116,7 +116,7 @@ impl Cacheable<Role> for RoleCache {
     fn read(value: Role) -> CacheResult<Role> {
         ROLE_CACHE
             .get(&value.id)
-            .map(|v| Role::new(v.id, &v.name))
+            .map(|v| Role::new(v.id, &v.role_name))
             .ok_or(CacheError::CacheReadFailure)
     }
 }
@@ -133,7 +133,7 @@ impl RoleRepo {
         for row in rows {
             let role = Role {
                 id: row.get("id"),
-                name: row.get("role_name"),
+                role_name: row.get("role_name"),
             };
             RoleCache::write(role).unwrap();
         }
@@ -155,10 +155,10 @@ impl RoleRepo {
             .prepare("INSERT INTO roles (role_name) VALUES($1) RETURNING id")
             .await
             .unwrap();
-        match pool.query_one(&pstmt, &[&role.name]).await {
+        match pool.query_one(&pstmt, &[&role.role_name]).await {
             Ok(row) => {
                 let id: i32 = row.get(0);
-                RoleCache::write(Role::builder().id(id).name(&role.name).build()).unwrap();
+                RoleCache::write(Role::builder().id(id).name(&role.role_name).build()).unwrap();
                 Ok(id)
             }
             Err(er) => Err(er),
@@ -171,7 +171,7 @@ impl RoleRepo {
             .prepare("UPDATE roles SET role_name = $1 WHERE id = $2;")
             .await
             .unwrap();
-        match pool.execute(&pstmt, &[&role.name, &role.id]).await {
+        match pool.execute(&pstmt, &[&role.role_name, &role.id]).await {
             Ok(res) => {
                 RoleCache::update(role).unwrap();
                 Ok(res)
@@ -200,13 +200,13 @@ impl RoleRepo {
         let pstmt = pool
             .prepare("SELECT id, role_name FROM roles WHERE id = $1;")
             .await?;
-        
+
         // Execute the query
         match pool.query_one(&pstmt, &[&role_id]).await {
             Ok(row) => {
                 let role = Role {
                     id: row.get("id"),
-                    name: row.get("role_name"),
+                    role_name: row.get("role_name"),
                 };
                 Ok(role)
             }
@@ -228,13 +228,23 @@ struct UpdateRole {
     role_name: String,
 }
 
+#[derive(Deserialize)]
+struct DeleteRole {
+    role_id: i32,
+}
+
+#[derive(Deserialize)]
+struct RetrieveRole {
+    role_id: i32,
+}
+
 impl RoleRoute {
     pub fn routes() -> Router {
         Router::new()
             .route("/role/create", post(Self::role_route_create))
             .route("/role/update", post(Self::role_route_update))
-        //.route("/role/delete", todo!())
-        //.route("/role/retrieve", todo!())
+            .route("/role/delete", post(Self::role_route_delete))
+            .route("/role/retrieve", post(Self::role_route_retrieve))
     }
 
     pub(self) async fn role_route_create(
@@ -249,7 +259,7 @@ impl RoleRoute {
                 return (StatusCode::ACCEPTED).into_response();
             }
             Err(_) => {
-                return JsonResponse::new(
+                return ErrorJsonResponse::new(
                     StatusCode::CONFLICT,
                     "Failed to create Role either it already exists or the parameters are invalid",
                 )
@@ -269,11 +279,52 @@ impl RoleRoute {
             Ok(_) => {
                 return (StatusCode::ACCEPTED).into_response();
             }
-            Err(_) => return JsonResponse::new(
+            Err(_) => return ErrorJsonResponse::new(
                 StatusCode::CONFLICT,
                 "Failed to update Role either the name already exists or the id is not existent.",
             )
             .into_response(),
+        }
+    }
+
+    pub(self) async fn role_route_delete(
+        Extension(state): Extension<Arc<ArkState>>,
+        Json(payload): Json<DeleteRole>,
+    ) -> impl IntoResponse {
+        // todo add authentication... check for rank etc;
+        let repo = RoleRepo::new(state.postgres.clone());
+        let role = Role::builder().id(payload.role_id).build();
+        match repo.delete_role(role.clone()).await {
+            Ok(_) => {
+                return (StatusCode::ACCEPTED).into_response();
+            }
+            Err(_) => {
+                return ErrorJsonResponse::new(
+                    StatusCode::NOT_FOUND,
+                    "Failed to delete Role because the role does not exist with that id.",
+                )
+                .into_response()
+            }
+        }
+    }
+
+    pub(self) async fn role_route_retrieve(
+        Extension(state): Extension<Arc<ArkState>>,
+        Json(payload): Json<RetrieveRole>,
+    ) -> impl IntoResponse {
+        // todo add authentication... check for rank etc;
+        let repo = RoleRepo::new(state.postgres.clone());
+        match repo.read_role(payload.role_id).await {
+            Ok(role) => {
+                return CustomJsonResponse::<Role>::new(StatusCode::ACCEPTED, role).into_response();
+            }
+            Err(_) => {
+                return ErrorJsonResponse::new(
+                    StatusCode::NOT_FOUND,
+                    "Failed to find Role because a role with that id does not exist.",
+                )
+                .into_response()
+            }
         }
     }
 }
