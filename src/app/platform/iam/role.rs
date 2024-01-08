@@ -20,7 +20,7 @@ static ROLE_CACHE: Lazy<DashMap<i32, Role>> = Lazy::new(|| DashMap::new());
 ///
 /// Additional methods can be implemented for `Role` to provide functionalities such
 /// as creating a new role, updating its properties, or other role-related operations.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Role {
     pub id: i32,
     pub name: String,
@@ -213,7 +213,7 @@ impl RoleRepo {
             .await
             .unwrap();
         pool.execute(&pstmt, &[&role.name]).await
-    }
+    } 
 
     /// Asynchronously updates an existing role in the database.
     ///
@@ -232,6 +232,8 @@ impl RoleRepo {
             .prepare("UPDATE roles SET role_name = '$1' WHERE id = $2;")
             .await
             .unwrap();
+        //PostgresWorker::queue(HIGHPRIORIOTY, query, ddd)
+        //PostgresWorker::queue()
         pool.execute(&pstmt, &[&role.id, &role.name]).await
     }
 

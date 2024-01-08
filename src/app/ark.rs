@@ -87,6 +87,7 @@ impl ArkServer {
             "[ARC] router initialized, now listening on port {}.",
             &self.port
         );
+        Self::setup_iam_workers(); // the workers.
         axum::serve(tcp, self.router).await.unwrap();
     }
 
@@ -135,6 +136,10 @@ impl ArkServer {
             .with(tracing_subscriber::fmt::layer())
             .init();
         println!("[ARC] tracer initialized.");
+    }
+
+    fn setup_iam_workers() {
+        // setup role,permission and user worker here.
     }
 }
 

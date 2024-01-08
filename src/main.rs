@@ -1,7 +1,15 @@
+use std::{
+    thread::{self, sleep, Thread},
+    time::{self, Duration},
+};
+
 use app::{
     ark::ArkServer,
     database::postgres::{PostgresConfig, PostgresDatabase},
+    platform::iam::role::{Role, RoleCache, RoleRepo},
+    service::cache::Cacheable,
 };
+use tokio::{sync::mpsc, task};
 
 pub mod app;
 
@@ -9,6 +17,60 @@ pub mod app;
 async fn main() {
     let ark = ArkServer::default().await;
     let database = PostgresDatabase::new(PostgresConfig::default()).await;
+    /*
+
+    // WORKING VERSION
+
+    let (tx, mut rx) = mpsc::channel(32);
+
+    // Spawn a task for receiving and processing messages
+    task::spawn(async move {
+        while let Some(message) = rx.recv().await {
+            println!("Received message: {}", message);
+            // process the message
+        }
+    });
+
+    // Example of sending messages from another async task
+    let sender_clone = tx.clone();
+    task::spawn(async move {
+        for i in 0..5 {
+            let msg = format!("Message {}", i);
+            sleep(time::Duration::from_millis(4000));
+            sender_clone.send(msg).await.unwrap();
+        }
+    });
+    
+    */
+
+
+
+
+    /*
+    busted version
+    let (sender, mut receiver) = mpsc::channel::<Role>(20);
+
+    let role = Role::builder().name("Moderator").build();
+
+    thread::spawn(|| async move {
+        while let Some(message) = receiver.recv().await {
+            println!("got message: {:#?}", message)
+        }
+    });
+
+    sleep(time::Duration::from_millis(4000));
+    sender.send(role).await.unwrap();
+    */
+    //thread::spawn(
+    // let role_worker = RoleWorker::worker();
+    // let role_repo = RoleRepo::new(pg);
+    // role_worker.attach_db(pg)
+    // role_worker.batch_rate(3000) // how frequent the tasks should be performed
+    // role_worker.batch(10) // execute 10 queries per batch
+    // role_worker.listen();
+    // Rol
+    // RoleTask
+    //)
 
     //slet role = Role::builder()
     //    .id(1)
@@ -46,14 +108,14 @@ async fn main() {
     */
 
     //Cache::<Role>::write(role)
-        //.unwrap();
+    //.unwrap();
     /*
     let role = Role::builder()
         .id(1)
         .name("sadds")
         .build();
     Cache::<Role>::write(role).unwrap();
-    
+
     let read = Cache::<Role>::read(Role::builder().id(1).build()).unwrap();
     println!("{}", read.name);
 
