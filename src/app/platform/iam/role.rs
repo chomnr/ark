@@ -274,10 +274,10 @@ impl RoleRepo {
     pub async fn update_role(&self, role: Role) -> Result<u64, Error> {
         let pool = self.pg.pool.get().await.unwrap();
         let pstmt = pool
-            .prepare("UPDATE roles SET role_name = '$1' WHERE id = $2;")
+            .prepare("UPDATE roles SET role_name = $1 WHERE id = $2;")
             .await
             .unwrap();
-        match pool.execute(&pstmt, &[&role.id, &role.name]).await {
+        match pool.execute(&pstmt, &[&role.name, &role.id]).await {
             Ok(res) => {
                 RoleCache::update(role).unwrap();
                 Ok(res)
@@ -340,10 +340,17 @@ struct CreateRole {
     role_name: String,
 }
 
+#[derive(Deserialize)]
+struct UpdateRole {
+    role_id: i32,
+    role_name: String,
+}
+
 impl RoleRoute {
     pub fn routes() -> Router {
-        Router::new().route("/role/create", post(Self::role_route_create))
-        //.route("/role/update", todo!())
+        Router::new()
+            .route("/role/create", post(Self::role_route_create))
+            .route("/role/update", post(Self::role_route_update))
         //.route("/role/delete", todo!())
         //.route("/role/retrieve", todo!())
     }
@@ -363,10 +370,30 @@ impl RoleRoute {
                 return JsonResponse::new(
                     StatusCode::CONFLICT,
                     "Failed to create Role either it already exists or the parameters are invalid",
-                ).into_response()
+                )
+                .into_response()
             }
         }
     }
-}
 
-//StatusCode::CONFLICT, "Failed to create Role either it already exists or the parameters are invalid"
+    pub(self) async fn role_route_update(
+        Extension(state): Extension<Arc<ArkState>>,
+        Json(payload): Json<UpdateRole>,
+    ) -> impl IntoResponse {
+        let repo = RoleRepo::new(state.postgres.clone());
+        let role = Role::builder()
+            .id(payload.role_id as i32)
+            .name(&payload.role_name)
+            .build();
+        match repo.update_role(role).await {
+            Ok(_) => {
+                return (StatusCode::ACCEPTED).into_response();
+            }
+            Err(_) => return JsonResponse::new(
+                StatusCode::CONFLICT,
+                "Failed to update Role either the name already exists or the id is not existent.",
+            )
+            .into_response(),
+        }
+    }
+}
