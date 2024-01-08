@@ -17,6 +17,7 @@ pub mod app;
 async fn main() {
     let ark = ArkServer::default().await;
     let database = PostgresDatabase::new(PostgresConfig::default()).await;
+    ark.run(database).await;
     /*
 
     // WORKING VERSION
@@ -201,7 +202,6 @@ async fn main() {
         .unwrap();
     */
     //PermissionRepoBuilder::new()
-    ark.run().await;
 }
 
 //let pg = PostgresDatabase::new(PostgresConfig::default()).await;

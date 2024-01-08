@@ -116,9 +116,13 @@ impl Cacheable<Role> for RoleCache {
     /// # Returns
     /// `CacheResult<bool>` indicating success or failure of the operation.
     fn write(value: Role) -> CacheResult<bool> {
-        ROLE_CACHE
-            .insert(value.id, value)
-            .map_or_else(|| Ok(true), |_| Err(CacheError::CacheWriteFailure))
+        ROLE_CACHE.insert(value.id, value.clone()).map_or_else(
+            || {
+                RoleCache::write(value).unwrap();
+                Ok(true)
+            },
+            |_| Err(CacheError::CacheWriteFailure),
+        )
     }
 
     /// Updates an existing `Role` in the `ROLE_CACHE`.
@@ -135,7 +139,8 @@ impl Cacheable<Role> for RoleCache {
         ROLE_CACHE
             .get_mut(&value.id)
             .map(|mut entry| {
-                *entry = value;
+                *entry = value.clone();
+                RoleCache::update(value).unwrap();
                 true
             })
             .ok_or(CacheError::CacheUpdateFailure)
@@ -152,9 +157,13 @@ impl Cacheable<Role> for RoleCache {
     /// # Returns
     /// `CacheResult<bool>` indicating success or failure of the operation.
     fn delete(value: Role) -> CacheResult<bool> {
-        ROLE_CACHE
-            .remove(&value.id)
-            .map_or_else(|| Err(CacheError::CacheDeleteFailure), |_| Ok(true))
+        ROLE_CACHE.remove(&value.id).map_or_else(
+            || Err(CacheError::CacheDeleteFailure),
+            |_| {
+                RoleCache::delete(value).unwrap();
+                Ok(true)
+            },
+        )
     }
 
     /// Reads a `Role` from the `ROLE_CACHE`.
@@ -213,7 +222,7 @@ impl RoleRepo {
             .await
             .unwrap();
         pool.execute(&pstmt, &[&role.name]).await
-    } 
+    }
 
     /// Asynchronously updates an existing role in the database.
     ///
@@ -234,6 +243,7 @@ impl RoleRepo {
             .unwrap();
         //PostgresWorker::queue(HIGHPRIORIOTY, query, ddd)
         //PostgresWorker::queue()
+        //RoleWorker::task().queue("sql", "the parameters")
         pool.execute(&pstmt, &[&role.id, &role.name]).await
     }
 
@@ -277,3 +287,21 @@ impl RoleRepo {
         todo!()
     }
 }
+
+/*
+// message here
+pub struct RoleWorker;
+pub struct RoleSenderMessage;
+
+#[async_trait]
+impl Worker for RoleWorker {
+    async fn attach_pg_db() {
+        todo!()
+    }
+
+    async fn listen() {
+        let (tx, mut rx) = mpsc::channel(1000);
+        todo!()
+    }
+}
+*/

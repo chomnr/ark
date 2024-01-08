@@ -1,6 +1,4 @@
-pub trait Worker {
-    fn queue();
-}
-
+use axum::async_trait;
+use tokio::sync::mpsc;
 
 //RoleWorker::queue()

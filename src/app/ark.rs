@@ -2,13 +2,15 @@ use core::fmt;
 use std::{env, sync::Arc};
 
 use axum::{extract::FromRef, Extension, Router};
-use tokio::net::TcpListener;
+use tokio::{net::TcpListener, sync::mpsc};
 use tower_cookies::{CookieManagerLayer, Key};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
-use super::database::{
+use super::{
+    database::{
         postgres::{PostgresConfig, PostgresDatabase},
         redis::{RedisConfig, RedisDatabase},
+    }
 };
 
 static ADDRESS: &str = "0.0.0.0";
@@ -71,7 +73,7 @@ impl ArkServer {
     /// let arc = ArkServer::default();
     /// arc.run().await; // starts the server in self.mode mode
     /// ```
-    pub async fn run(self) {
+    pub async fn run(self, pg: PostgresDatabase) {
         let tcp = TcpListener::bind(&self.get_addr()).await.unwrap();
         println!("[ARC] mode: {}", self.mode.to_string());
         match self.mode {
@@ -87,7 +89,6 @@ impl ArkServer {
             "[ARC] router initialized, now listening on port {}.",
             &self.port
         );
-        Self::setup_iam_workers(); // the workers.
         axum::serve(tcp, self.router).await.unwrap();
     }
 
@@ -136,10 +137,6 @@ impl ArkServer {
             .with(tracing_subscriber::fmt::layer())
             .init();
         println!("[ARC] tracer initialized.");
-    }
-
-    fn setup_iam_workers() {
-        // setup role,permission and user worker here.
     }
 }
 
