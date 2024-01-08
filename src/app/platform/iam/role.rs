@@ -8,7 +8,7 @@ use crate::app::{
     service::cache::{CacheError, CacheResult, Cacheable},
 };
 
-static ROLE_CACHE: Lazy<DashMap<i32, Role>> = Lazy::new(|| DashMap::new());
+pub static ROLE_CACHE: Lazy<DashMap<i32, Role>> = Lazy::new(|| DashMap::new());
 
 /// Represents a role within the application.
 ///
@@ -118,7 +118,7 @@ impl Cacheable<Role> for RoleCache {
     fn write(value: Role) -> CacheResult<bool> {
         ROLE_CACHE.insert(value.id, value.clone()).map_or_else(
             || {
-                RoleCache::write(value).unwrap();
+                println!("[ARC] wrote to 'roles' cache [{}:{}]", value.id, value.name);
                 Ok(true)
             },
             |_| Err(CacheError::CacheWriteFailure),
@@ -139,8 +139,11 @@ impl Cacheable<Role> for RoleCache {
         ROLE_CACHE
             .get_mut(&value.id)
             .map(|mut entry| {
+                println!(
+                    "[ARC] updated 'roles' cache [{}:{}] ==> [{}:{}]",
+                    entry.id, entry.name, value.id, value.name
+                );
                 *entry = value.clone();
-                RoleCache::update(value).unwrap();
                 true
             })
             .ok_or(CacheError::CacheUpdateFailure)
@@ -160,7 +163,8 @@ impl Cacheable<Role> for RoleCache {
         ROLE_CACHE.remove(&value.id).map_or_else(
             || Err(CacheError::CacheDeleteFailure),
             |_| {
-                RoleCache::delete(value).unwrap();
+                RoleCache::delete(value.clone()).unwrap();
+                println!("[ARC] deleted from 'roles' cache [{}]", value.id);
                 Ok(true)
             },
         )
@@ -180,7 +184,13 @@ impl Cacheable<Role> for RoleCache {
         ROLE_CACHE
             .get(&value.id)
             .map(|v| Role::new(v.id, &v.name))
-            .ok_or(CacheError::CacheDeleteFailure)
+            .ok_or({
+                println!(
+                    "[ARC] MISSED retrieving role from 'roles' cache [{}]",
+                    value.id
+                );
+                CacheError::CacheReadFailure
+            })
     }
 }
 
@@ -197,6 +207,25 @@ impl Cacheable<Role> for RoleCache {
 /// specific to `Role` entities within the PostgreSQL database.
 pub struct RoleRepo {
     pg: PostgresDatabase,
+}
+
+impl RoleRepo {
+    pub async fn preload_cache(&self) {
+        let pool = self.pg.pool.get().await.unwrap();
+        let pstmt = pool.prepare("SELECT * FROM roles").await.unwrap();
+        let rows = pool.query(&pstmt, &[]).await.unwrap();
+        for row in rows {
+            let role = Role {
+                id: row.get("id"),
+                name: row.get("role_name"),
+            };
+            RoleCache::write(role).unwrap();
+        }
+        println!(
+            "[ARC] preloaded 'roles' cache with {} entries",
+            ROLE_CACHE.len()
+        )
+    }
 }
 
 impl RoleRepo {
@@ -218,10 +247,17 @@ impl RoleRepo {
     pub async fn create_role(&self, role: Role) -> Result<u64, Error> {
         let pool = self.pg.pool.get().await.unwrap();
         let pstmt = pool
-            .prepare("INSERT INTO roles (id, role_name) VALUES($1)")
+            .prepare("INSERT INTO roles (role_name) VALUES($1) RETURNING id")
             .await
             .unwrap();
-        pool.execute(&pstmt, &[&role.name]).await
+        match pool.query_one(&pstmt, &[&role.name]).await {
+            Ok(row) => {
+                let id: i32 = row.get(0);
+                RoleCache::write(Role::builder().id(id).name(&role.name).build()).unwrap();
+                Ok(1)
+            }
+            Err(er) => Err(er),
+        }
     }
 
     /// Asynchronously updates an existing role in the database.
@@ -244,7 +280,13 @@ impl RoleRepo {
         //PostgresWorker::queue(HIGHPRIORIOTY, query, ddd)
         //PostgresWorker::queue()
         //RoleWorker::task().queue("sql", "the parameters")
-        pool.execute(&pstmt, &[&role.id, &role.name]).await
+        match pool.execute(&pstmt, &[&role.id, &role.name]).await {
+            Ok(res) => {
+                RoleCache::update(role).unwrap();
+                Ok(res)
+            }
+            Err(er) => Err(er),
+        }
     }
 
     /// Asynchronously deletes a role from the database.
@@ -263,7 +305,13 @@ impl RoleRepo {
             .prepare("DELETE FROM roles WHERE id = $1;")
             .await
             .unwrap();
-        pool.execute(&pstmt, &[&role.id]).await
+        match pool.execute(&pstmt, &[&role.id]).await {
+            Ok(res) => {
+                RoleCache::delete(role).unwrap();
+                Ok(res)
+            }
+            Err(er) => Err(er),
+        }
     }
 
     /// Asynchronously reads a role's details from the database.

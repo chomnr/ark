@@ -13,7 +13,7 @@ pub enum CacheError {
     #[error("Failed to delete value from cache because the requested id does not exist.")]
     CacheDeleteFailure,
     #[error("Failed to read value from cache because the requested id does not exist.")]
-    CacheReadFailure,
+    CacheReadFailure
 }
 
 /// Trait defining the interface for cacheable items in Rust.

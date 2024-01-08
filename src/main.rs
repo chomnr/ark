@@ -18,6 +18,7 @@ async fn main() {
     let ark = ArkServer::default().await;
     let database = PostgresDatabase::new(PostgresConfig::default()).await;
     ark.run(database).await;
+
     /*
 
     // WORKING VERSION
@@ -41,11 +42,8 @@ async fn main() {
             sender_clone.send(msg).await.unwrap();
         }
     });
-    
+
     */
-
-
-
 
     /*
     busted version
