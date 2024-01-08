@@ -333,6 +333,14 @@ impl RoleRepo {
     }
 }
 
+/// A struct dedicated to managing route handlers related to role operations.
+///
+/// `RoleRoute` is responsible for defining and organizing HTTP endpoints 
+/// specific to role management, such as creating, updating, deleting, or 
+/// querying role information.
+///
+/// This struct typically encapsulates methods that return route handlers, 
+/// each associated with a specific role-related action in a web application.
 pub struct RoleRoute;
 
 #[derive(Deserialize)]

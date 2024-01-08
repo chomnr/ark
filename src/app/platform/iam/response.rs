@@ -1,7 +1,4 @@
-use axum::{
-    http::{Response, StatusCode},
-    Json,
-};
+use axum::http::{Response, StatusCode};
 use axum_core::{body::Body, response::IntoResponse};
 use serde::{Serialize, Serializer};
 
