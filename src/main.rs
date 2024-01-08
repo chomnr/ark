@@ -1,6 +1,6 @@
 use app::{
     ark::ArkServer,
-    database::postgres::{PostgresConfig, PostgresDatabase},
+    database::postgres::{PostgresConfig, PostgresDatabase}, platform::iam::role::RoleCache,
 };
 
 pub mod app;

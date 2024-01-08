@@ -6,35 +6,16 @@ use crate::app::platform::cache::{Cacheable, CacheResult, CacheError};
 
 static ROLE_CACHE: Lazy<DashMap<i32, Role>> = Lazy::new(|| DashMap::new());
 
-/// A representation of a user role in the system.
+/// Represents a role within the application.
 ///
-/// This struct is used to define and handle properties associated with a user role.
+/// `Role` is a struct that defines the properties and characteristics of a user role.
 ///
 /// # Fields
-/// - `id`: An integer representing the unique identifier of the role.
-/// - `name`: A string holding the name of the role.
+/// - `id`: An `i32` representing the unique identifier of the role.
+/// - `name`: A `String` that holds the name of the role.
 ///
-/// # Examples
-///
-/// Creating a new `Role`:
-///
-/// ```
-/// let admin_role = Role::new(1, "Administrator");
-/// ```
-///
-/// Using a builder to create a `Role`:
-///
-/// ```
-/// let role = Role::builder()
-///     .id(2)
-///     .name("Editor")
-///     .build();
-/// ```
-///
-/// # Methods
-///
-/// - `new`: Constructs a new `Role`.
-/// - `builder`: Provides a `RoleBuilder` for building a `Role` instance.
+/// Additional methods can be implemented for `Role` to provide functionalities such 
+/// as creating a new role, updating its properties, or other role-related operations.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Role {
     pub id: i32,
@@ -54,7 +35,72 @@ impl Role {
     }
 }
 
-impl Cacheable<Role> for Role {
+/// Builder for creating instances of `Role`.
+///
+/// `RoleBuilder` facilitates the construction of `Role` objects, allowing for step-by-step 
+/// setting of its properties.
+///
+/// # Fields
+/// - `id`: An `i32` representing the unique identifier of the role.
+/// - `name`: A `String` for the name of the role.
+///
+/// This builder pattern is particularly useful for creating `Role` objects with optional or 
+/// complex initialization logic.
+pub struct RoleBuilder {
+    pub id: i32,
+    pub name: String,
+}
+
+impl Default for RoleBuilder {
+    fn default() -> Self {
+        Self {
+            id: Default::default(),
+            name: Default::default(),
+        }
+    }
+}
+
+impl RoleBuilder {
+    fn new() -> Self {
+        Self {
+            id: 0,
+            name: String::default(),
+        }
+    }
+
+    pub fn id(&mut self, id: i32) -> &mut Self {
+        self.id = id;
+        self
+    }
+
+    pub fn name(&mut self, name: &str) -> &mut Self {
+        self.name = String::from(name);
+        self
+    }
+
+    pub fn build(&self) -> Role {
+        Role {
+            id: self.id,
+            name: self.name.clone(),
+        }
+    }
+}
+
+/// Implementation of the `Cacheable` trait for `RoleCache`.
+///
+/// This implementation provides caching functionalities tailored specifically for `Role` 
+/// objects.
+///
+/// By implementing `Cacheable`, `RoleCache` can perform operations such as write, update, 
+/// delete, and read, 
+/// which are essential for managing `Role` instances in a cache.
+///
+/// The exact details of how these operations interact with the underlying caching 
+/// mechanism (presumably within `RoleCache`) would be defined within each method's 
+/// implementation.
+pub struct RoleCache;
+
+impl Cacheable<Role> for RoleCache {
     /// Writes a `Role` to the `ROLE_CACHE`.
     ///
     /// Inserts a `Role` into the cache. If the insertion is successful, it returns `Ok(true)`.
@@ -122,61 +168,5 @@ impl Cacheable<Role> for Role {
             .get(&value.id)
             .map(|v| Role::new(v.id, &v.name))
             .ok_or(CacheError::CacheDeleteFailure)
-    }
-}
-
-/// Builder for constructing a `Role` instance.
-///
-/// Allows for customizable creation of `Role` objects. Each field can be set independently before finalizing the construction.
-///
-/// # Fields
-/// - `id`: An integer representing the role's unique identifier.
-/// - `name`: A string specifying the name of the role.
-///
-/// # Methods
-///
-/// - `default`: Creates a new `RoleBuilder` with default values for `id` and `name`.
-/// - `id` (deprecated): Sets the `id` of the role. This method is deprecated and may be removed in future versions.
-/// - `name`: Sets the `name` of the role.
-/// - `build`: Finalizes and builds a `Role` instance based on the set values.
-///
-/// The `build` method clones the `name` field to create a new `Role`, ensuring the builder can be reused or modified later without affecting the created `Role`.
-pub struct RoleBuilder {
-    pub id: i32,
-    pub name: String,
-}
-
-impl Default for RoleBuilder {
-    fn default() -> Self {
-        Self {
-            id: Default::default(),
-            name: Default::default(),
-        }
-    }
-}
-
-impl RoleBuilder {
-    fn new() -> Self {
-        Self {
-            id: 0,
-            name: String::default(),
-        }
-    }
-
-    pub fn id(&mut self, id: i32) -> &mut Self {
-        self.id = id;
-        self
-    }
-
-    pub fn name(&mut self, name: &str) -> &mut Self {
-        self.name = String::from(name);
-        self
-    }
-
-    pub fn build(&self) -> Role {
-        Role {
-            id: self.id,
-            name: self.name.clone(),
-        }
     }
 }

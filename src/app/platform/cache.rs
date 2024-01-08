@@ -25,7 +25,7 @@ pub enum CacheError {
 /// To ensure flexibility and compatibility with various caching mechanisms, `Cacheable` methods do not
 /// modify the object's state (`&self` instead of `&mut self`). This trait can be implemented by any type
 /// that needs to be cached, allowing it to be used within a concurrent caching system like `DashMap`.
-pub(super) trait Cacheable<T> {
+pub trait Cacheable<T> {
     fn write(value: T) -> CacheResult<bool>;
     fn update(value: T) -> CacheResult<bool>;
     fn delete(value: T) -> CacheResult<bool>;
@@ -45,6 +45,7 @@ enum CacheStatus {
     Miss,
 }
 
+/*
 /// Struct `Cache` is a concurrent cache implementation in Rust using DashMap.
 ///
 /// This struct encapsulates a DashMap that maps strings to boxed objects implementing
@@ -72,3 +73,4 @@ impl Cache {
         T::read(value)
     }
 }
+*/
