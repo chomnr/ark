@@ -1,12 +1,19 @@
+use std::sync::Arc;
+
+use axum::{http::StatusCode, routing::post, Extension, Json, Router};
+use axum_core::response::IntoResponse;
 use bb8_postgres::tokio_postgres::Error;
 use dashmap::DashMap;
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 
 use crate::app::{
+    ark::ArkState,
     database::postgres::PostgresDatabase,
     service::cache::{CacheError, CacheResult, Cacheable},
 };
+
+use super::response::JsonResponse;
 
 pub static ROLE_CACHE: Lazy<DashMap<i32, Role>> = Lazy::new(|| DashMap::new());
 
@@ -102,7 +109,7 @@ impl RoleBuilder {
 /// The exact details of how these operations interact with the underlying caching
 /// mechanism (presumably within `RoleCache`) would be defined within each method's
 /// implementation.
-pub struct RoleCache;
+struct RoleCache;
 
 impl Cacheable<Role> for RoleCache {
     /// Writes a `Role` to the `ROLE_CACHE`.
@@ -183,9 +190,7 @@ impl Cacheable<Role> for RoleCache {
         ROLE_CACHE
             .get(&value.id)
             .map(|v| Role::new(v.id, &v.name))
-            .ok_or({
-                CacheError::CacheReadFailure
-            })
+            .ok_or({ CacheError::CacheReadFailure })
     }
 }
 
@@ -327,3 +332,41 @@ impl RoleRepo {
         todo!()
     }
 }
+
+pub struct RoleRoute;
+
+#[derive(Deserialize)]
+struct CreateRole {
+    role_name: String,
+}
+
+impl RoleRoute {
+    pub fn routes() -> Router {
+        Router::new().route("/role/create", post(Self::role_route_create))
+        //.route("/role/update", todo!())
+        //.route("/role/delete", todo!())
+        //.route("/role/retrieve", todo!())
+    }
+
+    pub(self) async fn role_route_create(
+        Extension(state): Extension<Arc<ArkState>>,
+        Json(payload): Json<CreateRole>,
+    ) -> impl IntoResponse {
+        // todo add authentication... check for rank etc;
+        let repo = RoleRepo::new(state.postgres.clone());
+        let role = Role::builder().name(&payload.role_name).build();
+        match repo.create_role(role).await {
+            Ok(_) => {
+                return (StatusCode::ACCEPTED).into_response();
+            }
+            Err(_) => {
+                return JsonResponse::new(
+                    StatusCode::CONFLICT,
+                    "Failed to create Role either it already exists or the parameters are invalid",
+                ).into_response()
+            }
+        }
+    }
+}
+
+//StatusCode::CONFLICT, "Failed to create Role either it already exists or the parameters are invalid"

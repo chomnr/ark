@@ -2,18 +2,16 @@ use core::fmt;
 use std::{env, sync::Arc};
 
 use axum::{extract::FromRef, Extension, Router};
-use tokio::{net::TcpListener, sync::mpsc};
+use tokio::net::TcpListener;
 use tower_cookies::{CookieManagerLayer, Key};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
-
-use crate::app::{platform::iam::role::{Role, ROLE_CACHE, RoleCache}, service::cache::Cacheable};
 
 use super::{
     database::{
         postgres::{PostgresConfig, PostgresDatabase},
         redis::{RedisConfig, RedisDatabase},
     },
-    platform::iam::role::RoleRepo,
+    platform::iam::role::{RoleRoute, RoleRepo},
 };
 
 static ADDRESS: &str = "0.0.0.0";
@@ -58,6 +56,7 @@ impl ArkServer {
             port: PORT,
             mode: MODE,
             router: Router::new()
+                .nest("/admin", RoleRoute::routes())
                 .layer(Extension(Arc::new(ArkState::default().await)))
                 .layer(CookieManagerLayer::new()),
         }
