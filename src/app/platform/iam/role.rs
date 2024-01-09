@@ -13,7 +13,7 @@ use crate::app::{
     service::cache::{CacheError, CacheResult, Cacheable}, platform::response::{ErrorJsonResponse, CustomJsonResponse},
 };
 
-pub static ROLE_CACHE: Lazy<DashMap<i32, Role>> = Lazy::new(|| DashMap::new());
+static ROLE_CACHE: Lazy<DashMap<i32, Role>> = Lazy::new(|| DashMap::new());
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Role {
