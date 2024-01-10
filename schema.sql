@@ -49,7 +49,7 @@ CREATE TABLE iam_user_permission (
 );
 
 /*
-CREATE TABLE user_oauth (
+CREATE TABLE iam_user_oauth (
     user_id INTEGER NOT NULL,
     oauth_id VARCHAR(255) NOT NULL,
     oauth_provider VARCHAR(255) NOT NULL,

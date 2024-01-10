@@ -1,4 +1,4 @@
 pub mod database;
 pub mod platform;
-pub mod service;
+pub mod utilities;
 pub mod ark;

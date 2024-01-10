@@ -6,13 +6,10 @@ use tokio::net::TcpListener;
 use tower_cookies::{CookieManagerLayer, Key};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
-use super::{
-    database::{
+use super::database::{
         postgres::{PostgresConfig, PostgresDatabase},
         redis::{RedisConfig, RedisDatabase},
-    },
-    platform::iam::role::{RoleRoute, RoleRepo},
-};
+    };
 
 static ADDRESS: &str = "0.0.0.0";
 static PORT: usize = 3000;
@@ -56,7 +53,6 @@ impl ArkServer {
             port: PORT,
             mode: MODE,
             router: Router::new()
-                .nest("/admin", RoleRoute::routes())
                 .layer(Extension(Arc::new(ArkState::default().await)))
                 .layer(CookieManagerLayer::new()),
         }
@@ -91,7 +87,7 @@ impl ArkServer {
             "[ARC] router initialized, now listening on port {}.",
             &self.port
         );
-        Self::preload_cache(pg.clone()).await;
+        //Self::preload_cache(pg.clone()).await;
         axum::serve(tcp, self.router).await.unwrap();
     }
 
@@ -140,11 +136,6 @@ impl ArkServer {
             .with(tracing_subscriber::fmt::layer())
             .init();
         println!("[ARC] tracer initialized.");
-    }
-
-    // preload cache.. todo message.
-    pub async fn preload_cache(pg: PostgresDatabase) {
-        RoleRepo::new(pg.clone()).preload_cache().await;
     }
 }
 

@@ -1,12 +1,6 @@
-use std::{
-    thread::{self, sleep, Thread},
-    time::{self, Duration},
-};
-
 use app::{
     ark::ArkServer,
-    database::postgres::{PostgresConfig, PostgresDatabase},
-};
+    database::{postgres::{PostgresConfig, PostgresDatabase}, redis::{RedisDatabase, RedisConfig}}};
 
 pub mod app;
 
@@ -14,6 +8,59 @@ pub mod app;
 async fn main() {
     let ark = ArkServer::default().await;
     let database = PostgresDatabase::new(PostgresConfig::default()).await;
+    let redis = RedisDatabase::new(RedisConfig::default()).await;
+    
+    //let worker = WorkerManager::with_databases(database.clone(), redis.clone());
+
+    //WorkerManager::listen(WorkerChannelType::Receiver);
+    
+    // worker.start_task_listener();
+    // worker.start_result_listener();
+
+    //let user_channel = WorkerManager::user_worker();
+
+    /*
+    task::spawn(async move { 
+        println!("Listening...");
+        for message in user_channel.reciever.iter() {
+            // Process each message
+            println!("Received message: {}", message);
+        }
+    });
+
+
+    task::spawn(async move { 
+        for i in 1..6 {
+            // Process each message
+            sleep(time::Duration::from_millis(2000));
+            user_channel.sender.send("TESTING".to_string()).unwrap();
+        }
+    });
+    */
+    //task::spawn(async move {
+    //    let user_worker = UserWorker::new_worker(userworker_db.clone());
+    //    user_worker
+    //});
+
+    //let user_worker = UserWorker::new_work(pg);
+    //user_worker.setup(pg);
+    //UserManager::create_user("adsdas")
+    //UserWorker::queue_task("dssad", "dsaasd").await;
+
+
+    //    let user = User::builder()
+    //        .oauth_id("asddsaad")
+    //        .oauth_provider("discord")
+    //        .clean_build()
+    //        .unwrap();
+
+    //User::builder()
+    //    .validate_and_build()
+    //    .unwrap();
+    
+    //println!("{}", user.info.created_at);
+    //println!("{}", user.info.updated_at);
+    
     ark.run(database).await;
     /*
 
