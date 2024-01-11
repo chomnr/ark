@@ -6,10 +6,10 @@ use tokio::net::TcpListener;
 use tower_cookies::{CookieManagerLayer, Key};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
-use super::database::{
+use super::{database::{
         postgres::{PostgresConfig, PostgresDatabase},
         redis::{RedisConfig, RedisDatabase},
-    };
+    }, utilities::worker::WorkerManager};
 
 static ADDRESS: &str = "0.0.0.0";
 static PORT: usize = 3000;
@@ -71,9 +71,10 @@ impl ArkServer {
     /// let arc = ArkServer::default();
     /// arc.run().await; // starts the server in self.mode mode
     /// ```
-    pub async fn run(self, pg: PostgresDatabase) {
+    pub async fn run(self, pg: PostgresDatabase, redis: RedisDatabase) {
         let tcp = TcpListener::bind(&self.get_addr()).await.unwrap();
         println!("[ARC] mode: {}", self.mode.to_string());
+        Self::register_workers(pg, redis);
         match self.mode {
             ServerMode::Production => {}
             ServerMode::Development => {
@@ -136,6 +137,12 @@ impl ArkServer {
             .with(tracing_subscriber::fmt::layer())
             .init();
         println!("[ARC] tracer initialized.");
+    }
+
+    // register workers or worker...
+    fn register_workers(pg: PostgresDatabase, redis: RedisDatabase) {
+        let worker_mgr = WorkerManager::with_databases(pg, redis);
+        worker_mgr.listen();
     }
 }
 

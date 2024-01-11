@@ -1,5 +1,8 @@
 use serde::{Serialize, Deserialize};
 
+use crate::app::utilities::worker::{SenderMessage, SenderType};
+
+
 #[derive(Serialize, Deserialize)]
 pub enum UserWorkerAction {
     CreateUser
@@ -9,7 +12,6 @@ pub enum UserWorkerAction {
 pub struct UserWorkerMessage {
     worker_action: UserWorkerAction
 }
-
 
 //static TASK_REQUESTS: Lazy<(Sender<String>, Receiver<String>)> = Lazy::new(|| unbounded::<String>());
 //static TASK_RESULTS: Lazy<(Sender<String>, Receiver<String>)> = Lazy::new(|| unbounded::<String>());

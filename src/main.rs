@@ -1,26 +1,31 @@
 use app::{
     ark::ArkServer,
-    database::{postgres::{PostgresConfig, PostgresDatabase}, redis::{RedisDatabase, RedisConfig}}};
+    database::{
+        postgres::{PostgresConfig, PostgresDatabase},
+        redis::{RedisConfig, RedisDatabase},
+    },
+};
 
 pub mod app;
 
 #[tokio::main]
 async fn main() {
     let ark = ArkServer::default().await;
-    let database = PostgresDatabase::new(PostgresConfig::default()).await;
+    let pg = PostgresDatabase::new(PostgresConfig::default()).await;
     let redis = RedisDatabase::new(RedisConfig::default()).await;
-    
+    ark.run(pg, redis).await;
+
     //let worker = WorkerManager::with_databases(database.clone(), redis.clone());
 
     //WorkerManager::listen(WorkerChannelType::Receiver);
-    
+
     // worker.start_task_listener();
     // worker.start_result_listener();
 
     //let user_channel = WorkerManager::user_worker();
 
     /*
-    task::spawn(async move { 
+    task::spawn(async move {
         println!("Listening...");
         for message in user_channel.reciever.iter() {
             // Process each message
@@ -29,7 +34,7 @@ async fn main() {
     });
 
 
-    task::spawn(async move { 
+    task::spawn(async move {
         for i in 1..6 {
             // Process each message
             sleep(time::Duration::from_millis(2000));
@@ -47,7 +52,6 @@ async fn main() {
     //UserManager::create_user("adsdas")
     //UserWorker::queue_task("dssad", "dsaasd").await;
 
-
     //    let user = User::builder()
     //        .oauth_id("asddsaad")
     //        .oauth_provider("discord")
@@ -57,11 +61,10 @@ async fn main() {
     //User::builder()
     //    .validate_and_build()
     //    .unwrap();
-    
+
     //println!("{}", user.info.created_at);
     //println!("{}", user.info.updated_at);
-    
-    ark.run(database).await;
+
     /*
 
     // WORKING VERSION
@@ -69,7 +72,7 @@ async fn main() {
     let (tx, mut rx) = mpsc::channel(32);
 
     // Spawn a task for receiving and processing messages
-    task::spawn(async move { 
+    task::spawn(async move {
         while let Some(message) = rx.recv().await {
             println!("Received message: {}", message);
             // process the message
