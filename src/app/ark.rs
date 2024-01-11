@@ -9,7 +9,7 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use super::{database::{
         postgres::{PostgresConfig, PostgresDatabase},
         redis::{RedisConfig, RedisDatabase},
-    }, utilities::worker::WorkerManager};
+    }, utilities::worker::{WorkerManager, SenderMessage, SenderType}, platform::iam::user::worker::UserWorkerMessage};
 
 static ADDRESS: &str = "0.0.0.0";
 static PORT: usize = 3000;
@@ -74,7 +74,6 @@ impl ArkServer {
     pub async fn run(self, pg: PostgresDatabase, redis: RedisDatabase) {
         let tcp = TcpListener::bind(&self.get_addr()).await.unwrap();
         println!("[ARC] mode: {}", self.mode.to_string());
-        Self::register_workers(pg, redis);
         match self.mode {
             ServerMode::Production => {}
             ServerMode::Development => {
@@ -84,6 +83,7 @@ impl ArkServer {
                 Self::enable_tracing();
             }
         }
+        Self::register_workers(pg, redis);
         println!(
             "[ARC] router initialized, now listening on port {}.",
             &self.port
@@ -143,6 +143,12 @@ impl ArkServer {
     fn register_workers(pg: PostgresDatabase, redis: RedisDatabase) {
         let worker_mgr = WorkerManager::with_databases(pg, redis);
         worker_mgr.listen();
+
+        let test = SenderMessage::compose::<UserWorkerMessage>(SenderType::User, UserWorkerMessage {
+            message: "sdsda".to_string(),
+        });
+
+        worker_mgr.send(test);
     }
 }
 

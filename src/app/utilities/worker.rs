@@ -27,9 +27,9 @@ pub enum SenderType {
 impl SenderType {
     pub fn to_string(&self) -> String {
         match self {
-            SenderType::Permission => return String::from("permission"),
-            SenderType::Role => return String::from("role"),
-            SenderType::User => return String::from("user"),
+            SenderType::Permission => return String::from("permission_req"),
+            SenderType::Role => return String::from("role_req"),
+            SenderType::User => return String::from("user_req"),
         }
     }
 }
@@ -168,19 +168,45 @@ impl WorkerManager {
         WorkerManager { pg, redis }
     }
 
+    /// Starts a listener for incoming messages on the global task channel.
+    ///
+    /// This function spawns a new asynchronous task that continuously listens for messages
+    /// sent to the `TASK_CHANNEL`. Upon receiving a message, it matches the `sender_type`
+    /// field of the message and performs actions based on the type of sender. Currently,
+    /// it handles `SenderType::User` by printing a message, while `SenderType::Permission`
+    /// and `SenderType::Role` have empty implementations.
+    ///
+    /// The listener runs indefinitely, processing each message in the order it's received.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let worker = WorkerManager::new();
+    /// worker.listen(); // Start listening for messages
+    /// ```
+    ///
+    /// Note: This function does not return as it spawns a listener task that runs indefinitely.
     pub fn listen(&self) {
         task::spawn(async move {
-            println!("[ARC] listening to incoming requests");
+            println!("[ARC] worker initialized, now listening to requests.");
             for message in TASK_CHANNEL.1.iter() {
                 match message.sender_type {
-                    SenderType::Permission => {},
-                    SenderType::Role => {},
+                    SenderType::Permission => {
+                        println!("received a permission message {}", message.sender_id)
+                    }
+                    SenderType::Role => {
+                        println!("received a role message {}", message.sender_id)
+                    }
                     SenderType::User => {
-                        println!("received message.")
-                    },
+                        println!("received a user message {}", message.sender_id)
+                    }
                 }
             }
         });
+    }
+
+    pub fn send(&self, sender_message: SenderMessage) {
+        TASK_CHANNEL.0.send(sender_message).unwrap();
     }
 
     /// Asynchronously processes a SQL query with the provided parameters.

@@ -10,7 +10,7 @@ pub enum UserWorkerAction {
 
 #[derive(Serialize, Deserialize)]
 pub struct UserWorkerMessage {
-    worker_action: UserWorkerAction
+    pub message: String
 }
 
 //static TASK_REQUESTS: Lazy<(Sender<String>, Receiver<String>)> = Lazy::new(|| unbounded::<String>());

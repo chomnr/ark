@@ -6,6 +6,7 @@ use app::{
     },
 };
 
+
 pub mod app;
 
 #[tokio::main]
@@ -14,7 +15,6 @@ async fn main() {
     let pg = PostgresDatabase::new(PostgresConfig::default()).await;
     let redis = RedisDatabase::new(RedisConfig::default()).await;
     ark.run(pg, redis).await;
-
     //let worker = WorkerManager::with_databases(database.clone(), redis.clone());
 
     //WorkerManager::listen(WorkerChannelType::Receiver);
