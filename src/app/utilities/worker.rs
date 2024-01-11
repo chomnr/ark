@@ -12,11 +12,6 @@ use crate::app::database::{postgres::PostgresDatabase, redis::RedisDatabase};
 ///
 /// It's designed to identify the nature of the information or the context
 /// within which the sending operation is performed.
-///
-/// This enum plays a crucial role in systems where different types of data
-/// are handled and routed differently, ensuring that each sending operation
-/// is associated with its appropriate category for effective processing and
-/// management.
 #[derive(Clone, Copy)]
 pub enum SenderType {
     Permission,
@@ -40,10 +35,6 @@ impl SenderType {
 /// `SenderMessage` is designed to hold details pertinent to a message-sending
 /// operation within a system. It includes the identity of the sender, the type
 /// of sender as categorized by the `SenderType` enum, and the actual message content.
-///
-/// This struct is particularly useful in communication systems or message processing
-/// applications where it's important to track not just the message content, but also
-/// the source and nature of the message.
 pub struct SenderMessage {
     sender_id: String,
     sender_type: SenderType,
@@ -107,10 +98,6 @@ impl SenderMessage {
 /// It distinguishes between two primary types of workers: `Sender`,
 /// indicating a worker that primarily handles sending operations, and
 /// `Receiver`, indicating a worker focused on receiving tasks or messages.
-///
-/// his differentiation is crucial in systems involving message passing,
-/// task distribution, or any scenario where workers have distinct operational
-/// roles.
 #[derive(PartialEq, Eq)]
 pub enum WorkerType {
     Sender,
@@ -129,9 +116,6 @@ pub enum WorkerType {
 /// The channel uses `Lazy` to ensure thread-safe, one-time initialization.
 /// The `unbounded()` function creates a channel without any capacity constraints,
 /// allowing an unlimited number of messages to be sent before being received.
-///
-/// This channel is particularly useful in concurrent applications where different
-/// components or threads need to communicate `
 static TASK_CHANNEL: Lazy<(Sender<SenderMessage>, Receiver<SenderMessage>)> =
     Lazy::new(|| unbounded());
 
@@ -139,11 +123,6 @@ static TASK_CHANNEL: Lazy<(Sender<SenderMessage>, Receiver<SenderMessage>)> =
 /// worker-related functionalities. It combines connections to both a PostgreSQL
 /// database (`pg`) and a Redis database (`redis`), catering to different data
 /// management needs.
-///
-/// While the PostgreSQL connection is ideal for SQL-based operations, Redis serves
-/// fast, in-memory data storage purposes. This struct streamlines the process of
-/// integrating and managing multiple database systems within an application, especially
-/// in scenarios involving complex worker data and processes.
 pub struct WorkerManager {
     pg: PostgresDatabase,
     redis: RedisDatabase,
