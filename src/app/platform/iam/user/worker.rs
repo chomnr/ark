@@ -1,7 +1,5 @@
 use serde::{Serialize, Deserialize};
 
-use crate::app::utilities::worker::{SenderMessage, SenderType};
-
 
 #[derive(Serialize, Deserialize)]
 pub enum UserWorkerAction {

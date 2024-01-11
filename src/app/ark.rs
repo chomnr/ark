@@ -6,10 +6,17 @@ use tokio::net::TcpListener;
 use tower_cookies::{CookieManagerLayer, Key};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
-use super::{database::{
+use super::{
+    database::{
         postgres::{PostgresConfig, PostgresDatabase},
         redis::{RedisConfig, RedisDatabase},
-    }, utilities::worker::{WorkerManager, SenderMessage, SenderType}, platform::iam::user::worker::UserWorkerMessage};
+    },
+    platform::iam::user::worker::UserWorkerMessage,
+    services::task::{
+        manager::TaskManager,
+        model::{TaskMessage, TaskType},
+    },
+};
 
 static ADDRESS: &str = "0.0.0.0";
 static PORT: usize = 3000;
@@ -83,12 +90,11 @@ impl ArkServer {
                 Self::enable_tracing();
             }
         }
-        Self::register_workers(pg, redis);
         println!(
             "[ARC] router initialized, now listening on port {}.",
             &self.port
         );
-        //Self::preload_cache(pg.clone()).await;
+        Self::register_tasks(pg, redis);
         axum::serve(tcp, self.router).await.unwrap();
     }
 
@@ -139,10 +145,18 @@ impl ArkServer {
         println!("[ARC] tracer initialized.");
     }
 
-    // register workers or worker...
-    fn register_workers(pg: PostgresDatabase, redis: RedisDatabase) {
-        let worker_mgr = WorkerManager::with_databases(pg, redis);
-        worker_mgr.listen();
+    fn register_tasks(pg: PostgresDatabase, redis: RedisDatabase) {
+        let task_mgr = TaskManager::with_databases(pg, redis);
+        task_mgr.listen();
+
+        let dd = TaskMessage::compose::<UserWorkerMessage>(
+            TaskType::User,
+            UserWorkerMessage {
+                message: "dsasds".to_string(),
+            },
+        );
+        
+        TaskManager::send(dd);
     }
 }
 
