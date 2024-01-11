@@ -15,6 +15,14 @@ async fn main() {
     let pg = PostgresDatabase::new(PostgresConfig::default()).await;
     let redis = RedisDatabase::new(RedisConfig::default()).await;
     ark.run(pg, redis).await;
+
+    /*
+     let test = SenderMessage::compose::<UserWorkerMessage>(SenderType::User, UserWorkerMessage {
+            message: "sdsda".to_string(),
+        });
+        worker_mgr.send(test);
+     */
+
     //let worker = WorkerManager::with_databases(database.clone(), redis.clone());
 
     //WorkerManager::listen(WorkerChannelType::Receiver);

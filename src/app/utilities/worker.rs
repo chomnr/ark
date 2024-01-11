@@ -70,12 +70,6 @@ impl SenderMessage {
     }
 }
 
-#[derive(PartialEq, Eq)]
-pub enum WorkerType {
-    Sender,
-    Receiver,
-}
-
 static TASK_CHANNEL: Lazy<(Sender<SenderMessage>, Receiver<SenderMessage>)> =
     Lazy::new(|| unbounded());
 

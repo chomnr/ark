@@ -143,12 +143,6 @@ impl ArkServer {
     fn register_workers(pg: PostgresDatabase, redis: RedisDatabase) {
         let worker_mgr = WorkerManager::with_databases(pg, redis);
         worker_mgr.listen();
-
-        let test = SenderMessage::compose::<UserWorkerMessage>(SenderType::User, UserWorkerMessage {
-            message: "sdsda".to_string(),
-        });
-
-        worker_mgr.send(test);
     }
 }
 
