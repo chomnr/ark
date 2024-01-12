@@ -6,7 +6,7 @@ use tokio::task;
 
 use crate::app::{
     database::{postgres::PostgresDatabase, redis::RedisDatabase},
-    services::task::model::TaskType, platform::iam::user::task::UserCreateTask,
+    services::task::model::TaskType, platform::iam::user::task::{UserCreateTask, UserTaskManager},
 };
 
 use super::model::TaskMessage;
@@ -46,8 +46,13 @@ impl TaskManager {
     /// worker.listen(); // Start listening for tasks
     /// ```
     pub async fn listen(&self) {
-        println!("[ARC] task initialized, now listening for incoming tasks.");
+        println!("[ARK] task initialized, now listening for incoming tasks.");
+
+        // Clone the necessary data from `self`
+        let pg_clone = self.pg.clone();
+
         task::spawn(async move {
+            let pool = pg_clone.pool.get().await.unwrap();
             for message in TASK_CHANNEL.1.iter() {
                 println!("{}", message.task_id);
                 match message.task_type {
@@ -58,11 +63,13 @@ impl TaskManager {
                         // ...
                     }
                     TaskType::User => {
+                        //UserTaskManager::perform("user_create_task");
                         if message.task_action.eq("user_create_task") {
                             // create user here test...
-                            let task_create: UserCreateTask = serde_json::from_str(&message.task_message).unwrap();
+                            //let task_create: UserCreateTask = serde_json::from_str(&message.task_message).unwrap();
+                            //UserTaskManager::perform("user_create_task");
                             // perform query here...
-                            println!("{}", task_create.param.info.username);
+                            //println!("{}", task_create.param.info.username);
                         }
                     }
                 }

@@ -78,7 +78,7 @@ impl ArkServer {
     /// ```
     pub async fn run(self, pg: PostgresDatabase, redis: RedisDatabase) {
         let tcp = TcpListener::bind(&self.get_addr()).await.unwrap();
-        println!("[ARC] mode: {}", self.mode.to_string());
+        println!("[ARK] mode: {}", self.mode.to_string());
         match self.mode {
             ServerMode::Production => {}
             ServerMode::Development => {
@@ -89,7 +89,7 @@ impl ArkServer {
             }
         }
         println!(
-            "[ARC] router initialized, now listening on port {}.",
+            "[ARK] router initialized, now listening on port {}.",
             &self.port
         );
         Self::register_tasks(pg, redis).await;
@@ -129,7 +129,7 @@ impl ArkServer {
     /// # Example
     ///
     /// ```
-    /// ArcServer::enable_tracing();
+    /// ArkServer::enable_tracing();
     /// // Tracing is now enabled and configured.
     /// ```
     fn enable_tracing() {
@@ -140,7 +140,7 @@ impl ArkServer {
             )
             .with(tracing_subscriber::fmt::layer())
             .init();
-        println!("[ARC] tracer initialized.");
+        println!("[ARK] tracer initialized.");
     }
 
     async fn register_tasks(pg: PostgresDatabase, redis: RedisDatabase) {
