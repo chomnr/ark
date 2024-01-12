@@ -45,7 +45,7 @@ impl TaskManager {
     /// let worker = WorkerManager::new(pg, redis); // Assuming WorkerManager contains the listen method
     /// worker.listen(); // Start listening for tasks
     /// ```
-    pub fn listen(&self) {
+    pub async fn listen(&self) {
         println!("[ARC] task initialized, now listening for incoming tasks.");
         task::spawn(async move {
             for message in TASK_CHANNEL.1.iter() {

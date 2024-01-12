@@ -92,7 +92,7 @@ impl ArkServer {
             "[ARC] router initialized, now listening on port {}.",
             &self.port
         );
-        Self::register_tasks(pg, redis);
+        Self::register_tasks(pg, redis).await;
         axum::serve(tcp, self.router).await.unwrap();
     }
 
@@ -143,9 +143,9 @@ impl ArkServer {
         println!("[ARC] tracer initialized.");
     }
 
-    fn register_tasks(pg: PostgresDatabase, redis: RedisDatabase) {
+    async fn register_tasks(pg: PostgresDatabase, redis: RedisDatabase) {
         let task_mgr = TaskManager::with_databases(pg, redis);
-        task_mgr.listen();
+        task_mgr.listen().await;
 
         let user = User::builder().username("hoar").email("hoar@gmail.com").build();
         
