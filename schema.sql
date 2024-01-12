@@ -22,7 +22,7 @@ CREATE TABLE iam_user_role (
 
 -- This table stores information about the user
 CREATE TABLE iam_users (
-    id BIGINT,
+    id BIGINT GENERATED ALWAYS AS IDENTITY,
     username VARCHAR(255) UNIQUE,
     email VARCHAR(255) UNIQUE,
     verified BOOLEAN NOT NULL DEFAULT FALSE,
@@ -48,7 +48,7 @@ CREATE TABLE iam_user_permission (
     PRIMARY KEY (user_id, permission_id)
 );
 
-/*
+
 CREATE TABLE iam_user_oauth (
     user_id INTEGER NOT NULL,
     oauth_id VARCHAR(255) NOT NULL,
@@ -57,4 +57,3 @@ CREATE TABLE iam_user_oauth (
     FOREIGN KEY (user_id) REFERENCES iam_users(id),
     PRIMARY KEY(user_id)
 );
-*/

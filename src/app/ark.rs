@@ -11,11 +11,9 @@ use super::{
         postgres::{PostgresConfig, PostgresDatabase},
         redis::{RedisConfig, RedisDatabase},
     },
-    platform::iam::user::worker::UserWorkerMessage,
-    services::task::{
-        manager::TaskManager,
-        model::{TaskMessage, TaskType},
-    },
+    services::task::
+        manager::TaskManager, platform::iam::user::{model::User, task::UserTaskManager}
+    ,
 };
 
 static ADDRESS: &str = "0.0.0.0";
@@ -149,14 +147,19 @@ impl ArkServer {
         let task_mgr = TaskManager::with_databases(pg, redis);
         task_mgr.listen();
 
+        let user = User::builder().username("hoar").email("hoar@gmail.com").build();
+        
+        UserTaskManager::create_user(user);
+        /*
         let dd = TaskMessage::compose::<UserWorkerMessage>(
             TaskType::User,
             UserWorkerMessage {
                 message: "dsasds".to_string(),
             },
         );
-        
+
         TaskManager::send(dd);
+        */
     }
 }
 

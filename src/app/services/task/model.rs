@@ -20,6 +20,7 @@ impl TaskType {
 
 pub struct TaskMessage {
     pub task_id: String,
+    pub task_action: String,
     pub task_type: TaskType,
     pub task_message: String,
 }
@@ -29,6 +30,7 @@ impl TaskMessage {
     ///
     /// # Arguments
     /// * `task_type` - The type of the task.
+    /// * `task_action` - The action that will be executed.
     /// * `task_message` - The message to be serialized, of generic type `T`.
     ///
     /// # Returns
@@ -41,10 +43,12 @@ impl TaskMessage {
     /// ```
     pub fn compose<T: for<'a> Deserialize<'a> + Serialize>(
         task_type: TaskType,
+        task_action: &str,
         task_message: T,
     ) -> TaskMessage {
         TaskMessage {
             task_id: Self::generate_task_specific_id(task_type),
+            task_action: String::from(task_action),
             task_type,
             task_message: serde_json::to_string(&task_message).unwrap(),
         }

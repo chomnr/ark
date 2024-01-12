@@ -1,11 +1,12 @@
 use bb8_postgres::tokio_postgres::{types::ToSql, Error};
+use bb8_redis::redis::Msg;
 use crossbeam_channel::{unbounded, Receiver, Sender};
 use once_cell::sync::Lazy;
 use tokio::task;
 
 use crate::app::{
     database::{postgres::PostgresDatabase, redis::RedisDatabase},
-    services::task::model::TaskType,
+    services::task::model::TaskType, platform::iam::user::task::UserCreateTask,
 };
 
 use super::model::TaskMessage;
@@ -57,8 +58,12 @@ impl TaskManager {
                         // ...
                     }
                     TaskType::User => {
-
-                        // ...
+                        if message.task_action.eq("user_create_task") {
+                            // create user here test...
+                            let task_create: UserCreateTask = serde_json::from_str(&message.task_message).unwrap();
+                            // perform query here...
+                            println!("{}", task_create.param.info.username);
+                        }
                     }
                 }
             }
@@ -80,7 +85,23 @@ impl TaskManager {
         TASK_CHANNEL.0.send(task_message).unwrap();
     }
 
-    /// Asynchronously processes a SQL query with the provided parameters.
+    /// Asynchronously executes a SQL query with the specified parameters.
+    ///
+    /// # Arguments
+    /// * `query` - A SQL query string to be executed.
+    /// * `params` - A slice of references to objects.
+    ///
+    /// # Examples
+    /// ```
+    /// async fn run_query(worker: &WorkerManager) {
+    ///     let query = "UPDATE users SET name = $1 WHERE id = $2";
+    ///     let params: &[&(dyn ToSql + Sync)] = &[&"Alice", &1];
+    ///     match worker.process_query(query, params).await {
+    ///         Ok(rows) => println!("{} rows affected", rows),
+    ///         Err(e) => eprintln!("Error executing query: {}", e),
+    ///     }
+    /// }
+    /// ```
     async fn process_query(
         &self,
         query: &str,
@@ -90,4 +111,5 @@ impl TaskManager {
         let stmt = pool.prepare(query).await.unwrap();
         pool.execute(&stmt, params).await
     }
+
 }
