@@ -36,7 +36,7 @@ impl UserTaskManager {
     pub fn create_user(user: User) {
         let mut task = UserCreateTask::default();
         task.param = user;
-        TaskManager::send(TaskMessage::compose(TaskType::User, "user_create_task", task));
+        //TaskManager::send(TaskMessage::compose(TaskType::User, "user_create_task", task));
     }
 }
 
