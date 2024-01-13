@@ -26,30 +26,3 @@ impl Default for UserCreateTask {
         }
     }
 }
-
-// Manages tasks related to user operations.
-//
-// `UserTaskManager` is responsible for handling tasks such as creating, updating, or deleting 
-// user information. It provides functionality to orchestrate and execute various operations 
-// associated with user management.
-//
- 
-
-/*
-pub struct UserTaskManager;
-
-impl UserManager {
-    pub fn create_user(user: User) {
-        let mut task = UserCreateTask::default();
-        task.param = user;
-        TaskManager::send(TaskMessage::compose(TaskType::User, "user_create_task", task));
-    }
-}
-*/
-
-
-
-//pub fn test(){
-//    let user = User::builder().build();
-//    UserTaskManager::create_user(user);
-//      }
