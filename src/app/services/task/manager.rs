@@ -93,52 +93,23 @@ impl TaskManager {
     /// }
     /// ```
     async fn process_task(pg: &PostgresDatabase, task: TaskMessage) {
-        match task.task_type {
-            super::model::TaskType::Permission => {
-                match Self::process_permission_specific_task(pg, &task).await {
-                    Ok(_) => println!(
-                        "[ARK] successfully processed task: '{}' action: {}",
-                        &task.task_id, &task.task_action
-                    ), /* Send to receiver with the necessary parameters saying it was a success */
-                    Err(err) => println!(
-                        "[ARK] failed to process task: '{}' action: {} error: {}",
-                        &task.task_id,
-                        &task.task_action,
-                        err.to_string()
-                    ), /* Sends to receiver saying it failed... */
-                }
-            }
-            super::model::TaskType::Role => {
-                match Self::process_role_specific_task(pg, &task).await {
-                    Ok(_) => println!(
-                        "[ARK] successfully processed task: '{}' action: {}",
-                        &task.task_id, &task.task_action
-                    ), /* Send to receiver with the necessary parameters saying it was a success */
-                    Err(err) => println!(
-                        "[ARK] failed to process task: '{}' action: {} error: {}",
-                        &task.task_id,
-                        &task.task_action,
-                        err.to_string()
-                    ), /* Sends to receiver saying it failed... */
-                }
-            }
-            super::model::TaskType::User => {
-                match Self::process_user_specific_task(pg, &task).await {
-                    Ok(_) => println!(
-                        "[ARK] successfully processed task: '{}' action: {}",
-                        &task.task_id, &task.task_action
-                    ), /* Send to receiver with the necessary parameters saying it was a success */
-                    Err(err) => println!(
-                        "[ARK] failed to process task: '{}' action: {} error: {}",
-                        &task.task_id,
-                        &task.task_action,
-                        err.to_string()
-                    ), /* Sends to receiver saying it failed... */
-                }
-            }
+        let process_result = match task.task_type {
+            super::model::TaskType::Permission => Self::process_permission_specific_task(pg, &task).await,
+            super::model::TaskType::Role => Self::process_role_specific_task(pg, &task).await,
+            super::model::TaskType::User => Self::process_user_specific_task(pg, &task).await,
+        };
+
+        match process_result {
+            Ok(_) => println!(
+                "[ARK] successfully processed task: '{}' action: {}",
+                task.task_id, task.task_action
+            ),
+            Err(err) => println!(
+                "[ARK] failed to process task: '{}' action: {} error: {}",
+                task.task_id, task.task_action, err
+            ),
         }
     }
-
     /// Processes a permission-specific task and returns a result.
     ///
     /// # Arguments
