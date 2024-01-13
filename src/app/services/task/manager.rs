@@ -4,7 +4,6 @@ use tokio::task;
 
 use crate::app::{
     database::{postgres::PostgresDatabase, redis::RedisDatabase},
-    platform::iam::user::task::UserCreateTask,
     services::task::model::TaskType,
 };
 
