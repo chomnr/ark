@@ -111,10 +111,6 @@ impl TaskManager {
     ///     }
     /// }
     /// ```
-    ///
-    /// # Note
-    /// The function currently uses a `todo!()` macro as a placeholder. This should be replaced with the
-    /// actual implementation that handles the task based on its permission requirements.
     fn process_permission_specific_task(pg: &PostgresDatabase, task: TaskMessage) -> TaskResult<()> {
         todo!()
     }
