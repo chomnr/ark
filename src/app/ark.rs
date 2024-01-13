@@ -14,7 +14,7 @@ use super::{
     platform::iam::{
         permission::{model::Permission, manager::PermissionManager}, auth::route::oauth_routes}
     ,
-    services::task::manager::TaskManager,
+    services::task::manager::TaskManager, adapter::oauth_adapter::OAuthCollectionAdapter,
 };
 
 static ADDRESS: &str = "0.0.0.0";
@@ -150,11 +150,11 @@ impl ArkServer {
         task_mgr.listen().await;
         //let user = User::builder().validate_and_build().unwrap();
         //UserManager::create_user(user);
-        let permission = Permission::builder()
-            .permission_key("permission_kedy")
-            .permission_name("permission_nadme")
-            .build();
-        PermissionManager::create_permission(permission);
+        //let permission = Permission::builder()
+        //    .permission_key("permission_kedy")
+        //    .permission_name("permission_nadme")
+        //    .build();
+        //PermissionManager::create_permission(permission);
     }
 }
 
@@ -185,6 +185,7 @@ impl fmt::Display for ServerMode {
 pub struct ArkState {
     pub key: Key,
     pub postgres: PostgresDatabase,
+    pub auth: OAuthCollectionAdapter,
     pub redis: RedisDatabase,
 }
 
@@ -200,6 +201,7 @@ impl ArkState {
             key: ArkState::get_key(),
             postgres: PostgresDatabase::new(PostgresConfig::default()).await,
             redis: RedisDatabase::new(RedisConfig::default()).await,
+            auth: OAuthCollectionAdapter::new()
         }
     }
 
