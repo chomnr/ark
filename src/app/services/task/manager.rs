@@ -50,7 +50,7 @@ impl TaskManager {
         let pg_clone = self.pg.clone();
         task::spawn(async move {
             for task in TASK_CHANNEL.1.iter() {
-                Self::process_task(&pg_clone, task);
+                Self::process_task(&pg_clone, task).await;
             }
         });
     }
@@ -71,22 +71,22 @@ impl TaskManager {
     ///     // The task has been processed
     /// }
     /// ```
-    fn process_task(pg: &PostgresDatabase, task: TaskMessage) {
+    async fn process_task(pg: &PostgresDatabase, task: TaskMessage) {
         match task.task_type {
             super::model::TaskType::Permission => {
-                match Self::process_permission_specific_task(pg, task) {
+                match Self::process_permission_specific_task(pg, task).await {
                     Ok(_) => todo!(), /* Send to receiver with the necessary parameters saying it was a success */
                     Err(_) => todo!(), /* Sends to receiver saying it failed... */
                 }
             },
             super::model::TaskType::Role => {
-                match Self::process_role_specific_task(pg, task) {
+                match Self::process_role_specific_task(pg, task).await {
                     Ok(_) => todo!(), /* Send to receiver with the necessary parameters saying it was a success */
                     Err(_) => todo!(), /* Sends to receiver saying it failed... */
                 }
             }
             super::model::TaskType::User => {
-                match Self::process_user_specific_task(pg, task) {
+                match Self::process_user_specific_task(pg, task).await {
                     Ok(_) => todo!(), /* Send to receiver with the necessary parameters saying it was a success */
                     Err(_) => todo!(), /* Sends to receiver saying it failed... */
                 }
@@ -111,7 +111,7 @@ impl TaskManager {
     ///     }
     /// }
     /// ```
-    fn process_permission_specific_task(pg: &PostgresDatabase, task: TaskMessage) -> TaskResult<()> {
+    async fn process_permission_specific_task(pg: &PostgresDatabase, task: TaskMessage) -> TaskResult<()> {
         todo!()
     }
 
@@ -132,7 +132,7 @@ impl TaskManager {
     ///     }
     /// }
     /// ```
-    fn process_role_specific_task(pg: &PostgresDatabase, task: TaskMessage) -> TaskResult<()> {
+    async fn process_role_specific_task(pg: &PostgresDatabase, task: TaskMessage) -> TaskResult<()> {
         todo!()
     }
 
@@ -151,7 +151,11 @@ impl TaskManager {
     ///     // The user-specific task has now been processed
     /// }
     /// ```
-    fn process_user_specific_task(pg: &PostgresDatabase, task: TaskMessage) -> TaskResult<()> {
+    async fn process_user_specific_task(pg: &PostgresDatabase, task: TaskMessage) -> TaskResult<()> {
+        let action = task.task_action;
+        if action.eq("create_user") {
+            
+        }
         todo!()
     }
 }
