@@ -12,7 +12,6 @@ pub fn user_auth_routes() -> Router {
         .route("/auth/login/discord", get(oauth_sign_in))
 }
 
-
 async fn oauth_sign_in(
     Path(provider_name): Path<String>,
     Extension(state): Extension<Arc<ArkState>>,
