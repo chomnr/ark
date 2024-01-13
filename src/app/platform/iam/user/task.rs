@@ -56,7 +56,11 @@ impl UserCreateTask {
     /// }
     /// ```
     pub async fn process(&self, pg: &PostgresDatabase) {
-        let pool = pg.pool.get().await.unwrap();
+        let mut pool = pg.pool.get().await.unwrap();
+        // start transaction
+        let mut transaction = pool.transaction().await.unwrap();
+        
+        transaction.commit().await.unwrap();
         // check if user is in cache
         // check if user exists.
         // then process transaction.
