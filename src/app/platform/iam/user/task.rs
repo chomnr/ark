@@ -55,37 +55,3 @@ impl UserCreateTask {
         let pool = pg.pool.get().await.unwrap();
     }
 }
-
-/*
-impl UserCreateTask {
-    fn from_task_message(task_message: String) -> Self {
-        let task: UserCreateTask = serde_json::from_str(&task_message).unwrap();
-        task
-    }
-
-    async fn create_user(
-        pg: &PostgresDatabase,
-        user_create_task: UserCreateTask,
-    ) -> TaskResult<()> {
-        let mut pool = pg.pool.get().await.unwrap();
-        let transaction = pool.transaction().await.unwrap();
-        Ok(())
-    }
-}
-
-#[async_trait]
-impl TaskAction for UserCreateTask {
-    async fn process(
-        pg: &PostgresDatabase,
-        task_action: String,
-        task_message: String,
-    ) -> TaskResult<()> {
-        let task = Self::from_task_message(task_message);
-        if task_action.eq("user_create") {
-            Self::create_user(pg, task).await?;
-            return Ok(())
-        }
-        Err(TaskError::TaskInvalid)
-    }
-}
-*/

@@ -13,6 +13,7 @@ impl UserManager {
         TaskManager::send(TaskMessage::compose(TaskType::User, "user_create", task));
     }
 }
+
 /* 
 pub struct UserManager;
 
