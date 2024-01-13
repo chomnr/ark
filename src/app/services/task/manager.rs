@@ -102,14 +102,14 @@ impl TaskManager {
             }
             super::model::TaskType::Role => {
                 match Self::process_role_specific_task(pg, &task).await {
-                    Ok(_) => todo!(), /* Send to receiver with the necessary parameters saying it was a success */
-                    Err(_) => todo!(), /* Sends to receiver saying it failed... */
+                    Ok(_) => println!("[ARK] successfully processed task: '{}' action: {}", &task.task_id, &task.task_action), /* Send to receiver with the necessary parameters saying it was a success */
+                    Err(err) => println!("[ARK] failed to process task: '{}' action: {} error: {}", &task.task_id, &task.task_action, err.to_string()), /* Sends to receiver saying it failed... */
                 }
             }
             super::model::TaskType::User => {
                 match Self::process_user_specific_task(pg, &task).await {
                     Ok(_) =>  println!("[ARK] successfully processed task: '{}' action: {}", &task.task_id, &task.task_action), /* Send to receiver with the necessary parameters saying it was a success */
-                    Err(_) => todo!(), /* Sends to receiver saying it failed... */
+                    Err(err) => println!("[ARK] failed to process task: '{}' action: {} error: {}", &task.task_id, &task.task_action, err.to_string()), /* Sends to receiver saying it failed... */
                 }
             }
         }
