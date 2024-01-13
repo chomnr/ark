@@ -184,9 +184,11 @@ impl TaskManager {
         let action = task.task_action;
         if action.eq("create_user") {
             let task: UserCreateTask = serde_json::from_str(&task.task_message).unwrap();
-            // add into db
-            // add into cache
+            task.process(pg).await;
         }
         todo!()
     }
 }
+
+// add into db
+// add into cache
