@@ -6,16 +6,3 @@ use tower_cookies::Cookies;
 use crate::app::ark::ArkState;
 
 pub mod route;
-
-pub fn oauth_routes() -> Router {
-    Router::new()
-        .route("/auth/login/discord", get(oauth_sign_in))
-}
-
-async fn oauth_sign_in(
-    Path(provider_name): Path<String>,
-    Extension(state): Extension<Arc<ArkState>>,
-    cookies: Cookies,
-) -> Redirect {
-    Redirect::to("/")
-}

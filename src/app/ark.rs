@@ -12,10 +12,8 @@ use super::{
         redis::{RedisConfig, RedisDatabase},
     },
     platform::iam::{
-        auth::oauth_routes,
-        permission::{model::{Permission, PermissionBuilder}, manager::PermissionManager},
-        user::{manager::UserManager, model::User},
-    },
+        permission::{model::Permission, manager::PermissionManager}, auth::route::oauth_routes}
+    ,
     services::task::manager::TaskManager,
 };
 
