@@ -7,5 +7,7 @@ pub enum TaskError {
     #[error("TaskUniqueConstraint")]
     TaskUniqueConstraint,
     #[error("TaskInvalid")]
-    TaskInvalid
+    TaskInvalid,
+    #[error("TaskWentWrong")]
+    TaskWentWrong,
 }

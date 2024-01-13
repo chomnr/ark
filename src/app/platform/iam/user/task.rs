@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::app::database::postgres::PostgresDatabase;
+use crate::app::{database::postgres::PostgresDatabase, services::task::error::{TaskResult, TaskError}};
 
 use super::model::User;
 
@@ -55,11 +55,13 @@ impl UserCreateTask {
     ///     user_create_task.process(&pg_database).await;
     /// }
     /// ```
-    pub async fn process(&self, pg: &PostgresDatabase) {
+    pub async fn process(&self, pg: &PostgresDatabase) -> TaskResult<()> {
         let mut pool = pg.pool.get().await.unwrap();
-        // start transaction
         let mut transaction = pool.transaction().await.unwrap();
-        transaction.commit().await.unwrap();
+        match transaction.commit().await {
+            Ok(_) => Ok(()),
+            Err(_) => Err(TaskError::TaskWentWrong),
+        }
         // check if user is in cache
         // check if user exists.
         // then process transaction.

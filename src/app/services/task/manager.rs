@@ -190,7 +190,7 @@ impl TaskManager {
         let action = &task.task_action;
         if action.eq("create_user") {
             let task: UserCreateTask = serde_json::from_str(&task.task_message).unwrap();
-            task.process(pg).await;
+            task.process(pg).await?;
         }
         Ok(())
     }
