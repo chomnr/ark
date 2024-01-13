@@ -9,6 +9,8 @@ use super::model::User;
 pub struct UserCreateTask {
     pub sql_1: String,
     pub sql_2: String,
+    pub sql_3: String,
+    pub sql_4: String,
     pub param: User,
 }
 
@@ -17,6 +19,8 @@ impl Default for UserCreateTask {
         Self {
             sql_1: String::from("INSERT INTO iam_users (id, username, email, created_at, updated_at) VALUES ($1, $2, $3, $4, $5)"),
             sql_2: String::from("INSERT INTO iam_user_oauth (user_id, oauth_id, oauth_provider) VALUES ($1, $2, $3)"),
+            sql_3: String::from("INSERT INTO iam_roles (id, role_name) VALUES ($1, $2)"),
+            sql_4: String::from("INSERT INTO iam_permissions (id, permission_name, permission_key) VALUES($1, $2, $3)"),
             param: Default::default(),
         }
     }
@@ -53,5 +57,8 @@ impl UserCreateTask {
     /// ```
     pub async fn process(&self, pg: &PostgresDatabase) {
         let pool = pg.pool.get().await.unwrap();
+        // check if user is in cache
+        // check if user exists.
+        // then process transaction.
     }
 }

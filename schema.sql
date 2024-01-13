@@ -1,13 +1,13 @@
 -- This table stores information about various identity roles.
 CREATE TABLE iam_roles (
-    id INTEGER GENERATED ALWAYS AS IDENTITY,
+    id INTEGER,
     role_name VARCHAR(255) NOT NULL UNIQUE,
     PRIMARY KEY(id)
 );
 
 -- This table stores the basic information about each permission.
 CREATE TABLE iam_permissions (
-    id INTEGER GENERATED ALWAYS AS IDENTITY,
+    id INTEGER,
     permission_name VARCHAR(255) NOT NULL UNIQUE,
     permission_key VARCHAR(255) NOT NULL UNIQUE,
     PRIMARY KEY (id)
