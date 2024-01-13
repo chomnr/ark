@@ -1,1 +1,1 @@
-pub mod oauth;
+pub mod oauth_adapter;
