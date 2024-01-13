@@ -11,7 +11,8 @@ use super::{
         postgres::{PostgresConfig, PostgresDatabase},
         redis::{RedisConfig, RedisDatabase},
     },
-    services::task::manager::TaskManager, platform::iam::auth::oauth_routes,
+    platform::iam::{auth::oauth_routes, user::{model::User, manager::UserManager}},
+    services::task::manager::TaskManager,
 };
 
 static ADDRESS: &str = "0.0.0.0";
@@ -143,8 +144,10 @@ impl ArkServer {
     }
 
     async fn register_tasks(pg: PostgresDatabase, redis: RedisDatabase) {
-        //let task_mgr = TaskManager::with_databases(pg, redis);
-        //task_mgr.listen().await;
+        let task_mgr = TaskManager::with_databases(pg, redis);
+        task_mgr.listen().await;
+        let user = User::builder().validate_and_build().unwrap();
+        UserManager::create_user(user);
     }
 }
 
@@ -203,22 +206,21 @@ impl ArkState {
     }
 }
 
-
 //UserTaskManager::create_user(user);
-        /*
-         let user = User::builder()
-            .oauth_id("231123312321312")
-            .oauth_provider("discord")
-            .validate_and_build().unwrap();
+/*
+ let user = User::builder()
+    .oauth_id("231123312321312")
+    .oauth_provider("discord")
+    .validate_and_build().unwrap();
 
-        UserManager::create_user(user);
-        
-        let dd = TaskMessage::compose::<UserWorkerMessage>(
-            TaskType::User,
-            UserWorkerMessage {
-                message: "dsasds".to_string(),
-            },
-        );
+UserManager::create_user(user);
 
-        TaskManager::send(dd);
-        */
+let dd = TaskMessage::compose::<UserWorkerMessage>(
+    TaskType::User,
+    UserWorkerMessage {
+        message: "dsasds".to_string(),
+    },
+);
+
+TaskManager::send(dd);
+*/

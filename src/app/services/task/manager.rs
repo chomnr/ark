@@ -52,6 +52,7 @@ impl TaskManager {
     pub async fn listen(&self) {
         let pg_clone = self.pg.clone();
         task::spawn(async move {
+            println!("[ARK] task_channel initalized, now listening to incoming tasks.");
             for task in TASK_CHANNEL.1.iter() {
                 Self::process_task(&pg_clone, task).await;
             }
@@ -94,20 +95,20 @@ impl TaskManager {
     async fn process_task(pg: &PostgresDatabase, task: TaskMessage) {
         match task.task_type {
             super::model::TaskType::Permission => {
-                match Self::process_permission_specific_task(pg, task).await {
+                match Self::process_permission_specific_task(pg, &task).await {
                     Ok(_) => todo!(), /* Send to receiver with the necessary parameters saying it was a success */
                     Err(_) => todo!(), /* Sends to receiver saying it failed... */
                 }
             }
             super::model::TaskType::Role => {
-                match Self::process_role_specific_task(pg, task).await {
+                match Self::process_role_specific_task(pg, &task).await {
                     Ok(_) => todo!(), /* Send to receiver with the necessary parameters saying it was a success */
                     Err(_) => todo!(), /* Sends to receiver saying it failed... */
                 }
             }
             super::model::TaskType::User => {
-                match Self::process_user_specific_task(pg, task).await {
-                    Ok(_) => todo!(), /* Send to receiver with the necessary parameters saying it was a success */
+                match Self::process_user_specific_task(pg, &task).await {
+                    Ok(_) =>  println!("[ARK] successfully processed task: '{}' action: {}", &task.task_id, &task.task_action), /* Send to receiver with the necessary parameters saying it was a success */
                     Err(_) => todo!(), /* Sends to receiver saying it failed... */
                 }
             }
@@ -133,7 +134,7 @@ impl TaskManager {
     /// ```
     async fn process_permission_specific_task(
         pg: &PostgresDatabase,
-        task: TaskMessage,
+        task: &TaskMessage,
     ) -> TaskResult<()> {
         todo!()
     }
@@ -157,7 +158,7 @@ impl TaskManager {
     /// ```
     async fn process_role_specific_task(
         pg: &PostgresDatabase,
-        task: TaskMessage,
+        task: &TaskMessage,
     ) -> TaskResult<()> {
         todo!()
     }
@@ -179,14 +180,14 @@ impl TaskManager {
     /// ```
     async fn process_user_specific_task(
         pg: &PostgresDatabase,
-        task: TaskMessage,
+        task: &TaskMessage,
     ) -> TaskResult<()> {
-        let action = task.task_action;
+        let action = &task.task_action;
         if action.eq("create_user") {
             let task: UserCreateTask = serde_json::from_str(&task.task_message).unwrap();
             task.process(pg).await;
         }
-        todo!()
+        Ok(())
     }
 }
 

@@ -14,6 +14,7 @@ impl UserManager {
     }
 }
 
+//create_user --> Receiver<DDD>...
 /* 
 pub struct UserManager;
 
