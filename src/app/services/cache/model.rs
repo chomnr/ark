@@ -6,10 +6,10 @@ use super::error::CacheResult;
 /// The methods are designed for managing the lifecycle of cache entries, including writing, updating,
 /// deleting, and reading data.
 pub trait Cacheable<T> {
-    fn write(value: T) -> CacheResult<bool>;
-    fn update(value: T) -> CacheResult<bool>;
-    fn delete(value: T) -> CacheResult<bool>;
-    fn read(value: T) -> CacheResult<T>;
+    fn write(&self, value: T) -> CacheResult<bool>;
+    fn update(&self, value: T) -> CacheResult<bool>;
+    fn delete(&self, value: T) -> CacheResult<bool>;
+    fn read(&self, value: T) -> CacheResult<T>;
 }
 
 /// Enum representing the possible outcomes of a cache operation.
