@@ -49,7 +49,7 @@ impl TaskManager {
         task_id: String,
         task_action: String,
         task_type: TaskType,
-        task_message: String,
+        task_request: String,
     ) {
         let pool = pg.pool.get().await.unwrap();
         match task_type {
@@ -60,11 +60,12 @@ impl TaskManager {
                 //Self::process_role_task(task_type, task_action);
             }
             TaskType::User => {
-                Self::process_user_task(pg, task_action, task_message).await;
+                //Self::process_user_task(pg, task_action, task_message).await;
             }
         }
     }
 
+    /*
     async fn process_user_task(
         pg: &PostgresDatabase,
         task_action: String,
@@ -101,7 +102,7 @@ impl TaskManager {
             transaction.commit().await.unwrap();
         }
     }
-
+*/
     /*
     fn process_permission_task(task_type: TaskType, task_action: String) {}
 

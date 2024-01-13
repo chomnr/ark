@@ -1,5 +1,15 @@
+use axum::async_trait;
 use nanoid::nanoid;
 use serde::{Deserialize, Serialize};
+
+use crate::app::database::postgres::PostgresDatabase;
+
+use super::error::TaskResult;
+
+#[async_trait]
+pub trait TaskAction {
+    async fn process(pg: &PostgresDatabase, task_action: String, task_message: String) -> TaskResult<()>;
+}
 
 #[derive(Clone, Copy)]
 pub enum TaskType {

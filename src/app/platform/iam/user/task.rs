@@ -1,14 +1,16 @@
+use axum::async_trait;
 use serde::{Deserialize, Serialize};
-use syn::token::Use;
 
-
-use crate::app::services::task::{model::{TaskType, TaskMessage}, manager::TaskManager};
+use crate::app::{
+    database::postgres::PostgresDatabase,
+    services::task::{error::{TaskResult, TaskError}, model::TaskAction},
+};
 
 use super::model::User;
 
 /// Represents a task for creating a new user, containing SQL statements and user parameters.
 ///
-/// This struct holds two SQL statements for inserting data into `iam_users` and `iam_user_oauth` 
+/// This struct holds two SQL statements for inserting data into `iam_users` and `iam_user_oauth`
 /// tables, along with a `User` object containing the user data to be inserted.
 #[derive(Serialize, Deserialize)]
 pub struct UserCreateTask {
@@ -26,3 +28,37 @@ impl Default for UserCreateTask {
         }
     }
 }
+
+/*
+impl UserCreateTask {
+    fn from_task_message(task_message: String) -> Self {
+        let task: UserCreateTask = serde_json::from_str(&task_message).unwrap();
+        task
+    }
+
+    async fn create_user(
+        pg: &PostgresDatabase,
+        user_create_task: UserCreateTask,
+    ) -> TaskResult<()> {
+        let mut pool = pg.pool.get().await.unwrap();
+        let transaction = pool.transaction().await.unwrap();
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl TaskAction for UserCreateTask {
+    async fn process(
+        pg: &PostgresDatabase,
+        task_action: String,
+        task_message: String,
+    ) -> TaskResult<()> {
+        let task = Self::from_task_message(task_message);
+        if task_action.eq("user_create") {
+            Self::create_user(pg, task).await?;
+            return Ok(())
+        }
+        Err(TaskError::TaskInvalid)
+    }
+}
+*/
