@@ -11,7 +11,6 @@ use super::{
         postgres::{PostgresConfig, PostgresDatabase},
         redis::{RedisConfig, RedisDatabase},
     },
-    platform::iam::user::{model::User, manager::UserManager},
     services::task::manager::TaskManager,
 };
 
@@ -57,6 +56,7 @@ impl ArkServer {
             port: PORT,
             mode: MODE,
             router: Router::new()
+                .nest("/auth/", todo!())
                 .layer(Extension(Arc::new(ArkState::default().await)))
                 .layer(CookieManagerLayer::new()),
         }
