@@ -27,34 +27,10 @@ impl Default for UserCreateTask {
 }
 
 impl UserCreateTask {
-    /// Creates a new instance of `UserCreateTask` with default settings.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// let user_create_task = UserCreateTask::new();
-    /// // `user_create_task` is now ready with default SQL queries and parameters.
-    /// ```
     pub fn new() -> Self {
         UserCreateTask::default()
     }
 
-    /// Asynchronously processes a user creation task using a PostgreSQL database connection.
-    ///
-    /// # Arguments
-    ///
-    /// * `pg` - A reference to `PostgresDatabase`, providing the necessary database connection.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let pg_database = PostgresDatabase::new(/* database connection parameters */);
-    ///     let user_create_task = UserCreateTask::new();
-    ///     user_create_task.process(&pg_database).await;
-    /// }
-    /// ```
     pub async fn process(&self, pg: &PostgresDatabase) -> TaskResult<()> {
         let mut pool = pg.pool.get().await.unwrap();
         let mut transaction = pool.transaction().await.unwrap();
