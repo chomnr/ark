@@ -2,14 +2,13 @@ use crossbeam_channel::{unbounded, Receiver, Sender};
 use once_cell::sync::Lazy;
 use tokio::task;
 
-use crate::app::{
-    database::{postgres::PostgresDatabase, redis::RedisDatabase},
-    services::task::model::TaskType,
-};
+use crate::app::database::{postgres::PostgresDatabase, redis::RedisDatabase};
 
-use super::model::TaskMessage;
+use super::{error::TaskResult, model::TaskMessage};
 
 static TASK_CHANNEL: Lazy<(Sender<TaskMessage>, Receiver<TaskMessage>)> = Lazy::new(|| unbounded());
+static TASK_RESULT_CHANNEL: Lazy<(Sender<TaskMessage>, Receiver<TaskMessage>)> =
+    Lazy::new(|| unbounded());
 
 pub struct TaskManager {
     pg: PostgresDatabase,
@@ -17,128 +16,146 @@ pub struct TaskManager {
 }
 
 impl TaskManager {
+    /// Constructs a new instance of the struct using specified PostgreSQL and Redis database connections.
+    ///
+    /// # Arguments
+    ///
+    /// * `pg` - A `PostgresDatabase` connection.
+    /// * `redis` - A `RedisDatabase` connection.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let pg_connection = PostgresDatabase::new(/* PostgresConfig */);
+    /// let redis_connection = RedisDatabase::new(/* RedisConfig */);
+    ///
+    /// let my_struct = TaskManager::with_databases(pg_connection, redis_connection);
+    /// ```
     pub fn with_databases(pg: PostgresDatabase, redis: RedisDatabase) -> Self {
         Self { pg, redis }
     }
 
+    /// Asynchronously listens to a channel and processes tasks.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let my_struct = MyStruct::new(); // Assume MyStruct is initialized here
+    ///     my_struct.listen().await;
+    /// }
+    /// ```
     pub async fn listen(&self) {
         let pg_clone = self.pg.clone();
         task::spawn(async move {
-            println!("[ARK] task initialized, now listening for incoming tasks.");
-            for res in TASK_CHANNEL.1.iter() {
-                println!("[ARC] received a {} task from {}", res.task_action, res.task_id);
-                Self::process_task(
-                    &pg_clone,
-                    res.task_id,
-                    res.task_action,
-                    res.task_type,
-                    res.task_message,
-                )
-                .await;
+            for task in TASK_CHANNEL.1.iter() {
+                Self::process_task(&pg_clone, task);
             }
         });
     }
 
-    pub fn send(task_message: TaskMessage) {
-        TASK_CHANNEL.0.send(task_message).unwrap();
-    }
-
-    async fn process_task(
-        pg: &PostgresDatabase,
-        task_id: String,
-        task_action: String,
-        task_type: TaskType,
-        task_request: String,
-    ) {
-        let pool = pg.pool.get().await.unwrap();
-        match task_type {
-            TaskType::Permission => {
-                //Self::process_permission_task(task_type, task_action);
+    /// Processes a task.
+    ///
+    /// # Arguments
+    ///
+    /// * `pg` - A `PostgresDatabase` connection.
+    /// * `task` - A TaskMessage.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// fn main() {
+    ///     // Task processing
+    ///     process_task();
+    ///     // The task has been processed
+    /// }
+    /// ```
+    fn process_task(pg: &PostgresDatabase, task: TaskMessage) {
+        match task.task_type {
+            super::model::TaskType::Permission => {
+                match Self::process_permission_specific_task(pg, task) {
+                    Ok(_) => todo!(), /* Send to receiver with the necessary parameters saying it was a success */
+                    Err(_) => todo!(), /* Sends to receiver saying it failed... */
+                }
+            },
+            super::model::TaskType::Role => {
+                match Self::process_role_specific_task(pg, task) {
+                    Ok(_) => todo!(), /* Send to receiver with the necessary parameters saying it was a success */
+                    Err(_) => todo!(), /* Sends to receiver saying it failed... */
+                }
             }
-            TaskType::Role => {
-                //Self::process_role_task(task_type, task_action);
-            }
-            TaskType::User => {
-                //Self::process_user_task(pg, task_action, task_message).await;
+            super::model::TaskType::User => {
+                match Self::process_user_specific_task(pg, task) {
+                    Ok(_) => todo!(), /* Send to receiver with the necessary parameters saying it was a success */
+                    Err(_) => todo!(), /* Sends to receiver saying it failed... */
+                }
             }
         }
     }
 
-    /*
-    async fn process_user_task(
-        pg: &PostgresDatabase,
-        task_action: String,
-        task_message: String,
-    ) {
-        let mut pool = pg.pool.get().await.unwrap();
-        if task_action.eq("user_create") {
-            let msg: UserCreateTask = serde_json::from_str(&task_message).unwrap();
-            let transaction = pool.transaction().await.unwrap();
-            transaction
-                .execute(
-                    &msg.sql_1,
-                    &[
-                        &msg.param.info.user_id,
-                        &msg.param.info.username,
-                        &msg.param.info.email,
-                        &msg.param.info.created_at,
-                        &msg.param.info.updated_at,
-                    ],
-                )
-                .await
-                .unwrap();
-            transaction
-                .execute(
-                    &msg.sql_2,
-                    &[
-                        &msg.param.info.user_id,
-                        &msg.param.auth.oauth_id,
-                        &msg.param.auth.oauth_provider,
-                    ],
-                )
-                .await
-                .unwrap();
-            transaction.commit().await.unwrap();
-        }
-    }
-*/
-    /*
-    fn process_permission_task(task_type: TaskType, task_action: String) {}
-
-    fn process_role_task(task_type: TaskType, task_action: String) {}
-
-    fn process_user_task(task_type: TaskType, task_action: String) {
+    /// Processes a permission-specific task and returns a result.
+    ///
+    /// # Arguments
+    ///
+    /// * `task` - A `TaskMessage` object that contains the details of the task requiring specific permissions.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// fn main() {
+    ///     let task = TaskMessage::new(/* parameters to create a TaskMessage */);
+    ///     match process_permission_specific_task(task) {
+    ///         Ok(()) => println!("Task successfully processed"),
+    ///         Err(e) => println!("Error processing task: {:?}", e),
+    ///     }
+    /// }
+    /// ```
+    ///
+    /// # Note
+    /// The function currently uses a `todo!()` macro as a placeholder. This should be replaced with the
+    /// actual implementation that handles the task based on its permission requirements.
+    fn process_permission_specific_task(pg: &PostgresDatabase, task: TaskMessage) -> TaskResult<()> {
         todo!()
     }
-    */
-}
 
-// Clone the necessary data from `self`
-//let pg_clone = self.pg.clone();
-//let pool = pg_clone.pool.get().await.unwrap();
-//pub fn send(task_message: TaskMessage) {
-//  TASK_CHANNEL.0.send(task_message).unwrap();
-//}
+    /// Processes a role-specific task and returns a result.
+    ///
+    /// # Arguments
+    ///
+    /// * `task` - A `TaskMessage` containing the details of the role-specific task.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// fn main() {
+    ///     let task = TaskMessage::new(/* parameters to create a TaskMessage */);
+    ///     match process_role_specific_task(task) {
+    ///         Ok(()) => println!("Task successfully processed"),
+    ///         Err(e) => println!("Error processing task: {:?}", e),
+    ///     }
+    /// }
+    /// ```
+    fn process_role_specific_task(pg: &PostgresDatabase, task: TaskMessage) -> TaskResult<()> {
+        todo!()
+    }
 
-/*
-async fn process_query(
-    &self,
-    query: &str,
-    params: &[&(dyn ToSql + Sync)],
-) -> Result<u64, Error> {
-    let pool = self.pg.pool.get().await.unwrap();
-    let stmt = pool.prepare(query).await.unwrap();
-    pool.execute(&stmt, params).await
+    /// Processes a user-specific task based on the provided task message.
+    ///
+    /// # Arguments
+    ///
+    /// * `task` - A `TaskMessage` object representing the task to be processed.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// fn main() {
+    ///     let task = TaskMessage::compose(/* parameters to create a TaskMessage */);
+    ///     process_user_specific_task(task);
+    ///     // The user-specific task has now been processed
+    /// }
+    /// ```
+    fn process_user_specific_task(pg: &PostgresDatabase, task: TaskMessage) -> TaskResult<()> {
+        todo!()
+    }
 }
-*/
-
-/*
-if message.task_action.eq("user_create_task") {
-    //UserTaskManager::perform("user_create_task");
-    // create user here test...
-    //let task_create: UserCreateTask = serde_json::from_str(&message.task_message).unwrap();
-    //UserTaskManager::perform("user_create_task");
-    // perform query here...
-    //println!("{}", task_create.param.info.username);
-}
-*/

@@ -1,11 +1,6 @@
 use axum::async_trait;
 use serde::{Deserialize, Serialize};
 
-use crate::app::{
-    database::postgres::PostgresDatabase,
-    services::task::{error::{TaskResult, TaskError}, model::TaskAction},
-};
-
 use super::model::User;
 
 /// Represents a task for creating a new user, containing SQL statements and user parameters.

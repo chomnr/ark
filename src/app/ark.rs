@@ -143,8 +143,8 @@ impl ArkServer {
     }
 
     async fn register_tasks(pg: PostgresDatabase, redis: RedisDatabase) {
-        let task_mgr = TaskManager::with_databases(pg, redis);
-        task_mgr.listen().await;
+        //let task_mgr = TaskManager::with_databases(pg, redis);
+        //task_mgr.listen().await;
     }
 }
 
