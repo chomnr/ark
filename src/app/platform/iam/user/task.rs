@@ -1,12 +1,10 @@
-use axum::async_trait;
 use serde::{Deserialize, Serialize};
+
+use crate::app::database::postgres::PostgresDatabase;
 
 use super::model::User;
 
 /// Represents a task for creating a new user, containing SQL statements and user parameters.
-///
-/// This struct holds two SQL statements for inserting data into `iam_users` and `iam_user_oauth`
-/// tables, along with a `User` object containing the user data to be inserted.
 #[derive(Serialize, Deserialize)]
 pub struct UserCreateTask {
     pub sql_1: String,
@@ -21,6 +19,25 @@ impl Default for UserCreateTask {
             sql_2: String::from("INSERT INTO iam_user_oauth (user_id, oauth_id, oauth_provider) VALUES ($1, $2, $3)"),
             param: Default::default(),
         }
+    }
+}
+
+impl UserCreateTask {
+    /// Creates a new instance of `UserCreateTask` with default settings.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let user_create_task = UserCreateTask::new();
+    /// // `user_create_task` is now ready with default SQL queries and parameters.
+    /// ```
+    pub fn new() -> Self {
+        UserCreateTask::default()
+    }
+
+    pub async fn process(&mut self, pg: &PostgresDatabase, user: User) {
+        let pool = pg.pool.get().await.unwrap();
+        self.param = user;
     }
 }
 

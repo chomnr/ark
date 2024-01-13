@@ -2,7 +2,10 @@ use crossbeam_channel::{unbounded, Receiver, Sender};
 use once_cell::sync::Lazy;
 use tokio::task;
 
-use crate::app::database::{postgres::PostgresDatabase, redis::RedisDatabase};
+use crate::app::{
+    database::{postgres::PostgresDatabase, redis::RedisDatabase},
+    platform::iam::user::task::UserCreateTask,
+};
 
 use super::{error::TaskResult, model::TaskMessage};
 
@@ -55,6 +58,23 @@ impl TaskManager {
         });
     }
 
+    /// Sends a `TaskMessage` to the task channel.
+    ///
+    /// # Arguments
+    ///
+    /// * `task_message` - The `TaskMessage` to be sent to the task channel.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let message = TaskMessage::new(/* ... */);
+    /// TaskManager::send(message);
+    /// // The message is now sent to the task channel for further processing.
+    /// ```
+    pub fn send(task_message: TaskMessage) {
+        TASK_CHANNEL.0.send(task_message).unwrap();
+    }
+
     /// Processes a task.
     ///
     /// # Arguments
@@ -78,7 +98,7 @@ impl TaskManager {
                     Ok(_) => todo!(), /* Send to receiver with the necessary parameters saying it was a success */
                     Err(_) => todo!(), /* Sends to receiver saying it failed... */
                 }
-            },
+            }
             super::model::TaskType::Role => {
                 match Self::process_role_specific_task(pg, task).await {
                     Ok(_) => todo!(), /* Send to receiver with the necessary parameters saying it was a success */
@@ -111,7 +131,10 @@ impl TaskManager {
     ///     }
     /// }
     /// ```
-    async fn process_permission_specific_task(pg: &PostgresDatabase, task: TaskMessage) -> TaskResult<()> {
+    async fn process_permission_specific_task(
+        pg: &PostgresDatabase,
+        task: TaskMessage,
+    ) -> TaskResult<()> {
         todo!()
     }
 
@@ -132,7 +155,10 @@ impl TaskManager {
     ///     }
     /// }
     /// ```
-    async fn process_role_specific_task(pg: &PostgresDatabase, task: TaskMessage) -> TaskResult<()> {
+    async fn process_role_specific_task(
+        pg: &PostgresDatabase,
+        task: TaskMessage,
+    ) -> TaskResult<()> {
         todo!()
     }
 
@@ -151,10 +177,15 @@ impl TaskManager {
     ///     // The user-specific task has now been processed
     /// }
     /// ```
-    async fn process_user_specific_task(pg: &PostgresDatabase, task: TaskMessage) -> TaskResult<()> {
+    async fn process_user_specific_task(
+        pg: &PostgresDatabase,
+        task: TaskMessage,
+    ) -> TaskResult<()> {
         let action = task.task_action;
         if action.eq("create_user") {
-            
+            let task: UserCreateTask = serde_json::from_str(&task.task_message).unwrap();
+            // add into db
+            // add into cache
         }
         todo!()
     }

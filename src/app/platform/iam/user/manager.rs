@@ -1,7 +1,16 @@
+use syn::token::Use;
+
 use crate::app::services::task::{model::{TaskMessage, TaskType}, manager::TaskManager};
 
 use super::{task::UserCreateTask, model::User};
 
+pub struct UserManager;
+
+impl UserManager {
+    pub fn create_user(user: User) {
+        
+    }
+}
 /* 
 pub struct UserManager;
 
