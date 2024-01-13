@@ -11,7 +11,7 @@ use super::{
         postgres::{PostgresConfig, PostgresDatabase},
         redis::{RedisConfig, RedisDatabase},
     },
-    services::task::manager::TaskManager, platform::iam::auth::user_auth_routes,
+    services::task::manager::TaskManager, platform::iam::auth::oauth_routes,
 };
 
 static ADDRESS: &str = "0.0.0.0";
@@ -56,7 +56,7 @@ impl ArkServer {
             port: PORT,
             mode: MODE,
             router: Router::new()
-                .nest("/auth/", user_auth_routes())
+                .nest("/auth/", oauth_routes())
                 .layer(Extension(Arc::new(ArkState::default().await)))
                 .layer(CookieManagerLayer::new()),
         }

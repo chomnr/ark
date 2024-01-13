@@ -7,7 +7,7 @@ use crate::app::ark::ArkState;
 
 pub mod route;
 
-pub fn user_auth_routes() -> Router {
+pub fn oauth_routes() -> Router {
     Router::new()
         .route("/auth/login/discord", get(oauth_sign_in))
 }
