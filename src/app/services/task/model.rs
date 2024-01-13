@@ -1,10 +1,5 @@
-use axum::async_trait;
 use nanoid::nanoid;
 use serde::{Deserialize, Serialize};
-
-use crate::app::database::postgres::PostgresDatabase;
-
-use super::error::TaskResult;
 
 #[derive(Clone, Copy)]
 pub enum TaskType {
