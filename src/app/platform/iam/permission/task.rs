@@ -7,7 +7,7 @@ use super::model::Permission;
 /// Represents a task for creating a new permission, containing SQL statements and user parameters.
 #[derive(Serialize, Deserialize)]
 pub struct PermissionCreateTask {
-    pub sql_1: String,
+    sql_1: String,
     pub param: Permission,
 }
 

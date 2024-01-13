@@ -7,10 +7,10 @@ use super::model::User;
 /// Represents a task for creating a new user, containing SQL statements and user parameters.
 #[derive(Serialize, Deserialize)]
 pub struct UserCreateTask {
-    pub sql_1: String,
-    pub sql_2: String,
-    pub sql_3: String,
-    pub sql_4: String,
+    sql_1: String,
+    sql_2: String,
+    sql_3: String,
+    sql_4: String,
     pub param: User,
 }
 
