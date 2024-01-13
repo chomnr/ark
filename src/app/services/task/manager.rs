@@ -4,7 +4,7 @@ use tokio::task;
 
 use crate::app::{
     database::{postgres::PostgresDatabase, redis::RedisDatabase},
-    platform::iam::user::task::UserCreateTask,
+    platform::iam::{user::task::UserCreateTask, permission::task::PermissionCreateTask},
 };
 
 use super::{error::TaskResult, model::TaskMessage};
@@ -96,8 +96,8 @@ impl TaskManager {
         match task.task_type {
             super::model::TaskType::Permission => {
                 match Self::process_permission_specific_task(pg, &task).await {
-                    Ok(_) => todo!(), /* Send to receiver with the necessary parameters saying it was a success */
-                    Err(_) => todo!(), /* Sends to receiver saying it failed... */
+                    Ok(_) => println!("[ARK] successfully processed task: '{}' action: {}", &task.task_id, &task.task_action), /* Send to receiver with the necessary parameters saying it was a success */
+                    Err(err) => println!("[ARK] failed to process task: '{}' action: {} error: {}", &task.task_id, &task.task_action, err.to_string()), /* Sends to receiver saying it failed... */
                 }
             }
             super::model::TaskType::Role => {
@@ -136,7 +136,12 @@ impl TaskManager {
         pg: &PostgresDatabase,
         task: &TaskMessage,
     ) -> TaskResult<()> {
-        todo!()
+        let action = &task.task_action;
+        if action.eq("permission_create") {
+            let task: PermissionCreateTask = serde_json::from_str(&task.task_message).unwrap();
+            task.process(pg).await?
+        }
+        Ok(())
     }
 
     /// Processes a role-specific task and returns a result.

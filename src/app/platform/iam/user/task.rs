@@ -20,7 +20,7 @@ impl Default for UserCreateTask {
             sql_1: String::from("INSERT INTO iam_users (id, username, email, created_at, updated_at) VALUES ($1, $2, $3, $4, $5)"),
             sql_2: String::from("INSERT INTO iam_user_oauth (user_id, oauth_id, oauth_provider) VALUES ($1, $2, $3)"),
             sql_3: String::from("INSERT INTO iam_roles (id, role_name) VALUES ($1, $2)"),
-            sql_4: String::from("INSERT INTO iam_permissions (id, permission_name, permission_key) VALUES($1, $2, $3)"),
+            sql_4: String::from("todo"),
             param: Default::default(),
         }
     }
@@ -59,7 +59,6 @@ impl UserCreateTask {
         let mut pool = pg.pool.get().await.unwrap();
         // start transaction
         let mut transaction = pool.transaction().await.unwrap();
-        
         transaction.commit().await.unwrap();
         // check if user is in cache
         // check if user exists.

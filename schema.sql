@@ -1,13 +1,13 @@
 -- This table stores information about various identity roles.
 CREATE TABLE iam_roles (
-    id INTEGER,
+    id VARCHAR(255),
     role_name VARCHAR(255) NOT NULL UNIQUE,
     PRIMARY KEY(id)
 );
 
 -- This table stores the basic information about each permission.
 CREATE TABLE iam_permissions (
-    id INTEGER,
+    id VARCHAR(255),
     permission_name VARCHAR(255) NOT NULL UNIQUE,
     permission_key VARCHAR(255) NOT NULL UNIQUE,
     PRIMARY KEY (id)
@@ -16,7 +16,7 @@ CREATE TABLE iam_permissions (
 -- This table links user with specific roles
 CREATE TABLE iam_user_role (
     user_id VARCHAR(255),
-    role_id INTEGER NOT NULL,
+    role_id VARCHAR(255) NOT NULL,
     PRIMARY KEY (user_id, role_id)
 );
 
@@ -35,8 +35,8 @@ CREATE TABLE iam_users (
 -- relationship where a role can have multiple permissions, and a 
 -- permission can belong to multiple roles.
 CREATE TABLE iam_role_permission (
-    role_id INTEGER REFERENCES iam_roles(id),
-    permission_id INTEGER REFERENCES iam_permissions(id),
+    role_id VARCHAR(255) REFERENCES iam_roles(id),
+    permission_id VARCHAR(255) REFERENCES iam_permissions(id),
     PRIMARY KEY (role_id, permission_id)
 );
 
@@ -44,7 +44,7 @@ CREATE TABLE iam_role_permission (
 -- relationship where a identity can specific permissions for themselves.
 CREATE TABLE iam_user_permission (
     user_id VARCHAR(255) REFERENCES iam_users(id),
-    permission_id INTEGER REFERENCES iam_permissions(id),
+    permission_id VARCHAR(255) REFERENCES iam_permissions(id),
     PRIMARY KEY (user_id, permission_id)
 );
 

@@ -3,9 +3,9 @@ use uuid::Uuid;
 
 #[derive(Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Permission {
-    permission_id: String,
-    permission_name: String,
-    permission_key: String,
+    pub permission_id: String,
+    pub permission_name: String,
+    pub permission_key: String,
 }
 
 impl Permission {

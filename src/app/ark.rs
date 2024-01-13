@@ -11,7 +11,11 @@ use super::{
         postgres::{PostgresConfig, PostgresDatabase},
         redis::{RedisConfig, RedisDatabase},
     },
-    platform::iam::{auth::oauth_routes, user::{model::User, manager::UserManager}},
+    platform::iam::{
+        auth::oauth_routes,
+        permission::{model::{Permission, PermissionBuilder}, manager::PermissionManager},
+        user::{manager::UserManager, model::User},
+    },
     services::task::manager::TaskManager,
 };
 
@@ -146,8 +150,13 @@ impl ArkServer {
     async fn register_tasks(pg: PostgresDatabase, redis: RedisDatabase) {
         let task_mgr = TaskManager::with_databases(pg, redis);
         task_mgr.listen().await;
-        let user = User::builder().validate_and_build().unwrap();
-        UserManager::create_user(user);
+        //let user = User::builder().validate_and_build().unwrap();
+        //UserManager::create_user(user);
+        let permission = Permission::builder()
+            .permission_key("permission_kedy")
+            .permission_name("permission_nadme")
+            .build();
+        PermissionManager::create_permission(permission);
     }
 }
 

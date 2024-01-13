@@ -4,8 +4,8 @@ pub type TaskResult<T> = Result<T, TaskError>;
 
 #[derive(Error, Debug)]
 pub enum TaskError {
-    #[error("...")]
+    #[error("TaskUniqueConstraint")]
     TaskUniqueConstraint,
-    #[error("The queued task does not exist.")]
+    #[error("TaskInvalid")]
     TaskInvalid
 }
