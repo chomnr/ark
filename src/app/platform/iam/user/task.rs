@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
+use syn::token::Use;
 
-use crate::app::services::task::{model::{TaskMessage, TaskType}, manager::TaskManager};
+
+use crate::app::services::task::{model::{TaskType, TaskMessage}, manager::TaskManager};
 
 use super::model::User;
 
@@ -18,30 +20,36 @@ pub struct UserCreateTask {
 impl Default for UserCreateTask {
     fn default() -> Self {
         Self {
-            sql_1: String::from("INSERT INTO iam_users (id, username, email, created_at, updated_at)"),
-            sql_2: String::from("INSERT INTO iam_user_oauth (user_id, oauth_id, oauth_provider)"),
+            sql_1: String::from("INSERT INTO iam_users (id, username, email, created_at, updated_at) VALUES ($1, $2, $3, $4, $5)"),
+            sql_2: String::from("INSERT INTO iam_user_oauth (user_id, oauth_id, oauth_provider) VALUES ($1, $2, $3)"),
             param: Default::default(),
         }
     }
 }
 
-/// Manages tasks related to user operations.
-///
-/// `UserTaskManager` is responsible for handling tasks such as creating, updating, or deleting 
-/// user information. It provides functionality to orchestrate and execute various operations 
-/// associated with user management.
+// Manages tasks related to user operations.
+//
+// `UserTaskManager` is responsible for handling tasks such as creating, updating, or deleting 
+// user information. It provides functionality to orchestrate and execute various operations 
+// associated with user management.
+//
+ 
+
+/*
 pub struct UserTaskManager;
 
-impl UserTaskManager {
+impl UserManager {
     pub fn create_user(user: User) {
         let mut task = UserCreateTask::default();
         task.param = user;
-        //TaskManager::send(TaskMessage::compose(TaskType::User, "user_create_task", task));
+        TaskManager::send(TaskMessage::compose(TaskType::User, "user_create_task", task));
     }
 }
+*/
 
 
-pub fn test(){
-    let user = User::builder().build();
-    UserTaskManager::create_user(user);
-}
+
+//pub fn test(){
+//    let user = User::builder().build();
+//    UserTaskManager::create_user(user);
+//      }

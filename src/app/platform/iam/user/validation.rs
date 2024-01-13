@@ -33,7 +33,7 @@ impl UserValidator {
         true
     }
 
-    pub fn is_time_proper(created_at: i128, updated_at: i128) -> bool {
+    pub fn is_time_proper(created_at: i64, updated_at: i64) -> bool {
         if created_at > updated_at {
             return false;
         }
@@ -43,11 +43,11 @@ impl UserValidator {
 
 impl Validator<User> for UserValidator {
     fn validate(user: User) -> ValidationResult<User> {
-        if !Self::is_username_proper_length(&user.info.username) {
+        if user.info.username.is_some() && !Self::is_username_proper_length(&user.info.username.clone().unwrap()) {
             return Err(ValidationError::ValidationFieldFailure);
         }
 
-        if !Self::is_email_proper_length(&user.info.email) {
+        if user.info.email.as_ref().is_some() && !Self::is_email_proper_length(&user.info.email.clone().unwrap()) {
             return Err(ValidationError::ValidationFieldFailure);
         }
 

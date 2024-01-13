@@ -1,6 +1,7 @@
 use std::time::{UNIX_EPOCH, SystemTime};
 
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 use crate::app::{utilities::validation::{ValidationResult, Validator}, platform::iam::{permission::model::Permission, role::model::Role}};
 
@@ -11,12 +12,12 @@ use super::validation::UserValidator;
 /// Includes identification, contact details, and account timestamps.
 #[derive(Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct UserInfo {
-    pub user_id: i64,
-    pub username: String,
-    pub email: String,
+    pub user_id: String,
+    pub username: Option<String>,
+    pub email: Option<String>,
     pub verified: bool,
-    pub created_at: i128,
-    pub updated_at: i128,
+    pub created_at: i64,
+    pub updated_at: i64,
 }
 
 /// Represents a user's authentication information with an OAuth provider.
@@ -62,30 +63,25 @@ impl UserBuilder {
     pub fn new() -> UserBuilder {
         UserBuilder {
             info: UserInfo {
-                user_id: i64::default(),
-                username: String::default(),
-                email: String::default(),
+                user_id: Uuid::new_v4().to_string(),
+                username: None,
+                email: None,
                 verified: false,
-                created_at: SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos() as i128,
-                updated_at: SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos() as i128,
+                created_at: SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos() as i64,
+                updated_at: SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos() as i64,
             },
             auth: UserAuthInfo::default(),
             access: UserAccessInfo::default(),
         }
     }
 
-    pub fn user_id(mut self, user_id: i64) -> UserBuilder {
-        self.info.user_id = user_id;
-        self
-    }
-
     pub fn username(mut self, username: &str) -> UserBuilder {
-        self.info.username = String::from(username);
+        self.info.username = Some(String::from(username));
         self
     }
 
     pub fn email(mut self, email: &str) -> UserBuilder {
-        self.info.email = String::from(email);
+        self.info.email = Some(String::from(email));
         self
     }
 
@@ -94,12 +90,12 @@ impl UserBuilder {
         self
     }
 
-    pub fn created_at(mut self, created_at: i128) -> UserBuilder {
+    pub fn created_at(mut self, created_at: i64) -> UserBuilder {
         self.info.created_at = created_at;
         self
     }
 
-    pub fn updated_at(mut self, updated_at: i128) -> UserBuilder {
+    pub fn updated_at(mut self, updated_at: i64) -> UserBuilder {
         self.info.updated_at = updated_at;
         self
     }
