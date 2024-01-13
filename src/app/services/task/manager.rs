@@ -60,14 +60,13 @@ impl TaskManager {
                 //Self::process_role_task(task_type, task_action);
             }
             TaskType::User => {
-                Self::process_user_task(pg, task_type, task_action, task_message).await;
+                Self::process_user_task(pg, task_action, task_message).await;
             }
         }
     }
 
     async fn process_user_task(
         pg: &PostgresDatabase,
-        task_type: TaskType,
         task_action: String,
         task_message: String,
     ) {
