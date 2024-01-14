@@ -14,8 +14,6 @@ async fn main() {
     let ark = ArkServer::default().await;
     let pg = PostgresDatabase::new(PostgresConfig::default()).await;
     let redis = RedisDatabase::new(RedisConfig::default()).await;
-    //let binding = redis.pool.clone();
-    //let redis_pool = binding.get().await.unwrap();
     ark.run(pg, redis).await;
 
     /*

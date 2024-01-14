@@ -2,19 +2,19 @@ use core::fmt;
 use std::{env, sync::Arc};
 
 use axum::{extract::FromRef, Extension, Router};
+use bb8_redis::redis::cmd;
 use tokio::net::TcpListener;
 use tower_cookies::{CookieManagerLayer, Key};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 use super::{
+    adapter::oauth_adapter::OAuthCollectionAdapter,
     database::{
         postgres::{PostgresConfig, PostgresDatabase},
         redis::{RedisConfig, RedisDatabase},
     },
-    platform::iam::{
-        permission::{model::Permission, manager::PermissionManager}, auth::route::oauth_routes}
-    ,
-    services::task::manager::TaskManager, adapter::oauth_adapter::OAuthCollectionAdapter,
+    platform::iam::auth::route::oauth_routes,
+    services::task::manager::TaskManager,
 };
 
 static ADDRESS: &str = "0.0.0.0";
@@ -94,6 +94,7 @@ impl ArkServer {
             "[ARK] router initialized, now listening on port {}.",
             &self.port
         );
+        Self::load_prerequisites(pg.clone(), redis.clone()).await;
         Self::register_tasks(pg, redis).await;
         axum::serve(tcp, self.router).await.unwrap();
     }
@@ -145,16 +146,56 @@ impl ArkServer {
         println!("[ARK] tracer initialized.");
     }
 
+    /// Registers and starts listening for tasks using the specified PostgreSQL and Redis databases.
+    ///
+    /// # Arguments
+    ///
+    /// * `pg` - An instance of `PostgresDatabase` representing the connection to the PostgreSQL database.
+    /// * `redis` - An instance of `RedisDatabase` representing the connection to the Redis database.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let pg_database = PostgresDatabase::new(/* PostgreSQL connection parameters */);
+    ///     let redis_database = RedisDatabase::new(/* Redis connection parameters */);
+    ///     register_tasks(pg_database, redis_database).await;
+    /// }
+    /// ```
     async fn register_tasks(pg: PostgresDatabase, redis: RedisDatabase) {
         let task_mgr = TaskManager::with_databases(pg, redis);
         task_mgr.listen().await;
-        //let user = User::builder().validate_and_build().unwrap();
-        //UserManager::create_user(user);
-        //let permission = Permission::builder()
-        //    .permission_key("permission_kedy")
-        //    .permission_name("permission_nadme")
-        //    .build();
-        //PermissionManager::create_permission(permission);
+    }
+
+    /// Asynchronously loads prerequisites using PostgreSQL and Redis databases.
+    ///
+    /// # Arguments
+    ///
+    /// * `pg` - An instance of `PostgresDatabase` for interacting with the PostgreSQL database.
+    /// * `redis` - An instance of `RedisDatabase` for interacting with the Redis database.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let pg_database = PostgresDatabase::new(/* PostgreSQL connection parameters */);
+    ///     let redis_database = RedisDatabase::new(/* Redis database connection parameters */);
+    ///     load_prerequisites(pg_database, redis_database).await;
+    /// }
+    /// ```
+    async fn load_prerequisites(pg: PostgresDatabase, redis: RedisDatabase) {
+        // redis setup
+        let mut redis_pool = redis.pool.get().await.unwrap();
+        //let _: () = cmd("HSET")
+        //    .arg("user_sessions")
+        //    .arg("placeholder_field")
+        //    .arg("placeholder_value")
+        //    .query_async(&mut *redis_pool)
+        //    .await
+        //    .unwrap();
+        // postgres setup
     }
 }
 
@@ -201,7 +242,7 @@ impl ArkState {
             key: ArkState::get_key(),
             postgres: PostgresDatabase::new(PostgresConfig::default()).await,
             redis: RedisDatabase::new(RedisConfig::default()).await,
-            auth: OAuthCollectionAdapter::new()
+            auth: OAuthCollectionAdapter::new(),
         }
     }
 
@@ -215,21 +256,10 @@ impl ArkState {
     }
 }
 
-//UserTaskManager::create_user(user);
-/*
- let user = User::builder()
-    .oauth_id("231123312321312")
-    .oauth_provider("discord")
-    .validate_and_build().unwrap();
-
-UserManager::create_user(user);
-
-let dd = TaskMessage::compose::<UserWorkerMessage>(
-    TaskType::User,
-    UserWorkerMessage {
-        message: "dsasds".to_string(),
-    },
-);
-
-TaskManager::send(dd);
-*/
+//  let user = User::builder().validate_and_build().unwrap();
+//  UserManager::create_user(user);
+//  let permission = Permission::builder()
+//    .permission_key("permission_kedy")
+//    .permission_name("permission_nadme")
+//    .build();
+//  PermissionManager::create_permission(permission);
