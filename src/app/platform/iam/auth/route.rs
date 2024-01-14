@@ -1,10 +1,12 @@
 use std::sync::Arc;
 
-use axum::{Router, extract::Path, Extension, response::Redirect, routing::get};
-use oauth2::{PkceCodeChallenge, CsrfToken};
+use axum::{Router, extract::{Path, Query}, Extension, response::Redirect, routing::get, http::StatusCode};
+use axum_core::response::IntoResponse;
+use oauth2::{PkceCodeChallenge, CsrfToken, AuthorizationCode, TokenResponse};
+use serde::Deserialize;
 use tower_cookies::{Cookies, Cookie, cookie::time::{Duration, OffsetDateTime}};
 
-use crate::app::ark::{ArkState, INTEGRITY_COOKIE_NAME};
+use crate::app::{ark::{ArkState, INTEGRITY_COOKIE_NAME}, platform::response::ErrorJsonResponse};
 
 use super::integrity::UserIntegrity;
 
@@ -44,12 +46,57 @@ async fn oauth_sign_in_discord(
     Redirect::temporary(url.as_ref())
 }
 
+#[derive(Deserialize)]
+pub struct AuthVerifierQuery {
+    code: String,
+    state: String,
+}
+
 async fn oauth_callback(
-    Path(provider_name): Path<String>,
+    extract: Query<AuthVerifierQuery>,
     Extension(state): Extension<Arc<ArkState>>,
     cookies: Cookies,
-) -> Redirect {
-
-    // s
-    Redirect::to("/")
+) -> Result<Redirect, impl IntoResponse>  {
+    let jar = cookies.private(&state.key);
+    // check if integrity cookie exists
+    if jar.get(INTEGRITY_COOKIE_NAME).is_none() {
+        return Err(ErrorJsonResponse::new(StatusCode::UNAUTHORIZED, "Failed to retrieve integrity of your client."));
+    }
+    // get integrity cookie
+    let integrity_cookie = jar
+        .get(INTEGRITY_COOKIE_NAME)
+        .expect("Error: failed to unwrap integrity_cookie.");
+    // deserialize the contents of the integrity
+    // cookie.
+    let integrity = UserIntegrity::deserialize(integrity_cookie.value().to_string());
+    // check if csrf does not match the secret
+    if !extract.state.eq(integrity.csrf_token.secret()) {
+        return Err(ErrorJsonResponse::new(StatusCode::UNAUTHORIZED, "Failed to verify the integrity of your client"));
+    }
+    // get provider name
+    let provider_name = integrity.provider;
+    let provider = &state
+        .auth
+        .get_from(&provider_name)
+        .expect("Error: the provider from the integrity token is invalid.");
+    let provider_client = &provider.client;
+    // code exchange.
+    let code_exchange = provider_client
+        .exchange_code(AuthorizationCode::new(extract.code.clone()))
+        .set_pkce_verifier(integrity.pkce_verifier)
+        .request_async(oauth2::reqwest::async_http_client)
+        .await
+        .expect("Error: failed to obtain access token");
+    // get access token
+    let access_token = code_exchange.access_token().secret();
+    // get refresh token
+    let refresh_token = code_exchange
+        .refresh_token()
+        .expect("Error: unable to get refresh otken.")
+        .secret();
+    // get expires in
+    let expires_in = code_exchange
+        .expires_in()
+        .expect("Error: unable to get expiration of token");
+    Ok(Redirect::to("/"))
 }
