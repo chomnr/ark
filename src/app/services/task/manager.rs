@@ -1,18 +1,19 @@
-use crossbeam_channel::{unbounded, Receiver, Sender};
-use once_cell::sync::Lazy;
+use serde::Deserialize;
 use tokio::task;
 
 use crate::app::{
     database::{postgres::PostgresDatabase, redis::RedisDatabase},
-    platform::iam::{permission::task::PermissionCreateTask, user::task::UserCreateTask},
+    platform::iam::permission::{model::Permission, task::PermissionTaskHandler},
+    services::task::TASK_CHANNEL,
 };
 
-use super::{error::TaskResult, model::TaskMessage};
+use super::{
+    error::{TaskError, TaskResult},
+    model::{TaskHandler, TaskMessage, TaskMessageResult, TaskResultStatus},
+    TASK_RESULT_CHANNEL,
+};
 
-static TASK_CHANNEL: Lazy<(Sender<TaskMessage>, Receiver<TaskMessage>)> = Lazy::new(|| unbounded());
-static TASK_RESULT_CHANNEL: Lazy<(Sender<TaskMessage>, Receiver<TaskMessage>)> =
-    Lazy::new(|| unbounded());
-
+/// `TaskManager`related to task handling, such as task distribution, monitoring, and result management.
 pub struct TaskManager {
     pg: PostgresDatabase,
     redis: RedisDatabase,
@@ -46,10 +47,10 @@ impl TaskManager {
     /// #[tokio::main]
     /// async fn main() {
     ///     let my_struct = MyStruct::new(); // Assume MyStruct is initialized here
-    ///     my_struct.listen().await;
+    ///     my_struct.listen_for_tasks().await;
     /// }
     /// ```
-    pub async fn listen(&self) {
+    pub async fn listen_for_tasks(&self) {
         let pg_clone = self.pg.clone();
         task::spawn(async move {
             println!("[ARK] task_channel initalized, now listening to incoming tasks.");
@@ -72,8 +73,32 @@ impl TaskManager {
     /// TaskManager::send(message);
     /// // The message is now sent to the task channel for further processing.
     /// ```
-    pub fn send(task_message: TaskMessage) {
-        TASK_CHANNEL.0.send(task_message).unwrap();
+    pub fn send<T: for<'a> Deserialize<'a>>(task_message: TaskMessage) -> TaskResult<T> {
+        TASK_CHANNEL.0.send(task_message.clone()).unwrap();
+        for task in TASK_RESULT_CHANNEL.1.iter() {
+            if task.task_id.eq(&task_message.task_id) {
+                let result: T = serde_json::from_str(&task.result).unwrap();
+                return Ok(result);
+            }
+        }
+        return Err(TaskError::TaskWentWrong);
+    }
+
+    /// Sends a `TaskMessageResult` to the task channel.
+    ///
+    /// # Arguments
+    ///
+    /// * `task_message` - The `TaskMessageResult` to be sent to the task channel.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let message = TaskMessage::new(/* ... */);
+    /// TaskManager::send(message);
+    /// // The message is now sent to the task channel for further processing.
+    /// ```
+    fn send_result(task_result: TaskMessageResult) {
+        TASK_RESULT_CHANNEL.0.send(task_result).unwrap();
     }
 
     /// Processes a task.
@@ -94,9 +119,9 @@ impl TaskManager {
     /// ```
     async fn process_task(pg: &PostgresDatabase, task: TaskMessage) {
         let process_result = match task.task_type {
-            super::model::TaskType::Permission => Self::process_permission_specific_task(pg, &task).await,
-            super::model::TaskType::Role => Self::process_role_specific_task(pg, &task).await,
-            super::model::TaskType::User => Self::process_user_specific_task(pg, &task).await,
+            super::model::TaskType::Permission => {
+                Self::process_permission_specific_task(pg, &task).await
+            }
         };
 
         match process_result {
@@ -110,6 +135,7 @@ impl TaskManager {
             ),
         }
     }
+
     /// Processes a permission-specific task and returns a result.
     ///
     /// # Arguments
@@ -132,61 +158,24 @@ impl TaskManager {
         task: &TaskMessage,
     ) -> TaskResult<()> {
         let action = &task.task_action;
-        if action.eq("permission_create") {
-            let task: PermissionCreateTask = serde_json::from_str(&task.task_message).unwrap();
-            task.process(pg).await?
+        match PermissionTaskHandler::handle::<Permission>(Some(pg.clone()), None, &action).await {
+            Ok(v) => {
+                Self::send_result(TaskMessageResult::compose(
+                    &task.task_id,
+                    TaskResultStatus::SUCCESSFUL,
+                    Some(v),
+                ));
+                return Ok(());
+            }
+            Err(_) => {
+                let permission: Permission = serde_json::from_str(&task.task_message).unwrap();
+                Self::send_result(TaskMessageResult::compose(
+                    &task.task_id,
+                    TaskResultStatus::FAILED,
+                    Some(permission),
+                ));
+                return Err(TaskError::TaskWentWrong);
+            }
         }
-        Ok(())
-    }
-
-    /// Processes a role-specific task and returns a result.
-    ///
-    /// # Arguments
-    ///
-    /// * `task` - A `TaskMessage` containing the details of the role-specific task.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// fn main() {
-    ///     let task = TaskMessage::new(/* parameters to create a TaskMessage */);
-    ///     match process_role_specific_task(task) {
-    ///         Ok(()) => println!("Task successfully processed"),
-    ///         Err(e) => println!("Error processing task: {:?}", e),
-    ///     }
-    /// }
-    /// ```
-    async fn process_role_specific_task(
-        pg: &PostgresDatabase,
-        task: &TaskMessage,
-    ) -> TaskResult<()> {
-        todo!()
-    }
-
-    /// Processes a user-specific task based on the provided task message.
-    ///
-    /// # Arguments
-    ///
-    /// * `task` - A `TaskMessage` object representing the task to be processed.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// fn main() {
-    ///     let task = TaskMessage::compose(/* parameters to create a TaskMessage */);
-    ///     process_user_specific_task(task);
-    ///     // The user-specific task has now been processed
-    /// }
-    /// ```
-    async fn process_user_specific_task(
-        pg: &PostgresDatabase,
-        task: &TaskMessage,
-    ) -> TaskResult<()> {
-        let action = &task.task_action;
-        if action.eq("create_user") {
-            let task: UserCreateTask = serde_json::from_str(&task.task_message).unwrap();
-            task.process(pg).await?;
-        }
-        Ok(())
     }
 }

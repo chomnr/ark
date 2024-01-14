@@ -1,23 +1,30 @@
+use axum::async_trait;
 use nanoid::nanoid;
 use serde::{Deserialize, Serialize};
+
+use crate::app::database::{postgres::PostgresDatabase, redis::RedisDatabase};
+
+use super::error::TaskResult;
+
+#[async_trait]
+pub trait TaskHandler {
+    async fn handle<T>(pg: Option<PostgresDatabase>, redis: Option<RedisDatabase>, task_action: &str) -> TaskResult<T>;
+}
 
 #[derive(Clone, Copy)]
 pub enum TaskType {
     Permission,
-    Role,
-    User,
 }
 
 impl TaskType {
     pub fn to_identifier(&self) -> String {
         match self {
-            TaskType::Permission => return String::from("perm_task"),
-            TaskType::Role => return String::from("role_task"),
-            TaskType::User => return String::from("user_task"),
+            TaskType::Permission => return String::from("perm_task")
         }
     }
 }
 
+#[derive(Clone)]
 pub struct TaskMessage {
     pub task_id: String,
     pub task_action: String,
@@ -70,5 +77,44 @@ impl TaskMessage {
     /// ```
     fn generate_task_specific_id(sender_type: TaskType) -> String {
         format!("{}-{}", sender_type.to_identifier(), nanoid!(7))
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+pub enum TaskResultStatus {
+    SUCCESSFUL,
+    FAILED,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct TaskMessageResult {
+    pub task_id: String,
+    pub task_status: TaskResultStatus,
+    pub result: String,
+}
+
+impl TaskMessageResult {
+    /// Creates a `TaskResultMessage` with a specific task type and a serialized message.
+    ///
+    /// # Arguments
+    /// * `task_id` - The type of the task.
+    /// * `task_status` - The status of the task.
+    /// * `task_message` - The message to be serialized, of generic type `T`.
+    ///
+    /// # Returns
+    /// Returns a `TaskResultMessage` with a unique task ID, task type, and serialized message.
+    ///
+    /// # Example
+    /// ```
+    pub fn compose<T: for<'a> Deserialize<'a> + Serialize>(
+        task_id: &str,
+        task_status: TaskResultStatus,
+        task_message: Option<T>,
+    ) -> TaskMessageResult {
+        TaskMessageResult {
+            task_id: String::from(task_id),
+            task_status,
+            result: serde_json::to_string(&task_message).unwrap(),
+        }
     }
 }

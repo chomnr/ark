@@ -4,6 +4,7 @@ use crate::app::{database::postgres::PostgresDatabase, services::task::error::{T
 
 use super::model::User;
 
+/*
 /// Represents a task for creating a new user, containing SQL statements and user parameters.
 #[derive(Serialize, Deserialize)]
 pub struct UserCreateTask {
@@ -34,12 +35,14 @@ impl UserCreateTask {
     pub async fn process(&self, pg: &PostgresDatabase) -> TaskResult<()> {
         let mut pool = pg.pool.get().await.unwrap();
         let mut transaction = pool.transaction().await.unwrap();
+        // UserCreateTask Here...........
         match transaction.commit().await {
             Ok(_) => Ok(()),
-            Err(_) => Err(TaskError::TaskWentWrong),
+            Err(_) => Err(TaskError::TaskWentWrong), // 
         }
         // check if user is in cache
         // check if user exists.
         // then process transaction.
     }
 }
+*/

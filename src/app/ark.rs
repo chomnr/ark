@@ -2,7 +2,6 @@ use core::fmt;
 use std::{env, sync::Arc};
 
 use axum::{extract::FromRef, Extension, Router};
-use bb8_redis::redis::cmd;
 use tokio::net::TcpListener;
 use tower_cookies::{CookieManagerLayer, Key};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
@@ -12,9 +11,7 @@ use super::{
     database::{
         postgres::{PostgresConfig, PostgresDatabase},
         redis::{RedisConfig, RedisDatabase},
-    },
-    platform::iam::auth::route::oauth_routes,
-    services::task::manager::TaskManager,
+    }, services::task::manager::TaskManager, platform::iam::permission::{model::Permission, manager::PermissionManager},
 };
 
 static ADDRESS: &str = "0.0.0.0";
@@ -59,7 +56,6 @@ impl ArkServer {
             port: PORT,
             mode: MODE,
             router: Router::new()
-                .nest("/auth/", oauth_routes())
                 .layer(Extension(Arc::new(ArkState::default().await)))
                 .layer(CookieManagerLayer::new()),
         }
@@ -165,7 +161,12 @@ impl ArkServer {
     /// ```
     async fn register_tasks(pg: PostgresDatabase, redis: RedisDatabase) {
         let task_mgr = TaskManager::with_databases(pg, redis);
-        task_mgr.listen().await;
+        task_mgr.listen_for_tasks().await;
+        let test = Permission::builder()
+            .permission_key("adssdad")
+            .permission_name("adssda")
+            .build();
+        PermissionManager::create_permission(test);
     }
 
     /// Asynchronously loads prerequisites using PostgreSQL and Redis databases.
