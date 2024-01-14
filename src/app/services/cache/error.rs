@@ -1,5 +1,7 @@
 use thiserror::Error;
 
+pub type CacheResult<T> = Result<T, CacheError>;
+
 #[derive(Error, Debug)]
 pub enum CacheError {
     #[error("Failed to write value into cache because the requested id already exists.")]

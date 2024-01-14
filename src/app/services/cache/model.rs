@@ -1,6 +1,6 @@
 use axum::async_trait;
 
-use super::manager::CacheResult;
+use super::error::CacheResult;
 
 #[async_trait]
 pub trait Cacheable<T> {
