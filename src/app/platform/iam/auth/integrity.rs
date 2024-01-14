@@ -1,5 +1,6 @@
 use oauth2::{CsrfToken, PkceCodeVerifier};
 use serde::{Serialize, Deserialize};
+use tower_cookies::{Cookie, cookie::time::{OffsetDateTime, Duration}};
 
 #[derive(Serialize, Deserialize)]
 pub struct UserIntegrity {
@@ -15,6 +16,13 @@ impl UserIntegrity {
             pkce_verifier,
             provider: provider.to_string(),
         }
+    }
+    
+    pub fn turn_into_cookie(self) -> Cookie<'static> {
+        let mut cookie = Cookie::new("name", self.serialize());
+        cookie.set_path("/");
+        cookie.set_expires(OffsetDateTime::now_utc() + Duration::weeks(1));
+        cookie
     }
     
     pub fn serialize(&self) -> String {
