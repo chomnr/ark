@@ -10,8 +10,8 @@ use super::{
     adapter::oauth_adapter::OAuthCollectionAdapter,
     database::{
         postgres::{PostgresConfig, PostgresDatabase},
-        redis::{RedisConfig, RedisDatabase},
-    }, services::task::manager::TaskManager, platform::iam::permission::{model::Permission, manager::PermissionManager},
+        redis::{RedisConfig, RedisDatabase}
+    }
 };
 
 static ADDRESS: &str = "0.0.0.0";
@@ -160,13 +160,19 @@ impl ArkServer {
     /// }
     /// ```
     async fn register_tasks(pg: PostgresDatabase, redis: RedisDatabase) {
-        let task_mgr = TaskManager::with_databases(pg, redis);
-        task_mgr.listen_for_tasks().await;
+        /*
+        PermissionHandler::listen(pg);
+        //let task_mgr = TaskManager::with_databases(pg, redis);
+        //task_mgr.listen();
+        //task_mgr.listen_for(TaskListenType::ListenForTask);
+        //let task_mgr = TaskManager::with_databases(pg, redis);
+        //task_mgr.listen_for_tasks().await;
         let test = Permission::builder()
-            .permission_key("adssdad")
-            .permission_name("adssda")
+            .permission_key("hellfdo")
+            .permission_name("hellddo")
             .build();
-        PermissionManager::create_permission(test);
+        PermissionManager::create_permission(test).await.unwrap();
+        */
     }
 
     /// Asynchronously loads prerequisites using PostgreSQL and Redis databases.

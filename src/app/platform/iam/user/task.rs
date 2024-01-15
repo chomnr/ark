@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-use crate::app::{database::postgres::PostgresDatabase, services::task::error::{TaskResult, TaskError}};
 
 use super::model::User;
 

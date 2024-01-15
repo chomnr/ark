@@ -3,9 +3,7 @@ use std::time::{UNIX_EPOCH, SystemTime};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::app::{utilities::validation::{ValidationResult, Validator}, platform::iam::{permission::model::Permission, role::model::Role}};
-
-use super::validation::UserValidator;
+use crate::app::platform::iam::{permission::model::Permission, role::model::Role};
 
 /// Represents a user's basic information.
 ///
@@ -122,6 +120,7 @@ impl UserBuilder {
 
     /// Runs the builder result through the validator ensuring
     /// it meets the criteria.
+    /*
     pub fn validate_and_build(self) -> ValidationResult<User> {
         UserValidator::validate(User {
             info: self.info,
@@ -129,6 +128,7 @@ impl UserBuilder {
             access: self.access
         })
     }
+    */
 
     pub fn build(self) -> User {
         User {
