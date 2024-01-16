@@ -31,6 +31,7 @@ pub enum TaskType {
 /// requested handler.
 #[derive(Serialize, Deserialize)]
 pub struct TaskArgs<T: Serialize> {
+    /// The parameters for the given Task.
     pub param: T
 }
 
