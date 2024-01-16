@@ -242,13 +242,19 @@ impl Task<PostgresDatabase, TaskRequest, PermissionUpdateTask> for PermissionUpd
             .execute(&stmt, &[&param.value, &param.search_by])
             .await
         {
-            Ok(_) => {
-                return TaskResponse::compose_response(
+            Ok(v) => {
+                if v != 0 {
+                    return TaskResponse::compose_response(
+                        request,
+                        TaskStatus::Completed,
+                        param,
+                        Vec::default(),
+                    );
+                }
+                return TaskResponse::throw_failed_response(
                     request,
-                    TaskStatus::Completed,
-                    param,
-                    Vec::default(),
-                )
+                    vec![TaskError::PermissionNotFound.to_string()],
+                );
             }
             Err(_) => {
                 return TaskResponse::throw_failed_response(
