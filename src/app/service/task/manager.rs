@@ -37,7 +37,7 @@ impl TaskManager {
             println!("[ARK] task initalized, now listening to incoming requests.");
             while let Ok(task_request) = inbound_receiver.recv() {
                 println!(
-                    "[ARK] successfully received a task from {} with type: {:?}",
+                    "[ARK] successfully received a task from {}. Task type: {:?}.",
                     task_request.task_id,
                     task_request.task_type.clone()
                 );
@@ -56,9 +56,9 @@ impl TaskManager {
         for task in OUTBOUND.1.iter() {
             if task.task_id.eq(&task_request.task_id) {
                 if task.task_status.eq(&TaskStatus::Completed) {
-                    println!("[ARK] {} has been completed", task.task_id);
+                    println!("[ARK] task id {} successfully completed.", task.task_id);
                 } else {
-                    println!("[ARK] {} has failed", task.task_id);
+                    println!("[ARK] task id {} has encountered a failure.", task.task_id);
                 }
                 return task;
             }

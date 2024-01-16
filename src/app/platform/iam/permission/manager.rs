@@ -15,9 +15,7 @@ impl PermissionManager {
             },
             TaskType::Permission,
         );
-        let response = TaskManager::send::<Permission>(request);
-        println!("{:?} test ", response.task_status);
-        response
+        TaskManager::send::<Permission>(request)
     }
 }
 
