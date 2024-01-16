@@ -25,6 +25,15 @@ pub enum TaskType {
     Permission,
 }
 
+/// A structure for task arguments.
+///
+/// This struct is used to provide the necessary arguments for the
+/// requested handler.
+#[derive(Serialize, Deserialize)]
+pub struct TaskArgs<T: Serialize> {
+    pub param: T
+}
+
 /// A request structure for a task.
 ///
 /// This struct is used to encapsulate the details of a task request. It includes

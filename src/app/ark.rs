@@ -162,7 +162,7 @@ impl ArkServer {
     async fn register_tasks(pg: PostgresDatabase, redis: RedisDatabase) {
         TaskManager::new(pg)
             .listen();
-        PermissionManager::delete_permission("a72afe8d-b73d-42d3-9ad4-d02e0699e24f");
+        PermissionManager::delete_permission("permission delete user.");
         /*
         PermissionHandler::listen(pg);
         //let task_mgr = TaskManager::with_databases(pg, redis);

@@ -1,20 +1,14 @@
 use axum::async_trait;
-use serde::{Deserialize, Serialize};
 
 use crate::app::{
     database::postgres::PostgresDatabase,
     platform::iam::permission::model::Permission,
     service::task::{
         error::TaskError,
-        message::{TaskRequest, TaskResponse, TaskStatus},
+        message::{TaskRequest, TaskResponse, TaskStatus, TaskArgs},
         Task, TaskHandler,
     },
 };
-
-#[derive(Serialize, Deserialize)]
-pub struct PermissionTask<T: Serialize> {
-    pub param: T,
-}
 
 pub struct PermissionTaskHandler;
 
@@ -22,7 +16,7 @@ pub struct PermissionTaskHandler;
 impl TaskHandler for PermissionTaskHandler {
     async fn handle(pg: &PostgresDatabase, task_request: TaskRequest) -> TaskResponse {
         if task_request.task_action.eq("permission_create") {
-            let payload = match TaskRequest::intepret_request_payload::<PermissionTask<Permission>>(
+            let payload = match TaskRequest::intepret_request_payload::<TaskArgs<Permission>>(
                 &task_request,
             ) {
                 Ok(p) => p,
@@ -37,7 +31,7 @@ impl TaskHandler for PermissionTaskHandler {
         }
 
         if task_request.task_action.eq("permission_delete") {
-            let payload = match TaskRequest::intepret_request_payload::<PermissionTask<String>>(
+            let payload = match TaskRequest::intepret_request_payload::<TaskArgs<String>>(
                 &task_request,
             ) {
                 Ok(p) => p,
