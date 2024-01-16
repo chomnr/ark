@@ -11,7 +11,7 @@ use super::{
     database::{
         postgres::{PostgresConfig, PostgresDatabase},
         redis::{RedisConfig, RedisDatabase}
-    }
+    }, service::task::manager::TaskManager, platform::iam::permission::{manager::PermissionManager, model::Permission}
 };
 
 static ADDRESS: &str = "0.0.0.0";
@@ -86,12 +86,12 @@ impl ArkServer {
                 Self::enable_tracing();
             }
         }
+        Self::register_tasks(pg, redis).await;
         println!(
             "[ARK] router initialized, now listening on port {}.",
             &self.port
         );
-        Self::load_prerequisites(pg.clone(), redis.clone()).await;
-        Self::register_tasks(pg, redis).await;
+        //Self::load_prerequisites(pg.clone(), redis.clone()).await;
         axum::serve(tcp, self.router).await.unwrap();
     }
 
@@ -160,6 +160,14 @@ impl ArkServer {
     /// }
     /// ```
     async fn register_tasks(pg: PostgresDatabase, redis: RedisDatabase) {
+        TaskManager::new(pg)
+            .listen();
+
+        let test = Permission::builder()
+            .permission_key("permission_test3")
+            .permission_name("NEWEST TEST")
+            .build();
+        PermissionManager::create_permission(test);
         /*
         PermissionHandler::listen(pg);
         //let task_mgr = TaskManager::with_databases(pg, redis);
