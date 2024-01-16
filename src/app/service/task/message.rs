@@ -77,9 +77,3 @@ impl TaskResponse {
         }
     }
 }
-
-/*
-pub fn test() {
-    TaskResponse::compose_response::<Permission>(todo!(), todo!(), todo!());
-}
-*/

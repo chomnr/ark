@@ -27,11 +27,13 @@
 //                       +--------------+       +--------------+
 // 
 
+use axum::async_trait;
 use crossbeam_channel::{Receiver, Sender, unbounded};
 use once_cell::sync::Lazy;
 
 use self::message::{TaskRequest, TaskResponse};
 
+pub mod error;
 pub mod message;
 
 /// Receives tasks and processing them.
