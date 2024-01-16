@@ -5,16 +5,16 @@ use thiserror::Error;
 #[derive(Error, Debug)]
 pub enum TaskError {
     // Internal
-    #[error("Failed to interpret the payload. The operation cannot be completed because the payload format is unrecognized or malformed. Ensure that the payload is correctly formatted and adheres to the expected structure.")]
+    #[error("FailedToInterpretPayload")]
     FailedToInterpretPayload,
-    #[error("Action not found. The requested action could not be located in the system. Ensure that the action identifier is correct and try again.")]
+    #[error("FailedToFindAction")]
     FailedToFindAction,
-    #[error("Task completion failed. The system was unable to successfully complete the requested task. Verify the task parameters and ensure all prerequisites are met before retrying.")]
+    #[error("FailedToCompleteTask")]
     FailedToCompleteTask,
     // Permission
-    #[error("Duplicate permission detected. The operation cannot be completed because the permission you are trying to add already exists. Ensure that each permission is unique.")]
+    #[error("PermissionDuplication")]
     PermissionDuplication,
-    #[error("Permission not found. The requested operation cannot be performed as the specified permission does not exist in the system. Please check the permission identifier and try again.")]
+    #[error("PermissionNotFound")]
     PermissionNotFound,
 }
 

@@ -164,8 +164,8 @@ impl ArkServer {
             .listen();
 
         let test = Permission::builder()
-            .permission_key("permission_test3")
-            .permission_name("NEWEST TEST")
+            .permission_key("permissdion_test3")
+            .permission_name("NEWESTd TEST")
             .build();
         PermissionManager::create_permission(test);
         /*

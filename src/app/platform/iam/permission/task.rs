@@ -79,7 +79,7 @@ impl Task<TaskRequest, PostgresDatabase> for PermissionCreateTask {
             .await
         {
             Ok(_) => return TaskResponse::compose_response(request, TaskStatus::Completed, payload.param, Vec::default()),
-            Err(er) => return TaskResponse::throw_failed_response(request, vec![er.to_string()]),
+            Err(er) => return TaskResponse::throw_failed_response(request, vec![TaskError::PermissionDuplication.to_string()]),
         }
     }
 }
