@@ -10,7 +10,6 @@ use crate::app::{
 };
 
 use super::{
-    error::{TaskError, TaskResult},
     message::{TaskRequest, TaskResponse},
     INBOUND, OUTBOUND,
 };
