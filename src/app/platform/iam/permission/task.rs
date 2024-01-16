@@ -1,11 +1,12 @@
 use axum::async_trait;
+use serde::{Deserialize, Serialize};
 
 use crate::app::{
     database::postgres::PostgresDatabase,
     platform::iam::permission::model::Permission,
     service::task::{
         error::TaskError,
-        message::{TaskRequest, TaskResponse, TaskStatus, TaskArgs},
+        message::{TaskArgs, TaskRequest, TaskResponse, TaskStatus},
         Task, TaskHandler,
     },
 };
@@ -31,9 +32,24 @@ impl TaskHandler for PermissionTaskHandler {
         }
 
         if task_request.task_action.eq("permission_delete") {
-            let payload = match TaskRequest::intepret_request_payload::<TaskArgs<String>>(
-                &task_request,
-            ) {
+            let payload =
+                match TaskRequest::intepret_request_payload::<TaskArgs<String>>(&task_request) {
+                    Ok(p) => p,
+                    Err(_) => {
+                        return TaskResponse::throw_failed_response(
+                            task_request,
+                            vec![TaskError::FailedToInterpretPayload.to_string()],
+                        )
+                    }
+                };
+            return PermissionDeleteTask::run(pg, task_request, payload.param).await;
+        }
+
+        if task_request.task_action.eq("permission_update") {
+            let payload = match TaskRequest::intepret_request_payload::<
+                TaskArgs<PermissionUpdateTask>,
+            >(&task_request)
+            {
                 Ok(p) => p,
                 Err(_) => {
                     return TaskResponse::throw_failed_response(
@@ -42,7 +58,7 @@ impl TaskHandler for PermissionTaskHandler {
                     )
                 }
             };
-            return PermissionDeleteTask::run(pg, task_request, payload.param).await;
+            return PermissionUpdateTask::run(pg, task_request, payload.param).await;
         }
 
         return TaskResponse::throw_failed_response(
@@ -163,6 +179,81 @@ impl Task<PostgresDatabase, TaskRequest, String> for PermissionDeleteTask {
                 return TaskResponse::throw_failed_response(
                     request,
                     vec![TaskError::TaskInternalError.to_string()],
+                )
+            }
+        }
+    }
+}
+
+/// Represents a task for updating a permission.
+///
+/// This struct holds the criteria for finding the permission to update (`search_for`) and the new permission data (`new_permission`).
+/// It serves as a marker for implementing the `Task` trait, specifically for updating a permission in a PostgreSQL database.
+/// The task takes a `PermissionUpdateTask` object as a parameter, which contains the search criteria and the new permission data,
+/// and returns a `TaskResponse` indicating the success or failure of the update operation.
+///
+/// # Examples
+///
+/// ```
+/// #[async_trait]
+/// impl Task<PostgresDatabase, TaskRequest, PermissionUpdateTask> for PermissionUpdateTask {
+///     async fn run(
+///         db: &PostgresDatabase,
+///         request: TaskRequest,
+///         param: PermissionUpdateTask,
+///     ) -> TaskResponse {
+///         // Implementation for updating a permission
+///     }
+/// }
+/// ```
+///
+/// In this implementation, `run` is an asynchronous function that contains the logic for updating
+/// an existing permission in the database. The function prepares and executes an SQL query to update
+/// the permission based on the provided criteria. The outcome is encapsulated in a `TaskResponse`.
+#[derive(Serialize, Deserialize)]
+pub struct PermissionUpdateTask {
+    pub search_by: String,
+    pub update_for: String,
+    pub value: String,
+}
+#[async_trait]
+impl Task<PostgresDatabase, TaskRequest, PermissionUpdateTask> for PermissionUpdateTask {
+    async fn run(
+        db: &PostgresDatabase,
+        request: TaskRequest,
+        param: PermissionUpdateTask,
+    ) -> TaskResponse {
+        let pool = db.pool.get().await.unwrap();
+        let stmt = pool
+            .prepare(
+                format!(
+                    "UPDATE iam_permissions
+                SET {} = $1
+                WHERE id = $2
+                   OR permission_name = $2
+                   OR permission_key = $2",
+                    param.update_for
+                )
+                .as_str(),
+            )
+            .await
+            .unwrap();
+        match pool
+            .execute(&stmt, &[&param.value, &param.search_by])
+            .await
+        {
+            Ok(_) => {
+                return TaskResponse::compose_response(
+                    request,
+                    TaskStatus::Completed,
+                    param,
+                    Vec::default(),
+                )
+            }
+            Err(_) => {
+                return TaskResponse::throw_failed_response(
+                    request,
+                    vec![TaskError::PermissionDuplication.to_string()],
                 )
             }
         }
