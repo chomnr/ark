@@ -162,12 +162,7 @@ impl ArkServer {
     async fn register_tasks(pg: PostgresDatabase, redis: RedisDatabase) {
         TaskManager::new(pg)
             .listen();
-
-        let test = Permission::builder()
-            .permission_key("permissdion_test3")
-            .permission_name("NEWESTd TEST")
-            .build();
-        PermissionManager::create_permission(test);
+        PermissionManager::delete_permission("a72afe8d-b73d-42d3-9ad4-d02e0699e24f");
         /*
         PermissionHandler::listen(pg);
         //let task_mgr = TaskManager::with_databases(pg, redis);

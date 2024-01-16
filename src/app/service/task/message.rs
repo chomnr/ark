@@ -40,16 +40,20 @@ pub struct TaskRequest {
     pub task_payload: String,
 
     /// The type of task.
-    pub task_type: TaskType
+    pub task_type: TaskType,
+
+    /// The type of action to perform on the handler.
+    pub task_action: String
 }
 
 impl TaskRequest {
     /// Composes a new task request with a given payload.
-    pub fn compose_request<T: for<'a> Deserialize<'a> + Serialize>(task_payload: T, task_type: TaskType) -> Self {
+    pub fn compose_request<T: for<'a> Deserialize<'a> + Serialize>(task_payload: T, task_type: TaskType, task_action: &str) -> Self {
         Self {
             task_id: format!("task-{}", nanoid!(7)),
             task_payload: serde_json::to_string(&task_payload).unwrap(),
-            task_type
+            task_type,
+            task_action: String::from(task_action),
         }
     }
 

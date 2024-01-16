@@ -16,6 +16,9 @@ pub enum TaskError {
     PermissionDuplication,
     #[error("PermissionNotFound")]
     PermissionNotFound,
+    // Task
+    #[error("TaskInternalError")]
+    TaskInternalError,
 }
 
 pub type TaskResult<T> = Result<T, TaskError>;

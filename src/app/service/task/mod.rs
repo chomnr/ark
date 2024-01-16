@@ -47,8 +47,8 @@ static OUTBOUND: Lazy<(Sender<TaskResponse>, Receiver<TaskResponse>)> = Lazy::ne
 
 /// Used to create specific tasks.
 #[async_trait]
-pub trait Task<P, D> {
-    async fn run(db: &D, request: P) -> TaskResponse;
+pub trait Task<D, R, P> {
+    async fn run(db: &D, request: R, param: P) -> TaskResponse;
 }
 
 /// Handles the task

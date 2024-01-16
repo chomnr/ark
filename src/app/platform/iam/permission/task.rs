@@ -13,7 +13,6 @@ use crate::app::{
 
 #[derive(Serialize, Deserialize)]
 pub struct PermissionTask<T: Serialize> {
-    pub action: String,
     pub param: T,
 }
 
@@ -22,11 +21,40 @@ pub struct PermissionTaskHandler;
 #[async_trait]
 impl TaskHandler for PermissionTaskHandler {
     async fn handle(pg: &PostgresDatabase, task_request: TaskRequest) -> TaskResponse {
-        let payload = TaskRequest::intepret_request_payload::<PermissionTask<Permission>>(&task_request).unwrap();
-        if payload.action.eq("permission_create") {
-            return PermissionCreateTask::run(pg, task_request).await;
+        if task_request.task_action.eq("permission_create") {
+            let payload = match TaskRequest::intepret_request_payload::<PermissionTask<Permission>>(
+                &task_request,
+            ) {
+                Ok(p) => p,
+                Err(_) => {
+                    return TaskResponse::throw_failed_response(
+                        task_request,
+                        vec![TaskError::FailedToInterpretPayload.to_string()],
+                    )
+                }
+            };
+            return PermissionCreateTask::run(pg, task_request, payload.param).await;
         }
-        return TaskResponse::throw_failed_response(task_request, vec![TaskError::FailedToFindAction.to_string()]);
+
+        if task_request.task_action.eq("permission_delete") {
+            let payload = match TaskRequest::intepret_request_payload::<PermissionTask<String>>(
+                &task_request,
+            ) {
+                Ok(p) => p,
+                Err(_) => {
+                    return TaskResponse::throw_failed_response(
+                        task_request,
+                        vec![TaskError::FailedToInterpretPayload.to_string()],
+                    )
+                }
+            };
+            return PermissionDeleteTask::run(pg, task_request, payload.param).await;
+        }
+
+        return TaskResponse::throw_failed_response(
+            task_request,
+            vec![TaskError::FailedToFindAction.to_string()],
+        );
     }
 }
 
@@ -51,15 +79,8 @@ impl TaskHandler for PermissionTaskHandler {
 /// a new permission in the database. The result of this operation is encapsulated in `TaskResult<bool>`.
 struct PermissionCreateTask;
 #[async_trait]
-impl Task<TaskRequest, PostgresDatabase> for PermissionCreateTask {
-    async fn run(db: &PostgresDatabase, request: TaskRequest) -> TaskResponse {
-        let payload =
-            match TaskRequest::intepret_request_payload::<PermissionTask<Permission>>(&request) {
-                Ok(v) => v,
-                Err(er) => {
-                    return TaskResponse::throw_failed_response(request, vec![er.to_string()])
-                }
-            };
+impl Task<PostgresDatabase, TaskRequest, Permission> for PermissionCreateTask {
+    async fn run(db: &PostgresDatabase, request: TaskRequest, param: Permission) -> TaskResponse {
         let pool = db.pool.get().await.unwrap();
         let stmt = pool
             .prepare(
@@ -71,15 +92,85 @@ impl Task<TaskRequest, PostgresDatabase> for PermissionCreateTask {
             .execute(
                 &stmt,
                 &[
-                    &payload.param.permission_id,
-                    &payload.param.permission_name,
-                    &payload.param.permission_key,
+                    &param.permission_id,
+                    &param.permission_name,
+                    &param.permission_key,
                 ],
             )
             .await
         {
-            Ok(_) => return TaskResponse::compose_response(request, TaskStatus::Completed, payload.param, Vec::default()),
-            Err(er) => return TaskResponse::throw_failed_response(request, vec![TaskError::PermissionDuplication.to_string()]),
+            Ok(_) => {
+                return TaskResponse::compose_response(
+                    request,
+                    TaskStatus::Completed,
+                    param,
+                    Vec::default(),
+                )
+            }
+            Err(_) => {
+                return TaskResponse::throw_failed_response(
+                    request,
+                    vec![TaskError::PermissionDuplication.to_string()],
+                )
+            }
+        }
+    }
+}
+
+/// Represents a task for deleting a permission.
+///
+/// This struct does not hold any data itself and serves as a marker for implementing the `Task` trait,
+/// specifically for deleting a permission in a PostgreSQL database. The task typically takes a `Permission` object
+/// identifier as a parameter and returns a `TaskResult<bool>` indicating the success or failure of the deletion operation.
+///
+/// # Examples
+///
+/// ```
+/// #[async_trait]
+/// impl Task<PermissionIdentifier, PostgresDatabase, bool> for PermissionDeleteTask {
+///     async fn run(pg: PostgresDatabase, param: PermissionIdentifier) -> TaskResult<bool> {
+///         // Implementation goes here
+///     }
+/// }
+/// ```
+///
+/// In this implementation, `run` is an asynchronous function that should contain the logic for deleting
+/// an existing permission from the database. The result of this operation is encapsulated in `TaskResult<bool>`.
+struct PermissionDeleteTask;
+#[async_trait]
+impl Task<PostgresDatabase, TaskRequest, String> for PermissionDeleteTask {
+    async fn run(db: &PostgresDatabase, request: TaskRequest, param: String) -> TaskResponse {
+        let pool = db.pool.get().await.unwrap();
+        let stmt = pool
+            .prepare(
+                "DELETE FROM iam_permissions
+                WHERE id = $1
+                   OR permission_name = $1
+                   OR permission_key = $1",
+            )
+            .await
+            .unwrap();
+        match pool.execute(&stmt, &[&param]).await {
+            Ok(v) => {
+                if v != 0 {
+                    return TaskResponse::compose_response(
+                        request,
+                        TaskStatus::Completed,
+                        param,
+                        Vec::default(),
+                    );
+                }
+                return TaskResponse::throw_failed_response(
+                    request,
+                    vec![TaskError::PermissionNotFound.to_string()],
+                );
+            }
+            Err(_) => {
+                return TaskResponse::throw_failed_response(
+                    request,
+                    vec![TaskError::TaskInternalError.to_string()],
+                )
+            }
         }
     }
 }
