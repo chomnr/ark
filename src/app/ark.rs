@@ -163,7 +163,7 @@ impl ArkServer {
         TaskManager::new(pg)
             .listen();
         
-        PermissionManager::update_permission("dddd", "permission_ddkey", "boom");
+        PermissionManager::update_permission("12321231", "permission_key", "tresting darling");
        //PermissionManager::delete_permission("permission delete user.");
         /*
         PermissionHandler::listen(pg);

@@ -1,10 +1,13 @@
 use serde::{Serialize, Deserialize};
 use uuid::Uuid;
 
+use crate::app::platform::iam::permission::model::Permission;
+
 #[derive(Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Role {
     role_id: String,
-    role_name: String
+    role_name: String,
+    role_permissions: Vec<Permission>
 }
 
 impl Role {
@@ -16,7 +19,8 @@ impl Role {
 #[derive(Default)]
 pub struct RoleBuilder {
     role_id: String,
-    role_name: String
+    role_name: String,
+    role_permissions: Vec<Permission>
 }
 
 impl RoleBuilder {
@@ -24,6 +28,7 @@ impl RoleBuilder {
         RoleBuilder {
             role_id: Uuid::new_v4().to_string(),
             role_name: String::default(),
+            role_permissions: Vec::default(),
         }
     }
 
@@ -32,10 +37,16 @@ impl RoleBuilder {
         self
     }
 
+    pub fn role_permissions(mut self, permissions: Vec<Permission>) -> RoleBuilder {
+        self.role_permissions = permissions;
+        self
+    }
+
     pub fn build(self) -> Role {
         Role {
             role_id: self.role_id,
-            role_name: self.role_name
+            role_name: self.role_name,
+            role_permissions: self.role_permissions,
         }
     }
 }

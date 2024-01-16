@@ -44,6 +44,8 @@ impl PermissionManager {
             TaskType::Permission,
             "permission_update",
         );
-        TaskManager::send::<PermissionUpdateTask>(request)
+        let test =  TaskManager::send::<PermissionUpdateTask>(request);
+        println!("{}", test.task_result);
+        test
     }
 }
