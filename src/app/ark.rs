@@ -11,7 +11,7 @@ use super::{
     database::{
         postgres::{PostgresConfig, PostgresDatabase},
         redis::{RedisConfig, RedisDatabase}
-    }, service::task::manager::TaskManager, platform::iam::permission::{manager::PermissionManager, model::Permission}
+    }, service::task::manager::TaskManager, platform::iam::permission::{manager::PermissionManager, model::Permission, self}
 };
 
 static ADDRESS: &str = "0.0.0.0";
@@ -162,6 +162,12 @@ impl ArkServer {
     async fn register_tasks(pg: PostgresDatabase, redis: RedisDatabase) {
         TaskManager::new(pg)
             .listen();
+        
+        let test = Permission::builder()
+            .permission_key("bdsasd")
+            .permission_name("12321231")
+            .build();
+        PermissionManager::create_permission(test);
        //PermissionManager::delete_permission("permission delete user.");
         /*
         PermissionHandler::listen(pg);
