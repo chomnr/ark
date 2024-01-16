@@ -224,7 +224,7 @@ impl Task<PostgresDatabase, TaskRequest, PermissionUpdateTask> for PermissionUpd
         param: PermissionUpdateTask,
     ) -> TaskResponse {
         let pool = db.pool.get().await.unwrap();
-        let stmt = pool
+        let stmt = match pool
             .prepare(
                 format!(
                     "UPDATE iam_permissions
@@ -237,11 +237,15 @@ impl Task<PostgresDatabase, TaskRequest, PermissionUpdateTask> for PermissionUpd
                 .as_str(),
             )
             .await
-            .unwrap();
-        match pool
-            .execute(&stmt, &[&param.value, &param.search_by])
-            .await
         {
+            Ok(v) => v,
+            Err(_) => return TaskResponse::throw_failed_response(
+                request,
+                vec![TaskError::PermissionFieldNotFound.to_string()],
+            ),
+        };
+        
+        match pool.execute(&stmt, &[&param.value, &param.search_by]).await {
             Ok(v) => {
                 if v != 0 {
                     return TaskResponse::compose_response(

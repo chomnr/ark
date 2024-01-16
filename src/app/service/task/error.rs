@@ -14,6 +14,8 @@ pub enum TaskError {
     // Permission
     #[error("PermissionDuplication")]
     PermissionDuplication,
+    #[error("PermissionFieldNotFound")]
+    PermissionFieldNotFound,
     #[error("PermissionNotFound")]
     PermissionNotFound,
     // Task
