@@ -1,11 +1,23 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+use super::task::PermissionCreateTask;
+
 #[derive(Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Permission {
     pub permission_id: String,
     pub permission_name: String,
     pub permission_key: String,
+}
+
+impl From<PermissionCreateTask> for Permission {
+    fn from(value: PermissionCreateTask) -> Self {
+        Self {
+            permission_id: value.permission_id,
+            permission_name: value.permission_name,
+            permission_key: value.permission_key,
+        }
+    }
 }
 
 impl Permission {

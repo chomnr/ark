@@ -163,8 +163,8 @@ impl ArkServer {
         TaskManager::new(pg)
             .listen();
         let test = Permission::builder()
-            .permission_key("test12312")
-            .permission_name("312123321")
+            .permission_key("doopdd")
+            .permission_name("doopdddoopdd")
             .build();
         PermissionManager::create_permission(test);
         //PermissionManager::update_permission("12321231", "permission_key", "tresting darling");

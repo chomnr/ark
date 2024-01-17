@@ -1,17 +1,24 @@
 use crate::app::service::task::{
     error::{TaskError, TaskResult},
     manager::TaskManager,
-    message::{TaskArgs, TaskRequest, TaskResponse, TaskStatus, TaskType},
+    message::{TaskArgs, TaskRequest, TaskStatus, TaskType},
 };
 
-use super::{model::Permission, task::PermissionUpdateTask};
+use super::{
+    model::Permission,
+    task::{PermissionCreateTask, PermissionUpdateTask},
+};
 
 pub struct PermissionManager;
 
 impl PermissionManager {
     pub fn create_permission(permission: Permission) -> TaskResult<TaskStatus> {
-        let request = TaskRequest::compose_request::<TaskArgs<Permission>>(
-            TaskArgs::<Permission> { param: permission },
+        let request = TaskRequest::compose_request::<PermissionCreateTask>(
+            PermissionCreateTask {
+                permission_id: permission.permission_id,
+                permission_name: permission.permission_name,
+                permission_key: permission.permission_key,
+            },
             TaskType::Permission,
             "permission_create",
         );

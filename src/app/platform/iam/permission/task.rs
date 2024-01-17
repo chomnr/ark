@@ -17,7 +17,33 @@ pub struct PermissionTaskHandler;
 impl TaskHandler for PermissionTaskHandler {
     async fn handle(pg: &PostgresDatabase, task_request: TaskRequest) -> TaskResponse {
         if task_request.task_action.eq("permission_create") {
-            let payload = match TaskRequest::intepret_request_payload::<TaskArgs<Permission>>(
+            let payload = match TaskRequest::intepret_request_payload::<PermissionCreateTask>(&task_request) {
+                Ok(p) => p,
+                Err(_) => {
+                    return TaskResponse::throw_failed_response(
+                        task_request,
+                        vec![TaskError::FailedToInterpretPayload.to_string()],
+                    )
+                }
+            };
+            return PermissionCreateTask::run(pg, task_request, payload).await;
+        }
+
+        if task_request.task_action.eq("permission_delete") {
+            let payload = match TaskRequest::intepret_request_payload::<String>(&task_request) {
+                Ok(p) => p,
+                Err(_) => {
+                    return TaskResponse::throw_failed_response(
+                        task_request,
+                        vec![TaskError::FailedToInterpretPayload.to_string()],
+                    )
+                }
+            };
+            return PermissionDeleteTask::run(pg, task_request, payload).await;
+        }
+
+        if task_request.task_action.eq("permission_update") {
+            let payload = match TaskRequest::intepret_request_payload::<PermissionUpdateTask>(
                 &task_request,
             ) {
                 Ok(p) => p,
@@ -28,37 +54,7 @@ impl TaskHandler for PermissionTaskHandler {
                     )
                 }
             };
-            return PermissionCreateTask::run(pg, task_request, payload.param).await;
-        }
-
-        if task_request.task_action.eq("permission_delete") {
-            let payload =
-                match TaskRequest::intepret_request_payload::<TaskArgs<String>>(&task_request) {
-                    Ok(p) => p,
-                    Err(_) => {
-                        return TaskResponse::throw_failed_response(
-                            task_request,
-                            vec![TaskError::FailedToInterpretPayload.to_string()],
-                        )
-                    }
-                };
-            return PermissionDeleteTask::run(pg, task_request, payload.param).await;
-        }
-
-        if task_request.task_action.eq("permission_update") {
-            let payload = match TaskRequest::intepret_request_payload::<
-                TaskArgs<PermissionUpdateTask>,
-            >(&task_request)
-            {
-                Ok(p) => p,
-                Err(_) => {
-                    return TaskResponse::throw_failed_response(
-                        task_request,
-                        vec![TaskError::FailedToInterpretPayload.to_string()],
-                    )
-                }
-            };
-            return PermissionUpdateTask::run(pg, task_request, payload.param).await;
+            return PermissionUpdateTask::run(pg, task_request, payload).await;
         }
 
         return TaskResponse::throw_failed_response(
@@ -87,10 +83,15 @@ impl TaskHandler for PermissionTaskHandler {
 ///
 /// In this implementation, `run` is an asynchronous function that should contain the logic for creating
 /// a new permission in the database. The result of this operation is encapsulated in `TaskResult<bool>`.
-struct PermissionCreateTask;
+#[derive(Serialize, Deserialize)]
+pub struct PermissionCreateTask {
+    pub permission_id: String,
+    pub permission_name: String,
+    pub permission_key: String,
+}
 #[async_trait]
-impl Task<PostgresDatabase, TaskRequest, Permission> for PermissionCreateTask {
-    async fn run(db: &PostgresDatabase, request: TaskRequest, param: Permission) -> TaskResponse {
+impl Task<PostgresDatabase, TaskRequest, PermissionCreateTask> for PermissionCreateTask {
+    async fn run(db: &PostgresDatabase, request: TaskRequest, param: PermissionCreateTask) -> TaskResponse {
         let pool = db.pool.get().await.unwrap();
         let stmt = pool
             .prepare(
@@ -239,12 +240,14 @@ impl Task<PostgresDatabase, TaskRequest, PermissionUpdateTask> for PermissionUpd
             .await
         {
             Ok(v) => v,
-            Err(_) => return TaskResponse::throw_failed_response(
-                request,
-                vec![TaskError::PermissionFieldNotFound.to_string()],
-            ),
+            Err(_) => {
+                return TaskResponse::throw_failed_response(
+                    request,
+                    vec![TaskError::PermissionFieldNotFound.to_string()],
+                )
+            }
         };
-        
+
         match pool.execute(&stmt, &[&param.value, &param.search_by]).await {
             Ok(v) => {
                 if v != 0 {
@@ -275,11 +278,7 @@ impl Task<PostgresDatabase, TaskRequest, PermissionUpdateTask> for PermissionUpd
 struct PermissionReadTask;
 #[async_trait]
 impl Task<PostgresDatabase, TaskRequest, String> for PermissionReadTask {
-    async fn run(
-        db: &PostgresDatabase,
-        request: TaskRequest,
-        param: String,
-    ) -> TaskResponse {
+    async fn run(db: &PostgresDatabase, request: TaskRequest, param: String) -> TaskResponse {
         // todo
         // check cache first.
         // if not cache retrieve from database then update cache
