@@ -269,3 +269,21 @@ impl Task<PostgresDatabase, TaskRequest, PermissionUpdateTask> for PermissionUpd
         }
     }
 }
+
+/// DDDD
+#[derive(Serialize, Deserialize)]
+struct PermissionReadTask;
+#[async_trait]
+impl Task<PostgresDatabase, TaskRequest, String> for PermissionReadTask {
+    async fn run(
+        db: &PostgresDatabase,
+        request: TaskRequest,
+        param: String,
+    ) -> TaskResponse {
+        // todo
+        // check cache first.
+        // if not cache retrieve from database then update cache
+        // return value accordingly.
+        todo!()
+    }
+}

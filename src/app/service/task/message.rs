@@ -127,4 +127,10 @@ impl TaskResponse {
             task_error: errors,
         }
     }
+
+    pub fn intepret_request_result<T: for<'a> Deserialize<'a>>(
+        task_response: &TaskRequest,
+    ) -> TaskResult<T> {
+        todo!()
+    }
 }

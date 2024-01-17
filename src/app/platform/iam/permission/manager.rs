@@ -1,6 +1,7 @@
 use crate::app::service::task::{
+    error::{TaskError, TaskResult},
     manager::TaskManager,
-    message::{TaskArgs, TaskRequest, TaskResponse, TaskType},
+    message::{TaskArgs, TaskRequest, TaskResponse, TaskStatus, TaskType},
 };
 
 use super::{model::Permission, task::PermissionUpdateTask};
@@ -8,16 +9,22 @@ use super::{model::Permission, task::PermissionUpdateTask};
 pub struct PermissionManager;
 
 impl PermissionManager {
-    pub fn create_permission(permission: Permission) -> TaskResponse {
+    pub fn create_permission(permission: Permission) -> TaskResult<TaskStatus> {
         let request = TaskRequest::compose_request::<TaskArgs<Permission>>(
             TaskArgs::<Permission> { param: permission },
             TaskType::Permission,
             "permission_create",
         );
-        TaskManager::send::<Permission>(request)
+        let task = TaskManager::send(request);
+        match task.task_status {
+            TaskStatus::Completed => {
+                return Ok(task.task_status);
+            }
+            TaskStatus::Failed => return Err(TaskError::FailedToCompleteTask),
+        }
     }
 
-    pub fn delete_permission(permission_identifer: &str) -> TaskResponse {
+    pub fn delete_permission(permission_identifer: &str) -> TaskResult<TaskStatus> {
         let request = TaskRequest::compose_request::<TaskArgs<String>>(
             TaskArgs::<String> {
                 param: String::from(permission_identifer),
@@ -25,14 +32,20 @@ impl PermissionManager {
             TaskType::Permission,
             "permission_delete",
         );
-        TaskManager::send::<String>(request)
+        let task = TaskManager::send(request);
+        match task.task_status {
+            TaskStatus::Completed => {
+                return Ok(task.task_status);
+            }
+            TaskStatus::Failed => return Err(TaskError::FailedToCompleteTask),
+        }
     }
 
     pub fn update_permission(
         search_by: &str,
         update_for: &str,
-        value: &str
-    ) -> TaskResponse {
+        value: &str,
+    ) -> TaskResult<TaskStatus> {
         let request = TaskRequest::compose_request::<TaskArgs<PermissionUpdateTask>>(
             TaskArgs::<PermissionUpdateTask> {
                 param: PermissionUpdateTask {
@@ -44,8 +57,16 @@ impl PermissionManager {
             TaskType::Permission,
             "permission_update",
         );
-        let test =  TaskManager::send::<PermissionUpdateTask>(request);
-        println!("{}", test.task_result);
-        test
+        let task = TaskManager::send(request);
+        match task.task_status {
+            TaskStatus::Completed => {
+                return Ok(task.task_status);
+            }
+            TaskStatus::Failed => return Err(TaskError::FailedToCompleteTask),
+        }
+    }
+
+    pub fn get_permission(permission_identifier: &str) -> Permission {
+        todo!()
     }
 }

@@ -162,8 +162,12 @@ impl ArkServer {
     async fn register_tasks(pg: PostgresDatabase, redis: RedisDatabase) {
         TaskManager::new(pg)
             .listen();
-        
-        PermissionManager::update_permission("12321231", "permission_key", "tresting darling");
+        let test = Permission::builder()
+            .permission_key("test12312")
+            .permission_name("312123321")
+            .build();
+        PermissionManager::create_permission(test);
+        //PermissionManager::update_permission("12321231", "permission_key", "tresting darling");
        //PermissionManager::delete_permission("permission delete user.");
         /*
         PermissionHandler::listen(pg);

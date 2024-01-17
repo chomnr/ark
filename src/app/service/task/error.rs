@@ -1,4 +1,3 @@
-use bb8_postgres::tokio_postgres::error;
 use serde::Serialize;
 use thiserror::Error;
 

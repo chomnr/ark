@@ -64,7 +64,7 @@ impl TaskManager {
     /// // Assuming `task_request` is a valid TaskRequest object
     /// let task_response = send(task_request);
     /// ```
-    pub fn send<T: for<'a> Deserialize<'a>>(task_request: TaskRequest) -> TaskResponse {
+    pub fn send(task_request: TaskRequest) -> TaskResponse {
         Self::send_task_request(&task_request);
         Self::wait_for_task_completion(&task_request)
     }
