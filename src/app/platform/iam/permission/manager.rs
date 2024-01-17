@@ -6,7 +6,7 @@ use crate::app::service::task::{
 
 use super::{
     model::Permission,
-    task::{PermissionCreateTask, PermissionUpdateTask},
+    task::{PermissionCreateTask, PermissionDeleteTask, PermissionUpdateTask},
 };
 
 pub struct PermissionManager;
@@ -32,9 +32,9 @@ impl PermissionManager {
     }
 
     pub fn delete_permission(permission_identifer: &str) -> TaskResult<TaskStatus> {
-        let request = TaskRequest::compose_request::<TaskArgs<String>>(
-            TaskArgs::<String> {
-                param: String::from(permission_identifer),
+        let request = TaskRequest::compose_request::<PermissionDeleteTask>(
+            PermissionDeleteTask {
+                identifier: String::from(permission_identifer),
             },
             TaskType::Permission,
             "permission_delete",

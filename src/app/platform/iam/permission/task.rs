@@ -30,7 +30,7 @@ impl TaskHandler for PermissionTaskHandler {
         }
 
         if task_request.task_action.eq("permission_delete") {
-            let payload = match TaskRequest::intepret_request_payload::<String>(&task_request) {
+            let payload = match TaskRequest::intepret_request_payload::<PermissionDeleteTask>(&task_request) {
                 Ok(p) => p,
                 Err(_) => {
                     return TaskResponse::throw_failed_response(
@@ -147,10 +147,13 @@ impl Task<PostgresDatabase, TaskRequest, PermissionCreateTask> for PermissionCre
 ///
 /// In this implementation, `run` is an asynchronous function that should contain the logic for deleting
 /// an existing permission from the database. The result of this operation is encapsulated in `TaskResult<bool>`.
-struct PermissionDeleteTask;
+#[derive(Serialize, Deserialize)]
+pub struct PermissionDeleteTask {
+    pub identifier: String
+}
 #[async_trait]
-impl Task<PostgresDatabase, TaskRequest, String> for PermissionDeleteTask {
-    async fn run(db: &PostgresDatabase, request: TaskRequest, param: String) -> TaskResponse {
+impl Task<PostgresDatabase, TaskRequest, PermissionDeleteTask> for PermissionDeleteTask {
+    async fn run(db: &PostgresDatabase, request: TaskRequest, param: PermissionDeleteTask) -> TaskResponse {
         let pool = db.pool.get().await.unwrap();
         let stmt = pool
             .prepare(
@@ -161,7 +164,7 @@ impl Task<PostgresDatabase, TaskRequest, String> for PermissionDeleteTask {
             )
             .await
             .unwrap();
-        match pool.execute(&stmt, &[&param]).await {
+        match pool.execute(&stmt, &[&param.identifier]).await {
             Ok(v) => {
                 if v != 0 {
                     return TaskResponse::compose_response(
