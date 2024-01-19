@@ -166,7 +166,8 @@ impl ArkServer {
             .permission_key("doopdd")
             .permission_name("doopdddoopdd")
             .build();
-        PermissionManager::delete_permission("049282d0-2b2d-4356-b44a-3914bae57ce8");
+        //PermissionManager::delete_permission("049282d0-2b2d-4356-b44a-3914bae57ce8");
+        //PermissionManager::update_permission("6f910c79-60b0-49b3-a817-400a3b2320ec", "permissiodn_key", "ddd");
         //PermissionManager::update_permission("12321231", "permission_key", "tresting darling");
        //PermissionManager::delete_permission("permission delete user.");
         /*

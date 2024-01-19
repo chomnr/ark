@@ -1,7 +1,7 @@
 use crate::app::service::task::{
     error::{TaskError, TaskResult},
     manager::TaskManager,
-    message::{TaskArgs, TaskRequest, TaskStatus, TaskType},
+    message::{TaskRequest, TaskStatus, TaskType},
 };
 
 use super::{
@@ -53,13 +53,11 @@ impl PermissionManager {
         update_for: &str,
         value: &str,
     ) -> TaskResult<TaskStatus> {
-        let request = TaskRequest::compose_request::<TaskArgs<PermissionUpdateTask>>(
-            TaskArgs::<PermissionUpdateTask> {
-                param: PermissionUpdateTask {
-                    search_by: String::from(search_by),
-                    update_for: String::from(update_for),
-                    value: String::from(value),
-                },
+        let request = TaskRequest::compose_request::<PermissionUpdateTask>(
+            PermissionUpdateTask {
+                search_by: String::from(search_by),
+                update_for: String::from(update_for),
+                value: String::from(value),
             },
             TaskType::Permission,
             "permission_update",
