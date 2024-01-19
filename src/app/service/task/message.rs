@@ -46,7 +46,7 @@ pub struct TaskRequest {
 }
 
 impl TaskRequest {
-    /// Composes a new task request with a given payload.
+    /// Composes a new task request with the given payload.
     pub fn compose_request<T: for<'a> Deserialize<'a> + Serialize>(
         task_payload: T,
         task_type: TaskType,
