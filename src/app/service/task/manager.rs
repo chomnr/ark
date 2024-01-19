@@ -39,9 +39,6 @@ impl TaskManager {
     /// # Arguments
     /// - `task_request`: The `TaskRequest` object representing the task to be sent and processed.
     ///
-    /// # Returns
-    /// Returns a `TaskResponse` object which contains the outcome of the processed task.
-    ///
     /// # Examples
     /// ```
     /// // Assuming `task_request` is a valid TaskRequest object
@@ -120,9 +117,6 @@ impl TaskManager {
     /// # Arguments
     /// - `task_response`: The `TaskResponse` object that encapsulates the result or outcome of a task.
     ///
-    /// # Panics
-    /// Panics if the send operation on the outbound channel fails.
-    ///
     /// # Examples
     /// ```
     /// // Assuming `task_response` is a valid TaskResponse object
@@ -137,9 +131,6 @@ impl TaskManager {
     /// # Arguments
     /// - task_request: A reference to the TaskRequest object that needs to be sent.
     ///
-    /// # Panics
-    /// Panics if the send operation to the inbound channel fails.
-    ///
     /// # Examples
     /// /// // Assuming `task_request` is a valid TaskRequest reference /// self.send_task_request(&task_request); ///
     fn send_task_request(task_request: &TaskRequest) {
@@ -150,12 +141,6 @@ impl TaskManager {
     ///
     /// # Arguments
     /// - `task_request`: A reference to the `TaskRequest` for which the completion is awaited.
-    ///
-    /// # Returns
-    /// Returns the completed `TaskResponse`.
-    ///
-    /// # Panics
-    /// Panics if no matching task is found in the OUTBOUND queue, which is considered an unexpected state.
     ///
     /// # Examples
     /// ```
