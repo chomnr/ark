@@ -16,6 +16,7 @@ async fn main() {
     let redis = RedisDatabase::new(RedisConfig::default()).await;
     ark.run(pg, redis).await;
 
+    
     /*
      let test = SenderMessage::compose::<UserWorkerMessage>(SenderType::User, UserWorkerMessage {
             message: "sdsda".to_string(),

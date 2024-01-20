@@ -10,6 +10,8 @@ use crate::app::{
     },
 };
 
+use super::model::Permission;
+
 pub struct PermissionTaskHandler;
 
 #[async_trait]
@@ -85,6 +87,17 @@ pub(super) struct PermissionCreateTask {
     pub permission_name: String,
     pub permission_key: String,
 }
+
+impl From<Permission> for PermissionCreateTask {
+    fn from(perm: Permission) -> Self {
+        Self {
+            permission_id: perm.permission_id,
+            permission_name: perm.permission_name,
+            permission_key: perm.permission_key,
+        }
+    }
+}
+
 #[async_trait]
 impl Task<PostgresDatabase, TaskRequest, PermissionCreateTask> for PermissionCreateTask {
     async fn run(db: &PostgresDatabase, request: TaskRequest, param: PermissionCreateTask) -> TaskResponse {

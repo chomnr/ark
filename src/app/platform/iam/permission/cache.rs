@@ -7,7 +7,6 @@ use super::model::Permission;
 
 static LOCAL_CACHE: Lazy<RwLock<Vec<Permission>>> = Lazy::new(|| RwLock::new(Vec::new()));
 
-pub(super) struct PermissionCache;
 
 //PermissionCache::update("dd", "permission")
 
