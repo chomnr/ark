@@ -1,5 +1,5 @@
 use crate::app::service::task::{
-    error::{TaskError, TaskResult},
+    error::TaskResult,
     manager::TaskManager,
     message::{TaskRequest, TaskStatus, TaskType},
 };
@@ -28,7 +28,7 @@ impl PermissionManager {
     /// ```
     pub fn create_permission(permission: Permission) -> TaskResult<TaskStatus> {
         let task_request = Self::create_permission_request(permission);
-        Self::process_permission_task(task_request)
+        TaskManager::process_task(task_request)
     }
 
     /// Composes a permission create request.
@@ -67,7 +67,7 @@ impl PermissionManager {
     /// ```
     pub fn delete_permission(permission_identifer: &str) -> TaskResult<TaskStatus> {
         let task_request = Self::delete_permission_request(permission_identifer);
-        Self::process_permission_task(task_request)
+        TaskManager::process_task(task_request)
     }
 
     /// Composes a permission delete request.
@@ -109,7 +109,7 @@ impl PermissionManager {
         value: &str,
     ) -> TaskResult<TaskStatus> {
         let request = Self::update_permission_request(search_by, update_for, value);
-        Self::process_permission_task(request)
+        TaskManager::process_task(request)
     }
 
     /// Composes a permission update request.
@@ -138,24 +138,6 @@ impl PermissionManager {
             TaskType::Permission,
             "permission_update",
         )
-    }
-
-    /// Process a permission task.
-    ///
-    /// # Arguments
-    /// - `request`: A reference to the `TaskRequest` to process.
-    ///
-    /// # Examples
-    /// ```
-    /// // Assuming `permission` is a reference to a valid Permission
-    /// Self::process_permission_task(request)
-    /// ```
-    fn process_permission_task(request: TaskRequest) -> TaskResult<TaskStatus> {
-        let task_response = TaskManager::send(request);
-        match task_response.task_status {
-            TaskStatus::Completed => Ok(TaskStatus::Completed),
-            TaskStatus::Failed => Err(TaskError::FailedToCompleteTask),
-        }
     }
 
     pub fn get_permission(permission_identifier: &str) -> Permission {

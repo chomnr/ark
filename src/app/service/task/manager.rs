@@ -9,7 +9,7 @@ use crate::app::{
 
 use super::{
     message::{TaskRequest, TaskResponse},
-    INBOUND, OUTBOUND,
+    INBOUND, OUTBOUND, error::{TaskError, TaskResult},
 };
 
 /// A structure for handling tasks within the system.
@@ -47,6 +47,24 @@ impl TaskManager {
     pub fn send(task_request: TaskRequest) -> TaskResponse {
         Self::send_task_request(&task_request);
         Self::wait_for_task_completion(&task_request)
+    }
+
+    /// Process task.
+    ///
+    /// # Arguments
+    /// - `request`: A reference to the `TaskRequest` to process.
+    ///
+    /// # Examples
+    /// ```
+    /// // Assuming `permission` is a reference to a valid Permission
+    /// Self::process_permission_task(request)
+    /// ```
+    pub fn process_task(request: TaskRequest) -> TaskResult<TaskStatus> {
+        let task_response = Self::send(request);
+        match task_response.task_status {
+            TaskStatus::Completed => Ok(TaskStatus::Completed),
+            TaskStatus::Failed => Err(TaskError::FailedToCompleteTask),
+        }
     }
 
     /// Initializes and starts the task listener.
