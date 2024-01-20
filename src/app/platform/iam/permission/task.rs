@@ -16,9 +16,7 @@ pub struct PermissionTaskHandler;
 impl TaskHandler for PermissionTaskHandler {
     async fn handle(pg: &PostgresDatabase, task_request: TaskRequest) -> TaskResponse {
         if task_request.task_action.eq("permission_create") {
-            let payload = match TaskRequest::intepret_request_payload::<PermissionCreateTask>(
-                &task_request,
-            ) {
+            let payload = match TaskRequest::intepret_request_payload::<PermissionCreateTask>(&task_request) {
                 Ok(p) => p,
                 Err(_) => {
                     return TaskResponse::throw_failed_response(
@@ -31,9 +29,7 @@ impl TaskHandler for PermissionTaskHandler {
         }
 
         if task_request.task_action.eq("permission_delete") {
-            let payload = match TaskRequest::intepret_request_payload::<PermissionDeleteTask>(
-                &task_request,
-            ) {
+            let payload = match TaskRequest::intepret_request_payload::<PermissionDeleteTask>(&task_request) {
                 Ok(p) => p,
                 Err(_) => {
                     return TaskResponse::throw_failed_response(
@@ -87,18 +83,14 @@ impl TaskHandler for PermissionTaskHandler {
 /// In this implementation, `run` is an asynchronous function that should contain the logic for creating
 /// a new permission in the database. The result of this operation is encapsulated in `TaskResult<bool>`.
 #[derive(Serialize, Deserialize)]
-pub struct PermissionCreateTask {
+pub(super) struct PermissionCreateTask {
     pub permission_id: String,
     pub permission_name: String,
     pub permission_key: String,
 }
 #[async_trait]
 impl Task<PostgresDatabase, TaskRequest, PermissionCreateTask> for PermissionCreateTask {
-    async fn run(
-        db: &PostgresDatabase,
-        request: TaskRequest,
-        param: PermissionCreateTask,
-    ) -> TaskResponse {
+    async fn run(db: &PostgresDatabase, request: TaskRequest, param: PermissionCreateTask) -> TaskResponse {
         let pool = db.pool.get().await.unwrap();
         let stmt = pool
             .prepare(
@@ -155,16 +147,12 @@ impl Task<PostgresDatabase, TaskRequest, PermissionCreateTask> for PermissionCre
 /// In this implementation, `run` is an asynchronous function that should contain the logic for deleting
 /// an existing permission from the database. The result of this operation is encapsulated in `TaskResult<bool>`.
 #[derive(Serialize, Deserialize)]
-pub struct PermissionDeleteTask {
-    pub identifier: String,
+pub(super) struct PermissionDeleteTask {
+    pub identifier: String
 }
 #[async_trait]
 impl Task<PostgresDatabase, TaskRequest, PermissionDeleteTask> for PermissionDeleteTask {
-    async fn run(
-        db: &PostgresDatabase,
-        request: TaskRequest,
-        param: PermissionDeleteTask,
-    ) -> TaskResponse {
+    async fn run(db: &PostgresDatabase, request: TaskRequest, param: PermissionDeleteTask) -> TaskResponse {
         let pool = db.pool.get().await.unwrap();
         let stmt = pool
             .prepare(
@@ -226,7 +214,7 @@ impl Task<PostgresDatabase, TaskRequest, PermissionDeleteTask> for PermissionDel
 /// an existing permission in the database. The function prepares and executes an SQL query to update
 /// the permission based on the provided criteria. The outcome is encapsulated in a `TaskResponse`.
 #[derive(Serialize, Deserialize)]
-pub struct PermissionUpdateTask {
+pub(super) struct PermissionUpdateTask {
     pub search_by: String,
     pub update_for: String,
     pub value: String,
@@ -289,7 +277,7 @@ impl Task<PostgresDatabase, TaskRequest, PermissionUpdateTask> for PermissionUpd
 
 /// DDDD
 #[derive(Serialize, Deserialize)]
-struct PermissionReadTask;
+pub(super) struct PermissionReadTask;
 #[async_trait]
 impl Task<PostgresDatabase, TaskRequest, String> for PermissionReadTask {
     async fn run(db: &PostgresDatabase, request: TaskRequest, param: String) -> TaskResponse {

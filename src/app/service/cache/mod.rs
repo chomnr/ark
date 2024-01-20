@@ -1,3 +1,7 @@
+pub trait Cache {
+    
+}
+/*
 pub trait CacheDatabase {
 
 }
@@ -5,7 +9,7 @@ pub trait CacheDatabase {
 pub trait Cache<DB: CacheDatabase> {
 
 }
-
+*/
 
 //Cache<CacheType(Local or Global)>
 //impl Cache for RoleCache {} read, write, delete, get;;;;
