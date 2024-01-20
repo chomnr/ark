@@ -100,7 +100,8 @@ impl PermissionManager {
     /// # Examples
     /// ```
     /// // Assuming `permission` is a reference to a valid Permission
-    /// let task_response = update_permission("dd2546c3-e34a-4fcb-9b12-1a96eb6873e3", "permission_name", "admin ban user.");
+    /// update_permission("dd2546c3-e34a-4fcb-9b12-1a96eb6873e3", "permission_name", "admin ban user.");
+    /// update_permission("admin ban user.", "permission_key", "admin.ban.key");
     /// ```
     pub fn update_permission(
         search_by: &str,
