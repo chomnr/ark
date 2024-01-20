@@ -3,7 +3,7 @@ use app::{
     database::{
         postgres::{PostgresConfig, PostgresDatabase},
         redis::{RedisConfig, RedisDatabase},
-    }, service::task::manager::TaskManager, platform::iam::permission::manager::PermissionManager,
+    },
 };
 
 

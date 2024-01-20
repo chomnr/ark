@@ -166,7 +166,7 @@ impl ArkServer {
             .permission_name("adsdsa")
             .permission_key("d312231")
             .build();
-        PermissionManager::update_permission("dd2546c3-e34a-4fcb-9b12-1a96eb6873e3", "permission_name", "dassda");
+        //PermissionManager::update_permission("dd2546c3-e34a-4fcb-9b12-1a96eb6873e3", "permission_name", "dassda");
        // PermissionManager::delete_permission("adsdsa");
         //PermissionManager::delete_permission("049282d0-2b2d-4356-b44a-3914bae57ce8");
         //PermissionManager::update_permission("6f910c79-60b0-49b3-a817-400a3b2320ec", "permissiodn_key", "ddd");
