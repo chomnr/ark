@@ -79,9 +79,6 @@ impl TaskHandler for PermissionTaskHandler {
 ///     }
 /// }
 /// ```
-///
-/// In this implementation, `run` is an asynchronous function that should contain the logic for creating
-/// a new permission in the database. The result of this operation is encapsulated in `TaskResult<bool>`.
 #[derive(Serialize, Deserialize)]
 pub(super) struct PermissionCreateTask {
     pub permission_id: String,
@@ -143,9 +140,6 @@ impl Task<PostgresDatabase, TaskRequest, PermissionCreateTask> for PermissionCre
 ///     }
 /// }
 /// ```
-///
-/// In this implementation, `run` is an asynchronous function that should contain the logic for deleting
-/// an existing permission from the database. The result of this operation is encapsulated in `TaskResult<bool>`.
 #[derive(Serialize, Deserialize)]
 pub(super) struct PermissionDeleteTask {
     pub identifier: String
@@ -209,10 +203,6 @@ impl Task<PostgresDatabase, TaskRequest, PermissionDeleteTask> for PermissionDel
 ///     }
 /// }
 /// ```
-///
-/// In this implementation, `run` is an asynchronous function that contains the logic for updating
-/// an existing permission in the database. The function prepares and executes an SQL query to update
-/// the permission based on the provided criteria. The outcome is encapsulated in a `TaskResponse`.
 #[derive(Serialize, Deserialize)]
 pub(super) struct PermissionUpdateTask {
     pub search_by: String,

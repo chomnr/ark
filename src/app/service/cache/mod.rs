@@ -1,6 +1,7 @@
-pub trait Cache {
-    
+pub trait Cacheable {
+
 }
+
 /*
 pub trait CacheDatabase {
 
