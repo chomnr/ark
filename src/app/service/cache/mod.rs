@@ -1,20 +1,15 @@
-pub trait Cacheable {
-
-}
+pub mod message;
+pub mod error;
+pub mod reader;
 
 /*
-pub trait CacheDatabase {
-
+pub struct CacheItem<T> {
+    pub detail: T,
 }
 
-pub trait Cache<DB: CacheDatabase> {
-
+pub trait LocalCache<T> {
+    fn add(item: CacheItem<T>) -> CacheResult<bool>;
+    fn update(search_by: &str, update_for: &str, value: &str) -> CacheResult<bool>;
+    fn remove(value: &str) -> CacheResult<bool>;
 }
 */
-
-//Cache<CacheType(Local or Global)>
-//impl Cache for RoleCache {} read, write, delete, get;;;;
-// global being database.
-
-//impl Cache<RedisCache>
-//impl Cache<LocalCache>
