@@ -11,7 +11,7 @@ use super::{
     database::{
         postgres::{PostgresConfig, PostgresDatabase},
         redis::{RedisConfig, RedisDatabase}
-    }, service::task::manager::TaskManager, platform::iam::permission::{manager::PermissionManager, model::{Permission, PermissionBuilder}, self}
+    }, service::{task::manager::TaskManager, cache::manager::CacheManager}, platform::iam::permission::{manager::PermissionManager, model::{Permission, PermissionBuilder}, self}
 };
 
 static ADDRESS: &str = "0.0.0.0";
@@ -86,7 +86,7 @@ impl ArkServer {
                 Self::enable_tracing();
             }
         }
-        Self::register_tasks(pg, redis).await;
+        Self::register_listeners(pg, redis).await;
         println!(
             "[ARK] router initialized, now listening on port {}.",
             &self.port
@@ -159,8 +159,10 @@ impl ArkServer {
     ///     register_tasks(pg_database, redis_database).await;
     /// }
     /// ```
-    async fn register_tasks(pg: PostgresDatabase, redis: RedisDatabase) {
+    async fn register_listeners(pg: PostgresDatabase, redis: RedisDatabase) {
         TaskManager::new(pg)
+            .listen();
+        CacheManager::new(redis)
             .listen();
         let perm = Permission::builder()
             .permission_name("adsdsa")
