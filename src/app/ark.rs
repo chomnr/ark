@@ -194,6 +194,8 @@ impl ArkServer {
     }
 
     async fn preload_necessities() {
+        PermissionManager::preload_permission_cache().unwrap();
+        
         let test = Permission::builder()
             .permission_key("Hello Worldd")
             .permission_name("Hello.Worldd")

@@ -317,11 +317,32 @@ pub(super) struct PermissionReadTask;
 #[async_trait]
 impl Task<PostgresDatabase, TaskRequest, String> for PermissionReadTask {
     async fn run(db: &PostgresDatabase, request: TaskRequest, param: String) -> TaskResponse {
-        // todo
-        // check cache first.
-        // if not cache retrieve from database then update cache
-        // return value accordingly.
-        todo!()
+        let pool = db.pool.get().await.unwrap();
+        let stmt = pool
+            .prepare(
+                "SELECT * FROM iam_permissions WHERE id = $1
+        OR permission_name = $1
+        OR permission_key = $1",
+            )
+            .await
+            .unwrap();
+        match pool.execute(&stmt, &[&param]).await {
+            Ok(_) => {
+                // do stuff here...
+                return TaskResponse::compose_response(
+                    request,
+                    TaskStatus::Completed,
+                    param,
+                    Vec::default(),
+                );
+            }
+            Err(_) => {
+                return TaskResponse::throw_failed_response(
+                    request,
+                    vec![TaskError::PermissionNotFound.to_string()],
+                )
+            }
+        }
     }
 }
 
@@ -339,9 +360,12 @@ impl Task<PostgresDatabase, TaskRequest, PermissionPreloadCache> for PermissionP
 
         match pool.query(&stmt, &[]).await {
             Ok(rows) => {
+                let mut amt_items = 0;
                 for row in rows {
                     PermissionCache::add(Permission::new(row.get(0), row.get(1), row.get(2)));
+                    amt_items += 1;
                 }
+                println!("[CACHE] cached {} for permission cache.", amt_items);
                 return TaskResponse::compose_response(
                     request,
                     TaskStatus::Completed,

@@ -48,11 +48,8 @@ impl LocalizedCache<Permission> for PermissionCache {
                 if update_for.eq_ignore_ascii_case("permission_key") {
                     permission.permission_key = String::from(value)
                 }
-            },
-            None => {
-                // todo handle error.
-                // do nothing
-            },
+            }
+            None => {/* Handle error. */}
         }
     }
 
