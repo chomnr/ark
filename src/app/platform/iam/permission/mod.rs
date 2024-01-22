@@ -33,12 +33,35 @@ impl LocalizedCache<Permission> for PermissionCache {
         }
     }
 
+    fn update(search_by: &str, update_for: &str, value: &str) {
+        let mut cache = PERMISSION_CACHE.write().unwrap();
+        match cache.iter_mut().find(|permission| {
+            permission.permission_id.to_lowercase() == search_by.to_lowercase()
+                || permission.permission_name.to_lowercase() == search_by.to_lowercase()
+                || permission.permission_key.to_lowercase() == search_by.to_lowercase()
+        }) {
+            Some(permission) => {
+                if update_for.eq_ignore_ascii_case("permission_name") {
+                    permission.permission_name = String::from(value);
+                }
+
+                if update_for.eq_ignore_ascii_case("permission_key") {
+                    permission.permission_key = String::from(value)
+                }
+            },
+            None => {
+                // todo handle error.
+                // do nothing
+            },
+        }
+    }
+
     fn remove(identifier: &str) {
-        PERMISSION_CACHE.write().unwrap().retain_mut(|permission| {
-            permission.permission_id != permission.permission_id
-                || permission.permission_name != permission.permission_name
-                || permission.permission_key != permission.permission_key
-        })
+        PERMISSION_CACHE.write().unwrap().retain(|permission| {
+            permission.permission_id != identifier
+                && permission.permission_name != identifier
+                && permission.permission_key != identifier
+        });
     }
 
     fn get_cache() -> &'static RwLock<Vec<Permission>> {

@@ -1,8 +1,8 @@
 use core::fmt;
-use std::{env, sync::Arc};
+use std::{env, sync::Arc, time::{Duration, Instant}};
 
 use axum::{extract::FromRef, Extension, Router};
-use tokio::net::TcpListener;
+use tokio::{net::TcpListener, time::sleep};
 use tower_cookies::{CookieManagerLayer, Key};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
@@ -169,11 +169,7 @@ impl ArkServer {
             .listen();
 
         //PermissionManager::preload_permission_cache().unwrap();
-        let perm = Permission::builder()
-            .permission_name("adsdsadd")
-            .permission_key("d312231ddd")
-            .build();
-
+        
         //PermissionManager::create_permission(perm);
         //PermissionManager::update_permission("dd2546c3-e34a-4fcb-9b12-1a96eb6873e3", "permission_name", "dassda");
         //PermissionManager::update_permission("dd2546c3-e34a-4fcb-9b12-1a96eb6873e3", "permission_name", "dassda");
@@ -198,7 +194,17 @@ impl ArkServer {
     }
 
     async fn preload_necessities() {
-        PermissionManager::preload_permission_cache().unwrap();
+        let test = Permission::builder()
+            .permission_key("Hello Worldd")
+            .permission_name("Hello.Worldd")
+            .build();
+
+        //PermissionManager::preload_permission_cache().unwrap();
+        //println!("amt: {}", PermissionCache::get_cache().read().unwrap().len());
+
+        //PermissionManager::update_permission("2b591d9f-b6da-4396-80dd-814ffaab7f50", "permission_key", "dooodo").unwrap();
+        //println!("amt: {}", PermissionCache::get_cache().read().unwrap().len());
+
     }
 
     /// Asynchronously loads prerequisites using PostgreSQL and Redis databases.

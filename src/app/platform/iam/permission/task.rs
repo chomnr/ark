@@ -204,6 +204,7 @@ impl Task<PostgresDatabase, TaskRequest, PermissionDeleteTask> for PermissionDel
         match pool.execute(&stmt, &[&param.identifier]).await {
             Ok(v) => {
                 if v != 0 {
+                    PermissionCache::remove(&param.identifier);
                     return TaskResponse::compose_response(
                         request,
                         TaskStatus::Completed,
@@ -287,6 +288,7 @@ impl Task<PostgresDatabase, TaskRequest, PermissionUpdateTask> for PermissionUpd
         match pool.execute(&stmt, &[&param.value, &param.search_by]).await {
             Ok(v) => {
                 if v != 0 {
+                    PermissionCache::update(&param.search_by, &param.update_for, &param.value);
                     return TaskResponse::compose_response(
                         request,
                         TaskStatus::Completed,
