@@ -1,18 +1,19 @@
 use core::fmt;
-use std::{env, sync::Arc};
+use std::{env, sync::Arc, time::{UNIX_EPOCH, SystemTime}};
 
 use axum::{extract::FromRef, Extension, Router};
 use tokio::net::TcpListener;
 use tower_cookies::{CookieManagerLayer, Key};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
-
 use super::{
     adapter::oauth_adapter::OAuthCollectionAdapter,
     database::{
         postgres::{PostgresConfig, PostgresDatabase},
-        redis::{RedisConfig, RedisDatabase}
-    }, service::{task::manager::TaskManager, cache::manager::CacheManager}, platform::iam::permission::{manager::PermissionManager, model::Permission}
+        redis::{RedisConfig, RedisDatabase},
+    },
+    platform::iam::permission::{manager::PermissionManager, model::Permission},
+    service::{cache::manager::CacheManager, task::manager::TaskManager},
 };
 
 static ADDRESS: &str = "0.0.0.0";
@@ -162,20 +163,12 @@ impl ArkServer {
     /// }
     /// ```
     async fn register_listeners(pg: PostgresDatabase, redis: RedisDatabase) {
-        TaskManager::new(pg)
-            .listen();
-        CacheManager::new(redis)
-            .listen();
+        TaskManager::new(pg).listen();
+        CacheManager::new(redis).listen();
     }
 
     async fn preload_necessities() {
-        //PermissionManager::preload_permission_cache().unwrap();
-        let test = Permission::builder()
-            .permission_key("Hello Worldd")
-            .permission_name("Hello.Worldd")
-            .build();
-        //let permission = PermissionManager::get_permission("2fe83ba5-ccee-4f07-a2c6-68bb08a833da").unwrap();
-        //let permission = PermissionManager::get_permission("2fe83ba5-ccee-4f07-a2c6-68bb08a833da").unwrap();
+        PermissionManager::preload_permission_cache().unwrap();
     }
 
     /// Asynchronously loads prerequisites using PostgreSQL and Redis databases.
