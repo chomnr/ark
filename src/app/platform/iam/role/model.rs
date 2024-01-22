@@ -11,7 +11,7 @@ pub struct Role {
 }
 
 impl Role {
-    pub fn new (role_id: &str, role_name: &str, role_permissions: Vec<Permission>) -> Role {
+    pub fn new(role_id: &str, role_name: &str, role_permissions: Vec<Permission>) -> Role {
         Self {
             role_id: String::from(role_id),
             role_name: String::from(role_name),
