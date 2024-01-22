@@ -118,9 +118,12 @@ impl TaskResponse {
         }
     }
 
-    pub fn intepret_request_result<T: for<'a> Deserialize<'a>>(
-        task_response: &TaskRequest,
+    pub fn intepret_response_result<T: for<'a> Deserialize<'a>>(
+        task_response: &TaskResponse,
     ) -> TaskResult<T> {
-        todo!()
+        match serde_json::from_str::<T>(&task_response.task_result) {
+            Ok(result) => Ok(result),
+            Err(_) => Err(TaskError::FailedToInterpretPayload),
+        }
     }
 }

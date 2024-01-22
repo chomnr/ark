@@ -33,7 +33,7 @@ use std::sync::RwLock;
 use crossbeam_channel::{unbounded, Receiver, Sender};
 use once_cell::sync::Lazy;
 
-use self::message::{CacheRequest, CacheResponse};
+use self::{message::{CacheRequest, CacheResponse}, error::CacheResult};
 
 //use self::{message::CacheRequest, error::CacheResult};
 
@@ -51,6 +51,7 @@ pub trait LocalizedCache<T> {
     fn add(perm: T);
     fn update(search_by: &str, update_for: &str, value: &str);
     fn remove(identifier: &str);
+    fn get(identifier: &str) -> CacheResult<T>;
     fn get_cache() -> &'static RwLock<Vec<T>>;
 }
 

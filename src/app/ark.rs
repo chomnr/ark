@@ -169,11 +169,13 @@ impl ArkServer {
     }
 
     async fn preload_necessities() {
-        PermissionManager::preload_permission_cache().unwrap();
+        //PermissionManager::preload_permission_cache().unwrap();
         let test = Permission::builder()
             .permission_key("Hello Worldd")
             .permission_name("Hello.Worldd")
             .build();
+        //let permission = PermissionManager::get_permission("2fe83ba5-ccee-4f07-a2c6-68bb08a833da").unwrap();
+        //let permission = PermissionManager::get_permission("2fe83ba5-ccee-4f07-a2c6-68bb08a833da").unwrap();
     }
 
     /// Asynchronously loads prerequisites using PostgreSQL and Redis databases.

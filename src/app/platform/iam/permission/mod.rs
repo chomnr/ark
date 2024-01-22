@@ -2,7 +2,7 @@ use std::sync::RwLock;
 
 use once_cell::sync::Lazy;
 
-use crate::app::service::cache::LocalizedCache;
+use crate::app::service::cache::{LocalizedCache, error::{CacheResult, CacheError}};
 
 use self::model::Permission;
 
@@ -59,6 +59,17 @@ impl LocalizedCache<Permission> for PermissionCache {
                 && permission.permission_name != identifier
                 && permission.permission_key != identifier
         });
+    }
+
+    fn get(identifier: &str) -> CacheResult<Permission> {
+        match PERMISSION_CACHE.read().unwrap().iter().find(|permission| {
+            permission.permission_id == identifier
+                || permission.permission_name == identifier
+                || permission.permission_key == identifier
+        }) {
+            Some(permission) => Ok(permission.clone()), // Clone the Permission here
+            None => Err(CacheError::ItemNotFound),
+        }
     }
 
     fn get_cache() -> &'static RwLock<Vec<Permission>> {

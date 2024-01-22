@@ -7,7 +7,8 @@ use crate::app::service::task::{
 use super::{
     model::Permission,
     task::{
-        PermissionCreateTask, PermissionDeleteTask, PermissionPreloadCache, PermissionUpdateTask,
+        PermissionCreateTask, PermissionDeleteTask, PermissionPreloadCache, PermissionReadTask,
+        PermissionUpdateTask,
     },
 };
 
@@ -142,8 +143,38 @@ impl PermissionManager {
         )
     }
 
-    pub fn get_permission(permission_identifier: &str) -> Permission {
-        todo!()
+    /// Grab a specific permission based on it's id, name or key.
+    ///
+    /// # Arguments
+    /// - `identifier`: Find a permission based on it's identifier.
+    ///
+    /// # Examples
+    /// ```
+    /// get_permission("dd2546c3-e34a-4fcb-9b12-1a96eb6873e3");
+    /// ```
+    pub fn get_permission(identifier: &str) -> TaskResult<Permission> {
+        let request = Self::read_permission_request(identifier);
+        TaskManager::process_task_with_result::<Permission>(request)
+    }
+
+    /// Composes a permission read request.
+    ///
+    /// # Arguments
+    /// - `identifier`: Find a permission based on it's identifier.
+    ///
+    /// # Examples
+    /// ```
+    /// // Assuming `permission` is a reference to a valid Permission
+    /// read_permission_request("dd2546c3-e34a-4fcb-9b12-1a96eb6873e3");
+    /// ```
+    fn read_permission_request(identifier: &str) -> TaskRequest {
+        TaskRequest::compose_request::<PermissionReadTask>(
+            PermissionReadTask {
+                identifier: String::from(identifier),
+            },
+            TaskType::Permission,
+            "permission_read",
+        )
     }
 
     /// Preload permission cache.

@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use crate::app::{
     database::postgres::PostgresDatabase,
     service::{
-        cache::LocalizedCache,
+        cache::{manager::CacheManager, LocalizedCache},
         task::{
             error::TaskError,
             message::{TaskRequest, TaskResponse, TaskStatus},
@@ -63,6 +63,20 @@ impl TaskHandler for PermissionTaskHandler {
                 }
             };
             return PermissionUpdateTask::run(pg, task_request, payload).await;
+        }
+
+        if task_request.task_action.eq("permission_read") {
+            let payload =
+                match TaskRequest::intepret_request_payload::<PermissionReadTask>(&task_request) {
+                    Ok(p) => p,
+                    Err(_) => {
+                        return TaskResponse::throw_failed_response(
+                            task_request,
+                            vec![TaskError::FailedToInterpretPayload.to_string()],
+                        )
+                    }
+                };
+            return PermissionReadTask::run(pg, task_request, payload).await;
         }
 
         if task_request.task_action.eq("permission_preload_cache") {
@@ -311,36 +325,59 @@ impl Task<PostgresDatabase, TaskRequest, PermissionUpdateTask> for PermissionUpd
     }
 }
 
-/// DDDD
+/// Represents a task for reading a permission.
 #[derive(Serialize, Deserialize)]
-pub(super) struct PermissionReadTask;
+pub(super) struct PermissionReadTask {
+    pub identifier: String,
+}
+
 #[async_trait]
-impl Task<PostgresDatabase, TaskRequest, String> for PermissionReadTask {
-    async fn run(db: &PostgresDatabase, request: TaskRequest, param: String) -> TaskResponse {
+impl Task<PostgresDatabase, TaskRequest, PermissionReadTask> for PermissionReadTask {
+    async fn run(
+        db: &PostgresDatabase,
+        request: TaskRequest,
+        param: PermissionReadTask,
+    ) -> TaskResponse {
         let pool = db.pool.get().await.unwrap();
-        let stmt = pool
-            .prepare(
-                "SELECT * FROM iam_permissions WHERE id = $1
-        OR permission_name = $1
-        OR permission_key = $1",
-            )
-            .await
-            .unwrap();
-        match pool.execute(&stmt, &[&param]).await {
-            Ok(_) => {
-                // do stuff here...
+
+        match PermissionCache::get(&param.identifier) {
+            Ok(permission) => {
+                CacheManager::notify_cache_hit("PermissionCache", &param.identifier, &request.task_id);
                 return TaskResponse::compose_response(
                     request,
                     TaskStatus::Completed,
-                    param,
+                    permission,
                     Vec::default(),
                 );
             }
             Err(_) => {
-                return TaskResponse::throw_failed_response(
-                    request,
-                    vec![TaskError::PermissionNotFound.to_string()],
-                )
+                let stmt = pool
+                    .prepare(
+                        "SELECT * FROM iam_permissions WHERE id = $1
+        OR permission_name = $1
+        OR permission_key = $1",
+                    )
+                    .await
+                    .unwrap();
+                match pool.query_one(&stmt, &[&param.identifier]).await {
+                    Ok(row) => {
+                        CacheManager::notify_cache_miss("PermissionCache", &param.identifier, &request.task_id);
+                        let permission = Permission::new(row.get(0), row.get(1), row.get(2));
+                        PermissionCache::add(permission.clone());
+                        return TaskResponse::compose_response(
+                            request,
+                            TaskStatus::Completed,
+                            permission,
+                            Vec::default(),
+                        );
+                    }
+                    Err(_) => {
+                        return TaskResponse::throw_failed_response(
+                            request,
+                            vec![TaskError::PermissionNotFound.to_string()],
+                        )
+                    }
+                }
             }
         }
     }

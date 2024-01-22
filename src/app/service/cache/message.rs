@@ -74,10 +74,6 @@ impl CacheResponse {
     }
 }
 
-pub fn test() {
-    //CacheRequest::compose_request(cache_payload, "permission_cache_create");
-}
-
 /*
 /// Represents the type of CacheStatus
 ///

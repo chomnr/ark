@@ -1,3 +1,5 @@
+use serde::{Deserialize, Serialize};
+
 use crate::app::{
     database::postgres::PostgresDatabase,
     platform::iam::permission::task::PermissionTaskHandler,
@@ -63,6 +65,17 @@ impl TaskManager {
         let task_response = Self::send(request);
         match task_response.task_status {
             TaskStatus::Completed => Ok(TaskStatus::Completed),
+            TaskStatus::Failed => Err(TaskError::FailedToCompleteTask),
+        }
+    }
+
+    pub fn process_task_with_result<T: for<'a> Deserialize<'a> + Serialize>(request: TaskRequest) -> TaskResult<T> {
+        let task_response = Self::send(request);
+        match task_response.task_status {
+            TaskStatus::Completed => {
+                let response = TaskResponse::intepret_response_result::<T>(&task_response);
+                response
+            },
             TaskStatus::Failed => Err(TaskError::FailedToCompleteTask),
         }
     }

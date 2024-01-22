@@ -1,6 +1,11 @@
+use chrono::Utc;
+
 use crate::app::{database::redis::RedisDatabase, service::cache::INBOUND_CACHE};
 
-use super::{message::{CacheLocation, CacheRequest, CacheResponse}, OUTBOUND_CACHE};
+use super::{
+    message::{CacheLocation, CacheRequest, CacheResponse},
+    OUTBOUND_CACHE,
+};
 
 // proof on concept new one:
 // CacheManager::send_modify_request::<Permission>("permission_cache_add", perm);
@@ -42,6 +47,50 @@ impl CacheManager {
     /// ```
     pub fn send(cache_request: CacheRequest) {
         INBOUND_CACHE.0.send(cache_request).unwrap();
+    }
+
+    /// Notify that the cache was missed
+    ///
+    /// # Arguments
+    /// - `source`: The source of the cache.       
+    /// - `cache_key`: The key(identifier) that was used to try to retrieve the data.
+    ///
+    /// # Examples
+    /// ```
+    /// // Assume `redis` is a reference to a RedisDatabase and `cache_request` is a valid CacheRequest
+    /// self.send(cache_request).await;
+    /// ```
+    pub fn notify_cache_hit(source: &str, cache_key: &str, task_id: &str) {
+        // todo do some actual logging here...
+        println!(
+            "[CACHE] HIT Successfully retrieved the requested item from the cache\n - Task Id: {}\n - Cache Key: {}\n - Timestamp: {}\n - Source: {}",
+            task_id,
+            cache_key,
+            Utc::now().format("%Y-%m-%d %H:%M:%S").to_string(),
+            source
+        );
+    }
+
+    /// Notify that the item was not located inside th ecache.
+    ///
+    /// # Arguments
+    /// - `source`: The source of the cache.       
+    /// - `cache_key`: The key(identifier) that was used to try to retrieve the data.
+    ///
+    /// # Examples
+    /// ```
+    /// // Assume `redis` is a reference to a RedisDatabase and `cache_request` is a valid CacheRequest
+    /// self.send(cache_request).await;
+    /// ```
+    pub fn notify_cache_miss(source: &str, cache_key: &str, task_id: &str) {
+        // todo do some actual logging here...
+        println!(
+            "[CACHE] MISS The requested item was not found in the cache.\n - Task Id: {}\n - Cache Key: {}\n - Timestamp: {}\n - Source: {}",
+            task_id,
+            cache_key,
+            Utc::now().format("%Y-%m-%d %H:%M:%S").to_string(),
+            source
+        );
     }
 
     /// Sends a cache_response to the cache_response channel.

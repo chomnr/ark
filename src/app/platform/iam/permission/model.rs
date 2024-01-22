@@ -3,7 +3,7 @@ use uuid::Uuid;
 
 use super::task::PermissionCreateTask;
 
-#[derive(Default, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Permission {
     pub permission_id: String,
     pub permission_name: String,
