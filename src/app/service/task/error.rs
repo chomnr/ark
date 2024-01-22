@@ -17,6 +17,8 @@ pub enum TaskError {
     PermissionFieldNotFound,
     #[error("PermissionNotFound")]
     PermissionNotFound,
+    #[error("PermissionFailedToPreload")]
+    PermissionFailedToPreload,
     // Task
     #[error("TaskInternalError")]
     TaskInternalError,

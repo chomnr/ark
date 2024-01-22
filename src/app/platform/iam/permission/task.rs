@@ -3,14 +3,17 @@ use serde::{Deserialize, Serialize};
 
 use crate::app::{
     database::postgres::PostgresDatabase,
-    service::task::{
-        error::TaskError,
-        message::{TaskRequest, TaskResponse, TaskStatus},
-        Task, TaskHandler,
+    service::{
+        cache::LocalizedCache,
+        task::{
+            error::TaskError,
+            message::{TaskRequest, TaskResponse, TaskStatus},
+            Task, TaskHandler,
+        },
     },
 };
 
-use super::model::Permission;
+use super::{model::Permission, PermissionCache};
 
 pub struct PermissionTaskHandler;
 
@@ -18,7 +21,9 @@ pub struct PermissionTaskHandler;
 impl TaskHandler for PermissionTaskHandler {
     async fn handle(pg: &PostgresDatabase, task_request: TaskRequest) -> TaskResponse {
         if task_request.task_action.eq("permission_create") {
-            let payload = match TaskRequest::intepret_request_payload::<PermissionCreateTask>(&task_request) {
+            let payload = match TaskRequest::intepret_request_payload::<PermissionCreateTask>(
+                &task_request,
+            ) {
                 Ok(p) => p,
                 Err(_) => {
                     return TaskResponse::throw_failed_response(
@@ -31,7 +36,9 @@ impl TaskHandler for PermissionTaskHandler {
         }
 
         if task_request.task_action.eq("permission_delete") {
-            let payload = match TaskRequest::intepret_request_payload::<PermissionDeleteTask>(&task_request) {
+            let payload = match TaskRequest::intepret_request_payload::<PermissionDeleteTask>(
+                &task_request,
+            ) {
                 Ok(p) => p,
                 Err(_) => {
                     return TaskResponse::throw_failed_response(
@@ -58,6 +65,21 @@ impl TaskHandler for PermissionTaskHandler {
             return PermissionUpdateTask::run(pg, task_request, payload).await;
         }
 
+        if task_request.task_action.eq("permission_preload_cache") {
+            let payload = match TaskRequest::intepret_request_payload::<PermissionPreloadCache>(
+                &task_request,
+            ) {
+                Ok(p) => p,
+                Err(_) => {
+                    return TaskResponse::throw_failed_response(
+                        task_request,
+                        vec![TaskError::FailedToInterpretPayload.to_string()],
+                    )
+                }
+            };
+            return PermissionPreloadCache::run(pg, task_request, payload).await;
+        }
+
         return TaskResponse::throw_failed_response(
             task_request,
             vec![TaskError::FailedToFindAction.to_string()],
@@ -81,7 +103,7 @@ impl TaskHandler for PermissionTaskHandler {
 ///     }
 /// }
 /// ```
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub(super) struct PermissionCreateTask {
     pub permission_id: String,
     pub permission_name: String,
@@ -100,7 +122,11 @@ impl From<Permission> for PermissionCreateTask {
 
 #[async_trait]
 impl Task<PostgresDatabase, TaskRequest, PermissionCreateTask> for PermissionCreateTask {
-    async fn run(db: &PostgresDatabase, request: TaskRequest, param: PermissionCreateTask) -> TaskResponse {
+    async fn run(
+        db: &PostgresDatabase,
+        request: TaskRequest,
+        param: PermissionCreateTask,
+    ) -> TaskResponse {
         let pool = db.pool.get().await.unwrap();
         let stmt = pool
             .prepare(
@@ -120,12 +146,13 @@ impl Task<PostgresDatabase, TaskRequest, PermissionCreateTask> for PermissionCre
             .await
         {
             Ok(_) => {
+                PermissionCache::add(Permission::from(param.clone()));
                 return TaskResponse::compose_response(
                     request,
                     TaskStatus::Completed,
                     param,
                     Vec::default(),
-                )
+                );
             }
             Err(_) => {
                 return TaskResponse::throw_failed_response(
@@ -155,11 +182,15 @@ impl Task<PostgresDatabase, TaskRequest, PermissionCreateTask> for PermissionCre
 /// ```
 #[derive(Serialize, Deserialize)]
 pub(super) struct PermissionDeleteTask {
-    pub identifier: String
+    pub identifier: String,
 }
 #[async_trait]
 impl Task<PostgresDatabase, TaskRequest, PermissionDeleteTask> for PermissionDeleteTask {
-    async fn run(db: &PostgresDatabase, request: TaskRequest, param: PermissionDeleteTask) -> TaskResponse {
+    async fn run(
+        db: &PostgresDatabase,
+        request: TaskRequest,
+        param: PermissionDeleteTask,
+    ) -> TaskResponse {
         let pool = db.pool.get().await.unwrap();
         let stmt = pool
             .prepare(
@@ -289,5 +320,39 @@ impl Task<PostgresDatabase, TaskRequest, String> for PermissionReadTask {
         // if not cache retrieve from database then update cache
         // return value accordingly.
         todo!()
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+pub(super) struct PermissionPreloadCache;
+#[async_trait]
+impl Task<PostgresDatabase, TaskRequest, PermissionPreloadCache> for PermissionPreloadCache {
+    async fn run(
+        db: &PostgresDatabase,
+        request: TaskRequest,
+        param: PermissionPreloadCache,
+    ) -> TaskResponse {
+        let pool = db.pool.get().await.unwrap();
+        let stmt = pool.prepare("SELECT * FROM iam_permissions").await.unwrap();
+
+        match pool.query(&stmt, &[]).await {
+            Ok(rows) => {
+                for row in rows {
+                    PermissionCache::add(Permission::new(row.get(0), row.get(1), row.get(2)));
+                }
+                return TaskResponse::compose_response(
+                    request,
+                    TaskStatus::Completed,
+                    String::default(),
+                    Vec::default(),
+                );
+            }
+            Err(_) => {
+                return TaskResponse::throw_failed_response(
+                    request,
+                    vec![TaskError::PermissionFailedToPreload.to_string()],
+                )
+            }
+        }
     }
 }

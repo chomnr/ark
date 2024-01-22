@@ -1,10 +1,10 @@
 use nanoid::nanoid;
 use serde::{Deserialize, Serialize};
 
+use super::error::CacheError;
+
 #[derive(Debug, Serialize, Deserialize)]
 pub enum CacheLocation {
-    Permission,
-    Role,
     User,
 }
 
@@ -34,6 +34,42 @@ impl CacheRequest {
             cache_payload: serde_json::to_string(&cache_payload).unwrap(),
             cache_action: String::from(cache_action),
             cache_location,
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct CacheResponse {
+    /// The unique identifier of the cache.
+    pub cache_id: String,
+
+    /// The result of the cache . The type of this field is a String to accommodate
+    /// various types of cache results.
+    pub cache_result: String,
+
+    /// The errors that occur when the task_status fails when processing the given
+    /// task.
+    pub cache_error: Vec<String>,
+}
+
+impl CacheResponse {
+    pub fn compose_response<'a, T: Deserialize<'a> + Serialize>(
+        request: CacheRequest,
+        cache_result: T,
+        cache_error: Vec<String>
+    ) -> Self {
+        Self {
+            cache_id: request.cache_id,
+            cache_result: serde_json::to_string(&cache_result).unwrap(),
+            cache_error,
+        }
+    }
+
+    pub fn throw_failed_response(request: CacheRequest, errors: Vec<String>) -> Self {
+        Self {
+            cache_id: request.cache_id,
+            cache_result: String::default(),
+            cache_error: errors,
         }
     }
 }

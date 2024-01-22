@@ -6,7 +6,9 @@ use crate::app::service::task::{
 
 use super::{
     model::Permission,
-    task::{PermissionCreateTask, PermissionDeleteTask, PermissionUpdateTask},
+    task::{
+        PermissionCreateTask, PermissionDeleteTask, PermissionPreloadCache, PermissionUpdateTask,
+    },
 };
 
 pub struct PermissionManager;
@@ -142,5 +144,31 @@ impl PermissionManager {
 
     pub fn get_permission(permission_identifier: &str) -> Permission {
         todo!()
+    }
+
+    /// Preload permission cache.
+    ///
+    /// # Examples
+    /// ```
+    /// // Assuming `permission` is a reference to a valid Permission
+    /// preload_permission_cache();
+    /// ```
+    pub fn preload_permission_cache() -> TaskResult<TaskStatus> {
+        let request = Self::preload_permission_request();
+        TaskManager::process_task(request)
+    }
+
+    /// Composes a permission preload cache request.
+    ///
+    /// # Examples
+    /// ```
+    /// let task_response = preload_permission_request();
+    /// ```
+    fn preload_permission_request() -> TaskRequest {
+        TaskRequest::compose_request(
+            PermissionPreloadCache {},
+            TaskType::Permission,
+            "permission_preload_cache",
+        )
     }
 }

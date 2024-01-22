@@ -11,7 +11,9 @@ pub enum CacheError {
     #[error("CacheUniqueViolation")]
     UniqueViolation,
     #[error("CacheFailedToInterpretPayload")]
-    FailedToInterpretPayload
+    FailedToInterpretPayload,
+    #[error("CacheFailedToFindAction")]
+    FailedToFindAction
 }
 
 pub type CacheResult<T> = Result<T, CacheError>;

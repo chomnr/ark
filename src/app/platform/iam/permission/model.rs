@@ -21,6 +21,14 @@ impl From<PermissionCreateTask> for Permission {
 }
 
 impl Permission {
+    pub fn new(permission_id: &str, permission_name: &str, permission_key: &str) -> Permission {
+        Self {
+            permission_id: String::from(permission_id),
+            permission_name: String::from(permission_name),
+            permission_key: String::from(permission_key),
+        }
+    }
+
     pub fn builder() -> PermissionBuilder {
         PermissionBuilder::new()
     }

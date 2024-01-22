@@ -6,12 +6,14 @@ use tokio::net::TcpListener;
 use tower_cookies::{CookieManagerLayer, Key};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
+use crate::app::{platform::iam::permission::PermissionCache, service::cache::LocalizedCache};
+
 use super::{
     adapter::oauth_adapter::OAuthCollectionAdapter,
     database::{
         postgres::{PostgresConfig, PostgresDatabase},
         redis::{RedisConfig, RedisDatabase}
-    }, service::{task::manager::TaskManager, cache::manager::CacheManager}
+    }, service::{task::manager::TaskManager, cache::manager::CacheManager}, platform::iam::permission::{manager::PermissionManager, model::Permission}
 };
 
 static ADDRESS: &str = "0.0.0.0";
@@ -87,6 +89,7 @@ impl ArkServer {
             }
         }
         Self::register_listeners(pg, redis).await;
+        Self::preload_necessities().await;
         println!(
             "[ARK] router initialized, now listening on port {}.",
             &self.port
@@ -164,10 +167,15 @@ impl ArkServer {
             .listen();
         CacheManager::new(redis)
             .listen();
-        //let perm = Permission::builder()
-        //    .permission_name("adsdsa")
-        //    .permission_key("d312231")
-        //    .build();
+
+        //PermissionManager::preload_permission_cache().unwrap();
+        let perm = Permission::builder()
+            .permission_name("adsdsadd")
+            .permission_key("d312231ddd")
+            .build();
+
+        //PermissionManager::create_permission(perm);
+        PermissionManager::preload_permission_cache();
         //PermissionManager::update_permission("dd2546c3-e34a-4fcb-9b12-1a96eb6873e3", "permission_name", "dassda");
         //PermissionManager::update_permission("dd2546c3-e34a-4fcb-9b12-1a96eb6873e3", "permission_name", "dassda");
        // PermissionManager::delete_permission("adsdsa");
@@ -188,6 +196,14 @@ impl ArkServer {
             .build();
         PermissionManager::create_permission(test).await.unwrap();
         */
+    }
+
+    async fn preload_necessities() {
+        // match PermissionManager::preload_permission_cache() {
+        //    Ok(_) => println!("preload successful"),
+        //    Err(_) => println!("failed to preload"),
+        // }
+        //println!("{}", PermissionCache::get_cache().read().unwrap().len())
     }
 
     /// Asynchronously loads prerequisites using PostgreSQL and Redis databases.
