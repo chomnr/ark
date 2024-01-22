@@ -1,24 +1,25 @@
-use serde::{Serialize, Deserialize};
+use nanoid::nanoid;
+use serde::{Deserialize, Serialize};
 
 /// Represents the type of CacheStatus
-/// 
+///
 /// Signal whether the cache retrieval was a hit or a miss.
 pub enum CacheRetrievalStatus {
     /// Successfully found item in cache.
     Hit,
     /// Did not find item in the cache.
-    Miss
+    Miss,
 }
 
 /// Represents the type of cache storage.
-/// 
+///
 /// This helps the channel identify where the requested payload
 /// should go.
 #[derive(Debug, Serialize, Deserialize)]
 pub enum CacheStorage {
     Permission,
     Role,
-    User
+    User,
 }
 
 /// A request structure for the cache.
@@ -33,7 +34,32 @@ pub struct CacheRequest {
     pub cache_storage: CacheStorage,
 
     /// The payload of the cache. (cache item)
-    pub cache_payload: String
+    pub cache_payload: String,
+
+    /// The desired action.
+    pub cache_action: String,
+}
+
+impl CacheRequest {
+    /// Composes a new task request with the given payload.
+    pub fn compose_request<T: for<'a> Deserialize<'a> + Serialize>(
+        cache_payload: T,
+        cache_storage: CacheStorage,
+        cache_action: &str,
+    ) -> Self {
+        Self {
+            cache_id: format!("cache-{}", nanoid!(7)),
+            cache_payload: serde_json::to_string(&cache_payload).unwrap(),
+            cache_storage,
+            cache_action: String::from(cache_action),
+        }
+    }
+}
+
+pub fn test() {
+    //CacheRequest::compose_request(todo!(), CacheStorage::Permission, "cache_action");
+    //CacheManager::send(request);
+    //CacheReader::
 }
 
 //CacheReader::off_site(CacheOffSite::User).read(ddd) database like redis (sends it to the cache off site channel.)
