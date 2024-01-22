@@ -1,5 +1,15 @@
 use serde::{Serialize, Deserialize};
 
+/// Represents the type of CacheStatus
+/// 
+/// Signal whether the cache retrieval was a hit or a miss.
+pub enum CacheRetrievalStatus {
+    /// Successfully found item in cache.
+    Hit,
+    /// Did not find item in the cache.
+    Miss
+}
+
 /// Represents the type of cache storage.
 /// 
 /// This helps the channel identify where the requested payload
@@ -13,7 +23,7 @@ pub enum CacheStorage {
 
 /// A request structure for the cache.
 ///
-/// This struct is used to encapsulate the details of a task request.
+/// This struct is used to encapsulate the details of a task request.v  
 #[derive(Serialize, Deserialize)]
 pub struct CacheRequest {
     /// A unique identifier for the requested cache item.
@@ -26,6 +36,5 @@ pub struct CacheRequest {
     pub cache_payload: String
 }
 
-
 //CacheReader::off_site(CacheOffSite::User).read(ddd) database like redis (sends it to the cache off site channel.)
-//CacheReader::on_site().read(sdadasd) it's stored in the code like a map or vec
+//CacheReader::on_site(CacheOnSite::Permission).read(sdadasd) it's stored in the code like a map or vec
