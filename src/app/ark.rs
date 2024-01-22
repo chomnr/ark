@@ -1,12 +1,11 @@
 use core::fmt;
-use std::{env, sync::Arc, time::{Duration, Instant}};
+use std::{env, sync::Arc};
 
 use axum::{extract::FromRef, Extension, Router};
-use tokio::{net::TcpListener, time::sleep};
+use tokio::net::TcpListener;
 use tower_cookies::{CookieManagerLayer, Key};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
-use crate::app::{platform::iam::permission::PermissionCache, service::cache::LocalizedCache};
 
 use super::{
     adapter::oauth_adapter::OAuthCollectionAdapter,
@@ -167,46 +166,14 @@ impl ArkServer {
             .listen();
         CacheManager::new(redis)
             .listen();
-
-        //PermissionManager::preload_permission_cache().unwrap();
-        
-        //PermissionManager::create_permission(perm);
-        //PermissionManager::update_permission("dd2546c3-e34a-4fcb-9b12-1a96eb6873e3", "permission_name", "dassda");
-        //PermissionManager::update_permission("dd2546c3-e34a-4fcb-9b12-1a96eb6873e3", "permission_name", "dassda");
-       // PermissionManager::delete_permission("adsdsa");
-        //PermissionManager::delete_permission("049282d0-2b2d-4356-b44a-3914bae57ce8");
-        //PermissionManager::update_permission("6f910c79-60b0-49b3-a817-400a3b2320ec", "permissiodn_key", "ddd");
-        //PermissionManager::update_permission("12321231", "permission_key", "tresting darling");
-       //PermissionManager::delete_permission("permission delete user.");
-        /*
-        PermissionHandler::listen(pg);
-        //let task_mgr = TaskManager::with_databases(pg, redis);
-        //task_mgr.listen();
-        //task_mgr.listen_for(TaskListenType::ListenForTask);
-        //let task_mgr = TaskManager::with_databases(pg, redis);
-        //task_mgr.listen_for_tasks().await;
-        let test = Permission::builder()
-            .permission_key("hellfdo")
-            .permission_name("hellddo")
-            .build();
-        PermissionManager::create_permission(test).await.unwrap();
-        */
     }
 
     async fn preload_necessities() {
         PermissionManager::preload_permission_cache().unwrap();
-        
         let test = Permission::builder()
             .permission_key("Hello Worldd")
             .permission_name("Hello.Worldd")
             .build();
-
-        //PermissionManager::preload_permission_cache().unwrap();
-        //println!("amt: {}", PermissionCache::get_cache().read().unwrap().len());
-
-        //PermissionManager::update_permission("2b591d9f-b6da-4396-80dd-814ffaab7f50", "permission_key", "dooodo").unwrap();
-        //println!("amt: {}", PermissionCache::get_cache().read().unwrap().len());
-
     }
 
     /// Asynchronously loads prerequisites using PostgreSQL and Redis databases.
