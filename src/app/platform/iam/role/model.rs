@@ -3,7 +3,7 @@ use uuid::Uuid;
 
 use crate::app::platform::iam::permission::model::Permission;
 
-#[derive(Default, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Role {
     role_id: String,
     role_name: String,
@@ -11,6 +11,13 @@ pub struct Role {
 }
 
 impl Role {
+    pub fn new (role_id: &str, role_name: &str, role_permissions: Vec<Permission>) -> Role {
+        Self {
+            role_id: String::from(role_id),
+            role_name: String::from(role_name),
+            role_permissions,
+        }
+    }
     pub fn builder() -> RoleBuilder {
         RoleBuilder::new()
     }
