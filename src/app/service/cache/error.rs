@@ -3,13 +3,15 @@ use thiserror::Error;
 #[derive(Error, Debug)]
 pub enum CacheError {
     #[error("CacheFieldNotFound")]
-    CacheFieldNotFound,
+    FieldNotFound,
     #[error("CacheItemNotFound")]
-    CacheItemNotFound,
+    ItemNotFound,
     #[error("CacheInternalError")]
-    CacheInternalError,
+    InternalError,
     #[error("CacheUniqueViolation")]
-    CacheUniqueViolation
+    UniqueViolation,
+    #[error("CacheFailedToInterpretPayload")]
+    FailedToInterpretPayload
 }
 
 pub type CacheResult<T> = Result<T, CacheError>;

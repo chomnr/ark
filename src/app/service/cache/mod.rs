@@ -28,27 +28,17 @@
 //                        +---------------+       | Result         |
 //                                                +----------------+
 
+use axum::async_trait;
 use crossbeam_channel::{Sender, Receiver, unbounded};
 use once_cell::sync::Lazy;
 
-use self::message::CacheRequest;
+use crate::app::database::redis::RedisDatabase;
+
+//use self::{message::CacheRequest, error::CacheResult};
 
 pub mod error;
 pub mod manager;
 pub mod message;
 pub mod reader;
 
-/// Receives items to cache.
-static INBOUND_CACHE: Lazy<(Sender<CacheRequest>, Receiver<CacheRequest>)> = Lazy::new(|| unbounded());
-
-/*
-pub struct CacheItem<T> {
-    pub detail: T,
-}
-
-pub trait LocalCache<T> {
-    fn add(item: CacheItem<T>) -> CacheResult<bool>;
-    fn update(search_by: &str, update_for: &str, value: &str) -> CacheResult<bool>;
-    fn remove(value: &str) -> CacheResult<bool>;
-}
-*/
+//static INBOUND_CACHE: Lazy<(Sender<CacheRequest>, Receiver<CacheRequest>)> = Lazy::new(|| unbounded());

@@ -1,6 +1,9 @@
 use nanoid::nanoid;
 use serde::{Deserialize, Serialize};
 
+use super::error::{CacheError, CacheResult};
+
+/* 
 /// Represents the type of CacheStatus
 ///
 /// Signal whether the cache retrieval was a hit or a miss.
@@ -22,9 +25,11 @@ pub enum CacheStorage {
     User,
 }
 
+// CacheManager::add_on_site_request<T>
+
 /// A request structure for the cache.
 ///
-/// This struct is used to encapsulate the details of a task request.v  
+/// This struct is used to encapsulate the details of a task request.
 #[derive(Serialize, Deserialize)]
 pub struct CacheRequest {
     /// A unique identifier for the requested cache item.
@@ -54,8 +59,18 @@ impl CacheRequest {
             cache_action: String::from(cache_action),
         }
     }
+
+    pub fn intepret_request_payload<T: for<'a> Deserialize<'a>>(
+        cache_request: &CacheRequest,
+    ) -> CacheResult<T> {
+        match serde_json::from_str::<T>(&cache_request.cache_payload) {
+            Ok(result) => Ok(result),
+            Err(_) => Err(CacheError::FailedToInterpretPayload),
+        }
+    }
 }
 
+*/
 pub fn test() {
     //CacheRequest::compose_request(todo!(), CacheStorage::Permission, "cache_action");
     //CacheManager::send(request);

@@ -1,6 +1,10 @@
-use crate::app::{database::redis::RedisDatabase, service::cache::INBOUND_CACHE};
+use crate::app::{database::redis::RedisDatabase};
 
+/* 
 use super::message::{CacheRequest, CacheStorage};
+
+// proof on concept new one:
+// CacheManager::send_on_site_request::<Permission>(OnSiteType::Permission, CacheAction::Add, perm);
 
 pub struct CacheManager {
     redis: RedisDatabase,
@@ -42,7 +46,6 @@ impl CacheManager {
             }
         });
     }
-
     
     /// Processes an incoming cache request.
     ///
@@ -90,3 +93,5 @@ impl CacheManager {
         }
     }
 }
+
+*/
