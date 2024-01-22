@@ -11,7 +11,7 @@ use super::{
     database::{
         postgres::{PostgresConfig, PostgresDatabase},
         redis::{RedisConfig, RedisDatabase}
-    }, service::task::manager::TaskManager
+    }, service::{task::manager::TaskManager, cache::manager::CacheManager}
 };
 
 static ADDRESS: &str = "0.0.0.0";
@@ -162,8 +162,8 @@ impl ArkServer {
     async fn register_listeners(pg: PostgresDatabase, redis: RedisDatabase) {
         TaskManager::new(pg)
             .listen();
-        //CacheManager::new(redis)
-        //    .listen();
+        CacheManager::new(redis)
+            .listen();
         //let perm = Permission::builder()
         //    .permission_name("adsdsa")
         //    .permission_key("d312231")

@@ -34,6 +34,8 @@ use once_cell::sync::Lazy;
 
 use crate::app::database::redis::RedisDatabase;
 
+use self::message::CacheRequest;
+
 //use self::{message::CacheRequest, error::CacheResult};
 
 pub mod error;
@@ -41,4 +43,4 @@ pub mod manager;
 pub mod message;
 pub mod reader;
 
-//static INBOUND_CACHE: Lazy<(Sender<CacheRequest>, Receiver<CacheRequest>)> = Lazy::new(|| unbounded());
+static INBOUND_CACHE: Lazy<(Sender<CacheRequest>, Receiver<CacheRequest>)> = Lazy::new(|| unbounded());

@@ -1,9 +1,48 @@
 use nanoid::nanoid;
 use serde::{Deserialize, Serialize};
 
-use super::error::{CacheError, CacheResult};
+#[derive(Debug, Serialize, Deserialize)]
+pub enum CacheLocation {
+    Permission,
+    Role,
+    User,
+}
 
-/* 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CacheRequest {
+    /// A unique identifier for the requested cache item.
+    pub cache_id: String,
+
+    /// The action to perform.
+    pub cache_action: String,
+
+    /// The payload to send to the cache manager.
+    pub cache_payload: String,
+
+    /// The location to store the item in the cache.
+    pub cache_location: CacheLocation,
+}
+
+impl CacheRequest {
+    pub fn compose_request<T: for<'a> Deserialize<'a> + Serialize>(
+        cache_payload: T,
+        cache_action: &str,
+        cache_location: CacheLocation,
+    ) -> Self {
+        Self {
+            cache_id: format!("cache-{}", nanoid!(7)),
+            cache_payload: serde_json::to_string(&cache_payload).unwrap(),
+            cache_action: String::from(cache_action),
+            cache_location,
+        }
+    }
+}
+
+pub fn test() {
+    //CacheRequest::compose_request(cache_payload, "permission_cache_create");
+}
+
+/*
 /// Represents the type of CacheStatus
 ///
 /// Signal whether the cache retrieval was a hit or a miss.
@@ -71,11 +110,9 @@ impl CacheRequest {
 }
 
 */
-pub fn test() {
-    //CacheRequest::compose_request(todo!(), CacheStorage::Permission, "cache_action");
-    //CacheManager::send(request);
-    //CacheReader::
-}
+//  CacheRequest::compose_request(todo!(), CacheStorage::Permission, "cache_action");
+//  CacheManager::send(request);
+//  CacheReader::
 
 //CacheReader::off_site(CacheOffSite::User).read(ddd) database like redis (sends it to the cache off site channel.)
 //CacheReader::on_site(CacheOnSite::Permission).read(sdadasd) it's stored in the code like a map or vec

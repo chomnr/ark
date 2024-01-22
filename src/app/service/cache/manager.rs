@@ -1,10 +1,115 @@
-use crate::app::{database::redis::RedisDatabase};
+use crate::app::{
+    database::redis::RedisDatabase, service::cache::INBOUND_CACHE,
+};
 
-/* 
-use super::message::{CacheRequest, CacheStorage};
+use super::message::CacheRequest;
 
 // proof on concept new one:
-// CacheManager::send_on_site_request::<Permission>(OnSiteType::Permission, CacheAction::Add, perm);
+// CacheManager::send_modify_request::<Permission>("permission_cache_add", perm);
+// CacheManager::send_retrieval_request::<T>(id: &str) -> CacheResult<T>;
+// CacheManager::send_return_request::<T>(id: &str) -> CacheResult<T>;
+
+// CacheRequest {cache_id, cache_action, cache}
+
+pub struct CacheManager {
+    redis: RedisDatabase,
+}
+
+impl CacheManager {
+    pub fn new(redis: RedisDatabase) -> Self {
+        Self { redis }
+    }
+
+    /// Starts the listening process for cache requests.
+    ///
+    /// # Examples
+    /// ```
+    /// // Assuming `self` is an instance of the containing struct with a valid `redis` field
+    /// self.listen();
+    /// ```
+    pub fn listen(self) {
+        let redis_clone = self.redis.clone();
+        self.initialize_listener(redis_clone);
+    }
+
+    /// Initializes and starts the cache listener.
+    ///
+    /// # Arguments
+    /// - `redis_clone`: A cloned instance of `RedisDatabase` used for handling database operations.
+    ///
+    /// # Examples
+    /// ```
+    /// // Assume `pg_clone` is a cloned instance of PostgresDatabase
+    /// self.initialize_listener(pg_clone);
+    /// ```
+    fn initialize_listener(self, redis_clone: RedisDatabase) {
+        tokio::task::spawn(async move {
+            let inbound_receiver = &INBOUND_CACHE.1;
+            println!("[ARK] Cache initialized, now listening to incoming requests.");
+            while let Ok(cache_request) = inbound_receiver.recv() {
+                self.process_incoming_request(&redis_clone, cache_request)
+                    .await;
+            }
+        });
+    }
+
+    /// Processes an incoming cache request.
+    ///
+    /// # Arguments
+    /// - `redis_clone`: A reference to a cloned `RedisDatabase` used for database operations.
+    /// - `cache_request`: The `CacheRequest` object representing the received cache.
+    ///
+    /// # Examples
+    /// ```
+    /// // Assume `redis_clone` is a reference to a RedisDatabase and `cache_request` is a valid TaskRequest
+    /// self.process_incoming_request(&pg_clone, cache_request).await;
+    /// ```
+    async fn process_incoming_request(
+        &self,
+        redis_clone: &RedisDatabase,
+        cache_request: CacheRequest,
+    ) {
+        println!(
+            "[CACHE] Successfully received a cache request from {}.",
+            cache_request.cache_id
+        );
+        self.handle_cache_request(redis_clone, cache_request).await;
+    }
+
+    /// Handles a given task request based on its type.
+    ///
+    /// # Arguments
+    /// - `redis`: A reference to the `RedisDatabase` used for database operations.
+    /// - `cache_request`: The `CacheRequest` object containing details about the task to be handled.
+    ///
+    /// # Examples
+    /// ```
+    /// // Assume `redis` is a reference to a RedisDatabase and `cache_request` is a valid CacheRequest
+    /// self.handle_cache_request(&redis, cache_request).await;
+    /// ```
+    async fn handle_cache_request(&self, redis: &RedisDatabase, cache_request: CacheRequest) {
+        // maybe use typeid to check for it?
+        /*
+        match task_request.cache_storage {
+            CacheStorage::Permission => {
+                //let task_response = PermissionTaskHandler::handle(pg, task_request).await;
+                //Self::send_task_response(task_response);
+            },
+            CacheStorage::Role => todo!(),
+            CacheStorage::User => todo!(),
+        }
+        */
+    }
+}
+
+/*
+
+pub fn send_modify_request<T: for<'a> Deserialize<'a> + Serialize + 'static>(action: &str, payload: T) {
+
+    }
+
+
+use super::message::{CacheRequest, CacheStorage};
 
 pub struct CacheManager {
     redis: RedisDatabase,
@@ -46,7 +151,7 @@ impl CacheManager {
             }
         });
     }
-    
+
     /// Processes an incoming cache request.
     ///
     /// # Arguments
@@ -70,7 +175,7 @@ impl CacheManager {
         self.handle_task_request(redis_clone, cache_request).await;
     }
 
-    
+
     /// Handles a given task request based on its type.
     ///
     /// # Arguments
