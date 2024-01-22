@@ -175,7 +175,6 @@ impl ArkServer {
             .build();
 
         //PermissionManager::create_permission(perm);
-        PermissionManager::preload_permission_cache();
         //PermissionManager::update_permission("dd2546c3-e34a-4fcb-9b12-1a96eb6873e3", "permission_name", "dassda");
         //PermissionManager::update_permission("dd2546c3-e34a-4fcb-9b12-1a96eb6873e3", "permission_name", "dassda");
        // PermissionManager::delete_permission("adsdsa");
@@ -199,11 +198,7 @@ impl ArkServer {
     }
 
     async fn preload_necessities() {
-        // match PermissionManager::preload_permission_cache() {
-        //    Ok(_) => println!("preload successful"),
-        //    Err(_) => println!("failed to preload"),
-        // }
-        //println!("{}", PermissionCache::get_cache().read().unwrap().len())
+        PermissionManager::preload_permission_cache().unwrap();
     }
 
     /// Asynchronously loads prerequisites using PostgreSQL and Redis databases.
