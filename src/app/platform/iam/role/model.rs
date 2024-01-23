@@ -5,9 +5,9 @@ use crate::app::platform::iam::permission::model::Permission;
 
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Role {
-    role_id: String,
-    role_name: String,
-    role_permissions: Vec<Permission>
+    pub role_id: String,
+    pub role_name: String,
+    pub role_permissions: Vec<Permission>
 }
 
 impl Role {
