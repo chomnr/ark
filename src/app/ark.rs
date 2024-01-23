@@ -178,7 +178,7 @@ impl ArkServer {
 
     async fn preload_necessities() {
         PermissionManager::preload_permission_cache().unwrap();
-        RoleManager::delete_role("Moderator").unwrap();
+        RoleManager::preload_role_cache().unwrap();
     }
 
     /// Asynchronously loads prerequisites using PostgreSQL and Redis databases.

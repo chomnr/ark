@@ -276,6 +276,12 @@ impl Task<PostgresDatabase, TaskRequest, PermissionUpdateTask> for PermissionUpd
         param: PermissionUpdateTask,
     ) -> TaskResponse {
         let pool = db.pool.get().await.unwrap();
+        if param.update_for.eq_ignore_ascii_case("id") {
+            return TaskResponse::throw_failed_response(
+                request,
+                vec![TaskError::FieldNotMutable.to_string()],
+            ); 
+        }
         let stmt = match pool
             .prepare(
                 format!(

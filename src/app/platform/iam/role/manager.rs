@@ -8,7 +8,7 @@ use crate::app::service::task::{
 
 use super::{
     model::Role,
-    task::{RoleCreateTask, RoleDeleteTask},
+    task::{RoleCreateTask, RoleDeleteTask, RoleUpdateTask, RolePreloadCache},
 };
 
 pub struct RoleManager;
@@ -42,7 +42,9 @@ impl RoleManager {
     /// Composes a role create request.
     ///
     /// # Arguments
-    /// - `identifier`: You want to delete the role by it's id or name.
+    /// - `search_for`: Find a permission based on it's identifier.
+    /// - `update_for`: The field that needs to be updated.
+    /// - `value`: The value of the field.
     ///
     /// # Examples
     /// ```
@@ -57,6 +59,76 @@ impl RoleManager {
             },
             TaskType::Role,
             "role_delete",
+        )
+    }
+    
+     /// Updates specific field within a role.
+    ///
+    /// # Arguments
+    /// - `search_for`: Find a role based on it's identifier.
+    /// - `update_for`: The field that needs to be updated.
+    /// - `value`: The value of the field.
+    ///
+    /// # Examples
+    /// ```
+    /// update_role("dd2546c3-e34a-4fcb-9b12-1a96eb6873e3", "role_name", "Admin");
+    /// update_role("Admin", "role_name", "Administrator");
+    /// ```
+    pub fn update_role(
+        search_by: &str,
+        update_for: &str,
+        value: &str,
+    ) -> TaskResult<TaskStatus> {
+        let request = Self::update_role_request(search_by, update_for, value);
+        TaskManager::process_task(request)
+    }
+
+    /// Composes a role update request.
+    ///
+    /// # Arguments
+    /// - `search_for`: Find a role based on it's identifier.
+    /// - `update_for`: The field that needs to be updated.
+    /// - `value`: The value of the field.
+    ///
+    /// # Examples
+    /// ```
+    /// let task_response = update_role_request("Administrator", "role_name", "Admin");
+    /// ```
+    fn update_role_request(search_by: &str, update_for: &str, value: &str) -> TaskRequest {
+        TaskRequest::compose_request::<RoleUpdateTask>(
+            RoleUpdateTask {
+                search_by: search_by.to_string(),
+                update_for: update_for.to_string(),
+                value: value.to_string(),
+            },
+            TaskType::Role,
+            "role_update",
+        )
+    }
+
+    /// Preload role cache.
+    ///
+    /// # Examples
+    /// ```
+    /// // Assuming `role` is a reference to a valid Permission
+    /// preload_role_cache();
+    /// ```
+    pub fn preload_role_cache() -> TaskResult<TaskStatus> {
+        let request = Self::preload_role_request();
+        TaskManager::process_task(request)
+    }
+
+    /// Composes a permission preload cache request.
+    ///
+    /// # Examples
+    /// ```
+    /// let task_response = preload_permission_request();
+    /// ```
+    fn preload_role_request() -> TaskRequest {
+        TaskRequest::compose_request(
+            RolePreloadCache {},
+            TaskType::Role,
+            "role_preload_cache",
         )
     }
 }

@@ -49,7 +49,7 @@ impl LocalizedCache<Role> for RoleCache {
 
                 if update_for.eq_ignore_ascii_case("role_permissions") {
                     // double check this one...
-                    let string_to_vec: Vec<Permission> = serde_json::from_str(value).unwrap();
+                    let string_to_vec: Vec<String> = serde_json::from_str(value).unwrap();
                     role.role_permissions = string_to_vec
                 }
             }

@@ -9,7 +9,7 @@ use super::task::RoleCreateTask;
 pub struct Role {
     pub role_id: String,
     pub role_name: String,
-    pub role_permissions: Vec<Permission>
+    pub role_permissions: Vec<String>
 }
 
 impl From<RoleCreateTask> for Role {
@@ -23,7 +23,7 @@ impl From<RoleCreateTask> for Role {
 }
 
 impl Role {
-    pub fn new(role_id: &str, role_name: &str, role_permissions: Vec<Permission>) -> Role {
+    pub fn new(role_id: &str, role_name: &str, role_permissions: Vec<String>) -> Role {
         Self {
             role_id: String::from(role_id),
             role_name: String::from(role_name),
@@ -39,7 +39,7 @@ impl Role {
 pub struct RoleBuilder {
     role_id: String,
     role_name: String,
-    role_permissions: Vec<Permission>
+    role_permissions: Vec<String>
 }
 
 impl RoleBuilder {
