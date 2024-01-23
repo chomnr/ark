@@ -10,6 +10,10 @@ pub mod manager;
 pub mod model;
 pub mod task;
 
+
+
+
+/*
 // Cache
 static PERMISSION_CACHE: Lazy<RwLock<Vec<Permission>>> = Lazy::new(|| RwLock::new(Vec::new()));
 
@@ -76,3 +80,4 @@ impl LocalizedCache<Permission> for PermissionCache {
         &PERMISSION_CACHE
     }
 }
+*/

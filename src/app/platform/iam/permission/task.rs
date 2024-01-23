@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::app::{
     database::postgres::PostgresDatabase,
+    platform::iam::role::RoleCache,
     service::{
         cache::{manager::CacheManager, LocalizedCache},
         task::{
@@ -13,7 +14,7 @@ use crate::app::{
     },
 };
 
-use super::{model::Permission, PermissionCache};
+use super::{model::Permission};
 
 pub struct PermissionTaskHandler;
 
@@ -160,7 +161,6 @@ impl Task<PostgresDatabase, TaskRequest, PermissionCreateTask> for PermissionCre
             .await
         {
             Ok(_) => {
-                PermissionCache::add(Permission::from(param.clone()));
                 return TaskResponse::compose_response(
                     request,
                     TaskStatus::Completed,
@@ -218,7 +218,11 @@ impl Task<PostgresDatabase, TaskRequest, PermissionDeleteTask> for PermissionDel
         match pool.execute(&stmt, &[&param.identifier]).await {
             Ok(v) => {
                 if v != 0 {
-                    PermissionCache::remove(&param.identifier);
+                    // get all roles that have this permission then update the cache accordingly.
+                    // might need to convert this into a hashmap
+                    // RoleCache::update(search_by, update_for, value);
+                    // or re-preload the cache?
+
                     return TaskResponse::compose_response(
                         request,
                         TaskStatus::Completed,
@@ -236,7 +240,7 @@ impl Task<PostgresDatabase, TaskRequest, PermissionDeleteTask> for PermissionDel
                 return TaskResponse::throw_failed_response(
                     request,
                     vec![TaskError::TaskInternalError.to_string()],
-                )
+                );
             }
         }
     }
@@ -281,7 +285,7 @@ impl Task<PostgresDatabase, TaskRequest, PermissionUpdateTask> for PermissionUpd
             return TaskResponse::throw_failed_response(
                 request,
                 vec![TaskError::FieldNotMutable.to_string()],
-            ); 
+            );
         }
         let stmt = match pool
             .prepare(
@@ -309,7 +313,6 @@ impl Task<PostgresDatabase, TaskRequest, PermissionUpdateTask> for PermissionUpd
         match pool.execute(&stmt, &[&param.value, &param.search_by]).await {
             Ok(v) => {
                 if v != 0 {
-                    PermissionCache::update(&param.search_by, &param.update_for, &param.value);
                     return TaskResponse::compose_response(
                         request,
                         TaskStatus::Completed,
@@ -346,7 +349,38 @@ impl Task<PostgresDatabase, TaskRequest, PermissionReadTask> for PermissionReadT
         param: PermissionReadTask,
     ) -> TaskResponse {
         let pool = db.pool.get().await.unwrap();
-
+        let stmt = pool
+            .prepare(
+                "SELECT * FROM iam_permissions WHERE id = $1
+        OR permission_name = $1
+        OR permission_key = $1",
+            )
+            .await
+            .unwrap();
+        match pool.query_one(&stmt, &[&param.identifier]).await {
+            Ok(row) => {
+                //    CacheManager::notify_cache_miss(
+                //    "PermissionCache",
+                //    &param.identifier,
+                //    &request.task_id,
+                //      );
+                let permission = Permission::new(row.get(0), row.get(1), row.get(2));
+                //PermissionCache::add(permission.clone());
+                return TaskResponse::compose_response(
+                    request,
+                    TaskStatus::Completed,
+                    permission,
+                    Vec::default(),
+                );
+            }
+            Err(_) => {
+                return TaskResponse::throw_failed_response(
+                    request,
+                    vec![TaskError::PermissionNotFound.to_string()],
+                )
+            }
+        }
+        /*
         match PermissionCache::get(&param.identifier) {
             Ok(permission) => {
                 CacheManager::notify_cache_hit("PermissionCache", &param.identifier, &request.task_id);
@@ -387,6 +421,7 @@ impl Task<PostgresDatabase, TaskRequest, PermissionReadTask> for PermissionReadT
                 }
             }
         }
+        */
     }
 }
 
@@ -404,12 +439,12 @@ impl Task<PostgresDatabase, TaskRequest, PermissionPreloadCache> for PermissionP
 
         match pool.query(&stmt, &[]).await {
             Ok(rows) => {
-                let mut amt_items = 0;
-                for row in rows {
-                    PermissionCache::add(Permission::new(row.get(0), row.get(1), row.get(2)));
-                    amt_items += 1;
-                }
-                println!("[CACHE] cached {} for permission cache.", amt_items);
+                //let mut amt_items = 0;
+                //for row in rows {
+                    //PermissionCache::add(Permission::new(row.get(0), row.get(1), row.get(2)));
+                    //amt_items += 1;
+                //}
+                //println!("[CACHE] cached {} for permission cache.", amt_items);
                 return TaskResponse::compose_response(
                     request,
                     TaskStatus::Completed,
