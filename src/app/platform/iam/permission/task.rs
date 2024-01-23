@@ -231,7 +231,8 @@ impl Task<PostgresDatabase, TaskRequest, PermissionDeleteTask> for PermissionDel
                     vec![TaskError::PermissionNotFound.to_string()],
                 );
             }
-            Err(_) => {
+            Err(er) => {
+                println!("{}", er);
                 return TaskResponse::throw_failed_response(
                     request,
                     vec![TaskError::TaskInternalError.to_string()],
