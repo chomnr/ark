@@ -8,12 +8,24 @@ use crate::app::service::task::{
 
 use super::{
     model::Role,
-    task::{RoleCreateTask, RoleDeleteTask, RoleUpdateTask, RolePreloadCache},
+    task::{RoleCreateTask, RoleDeleteTask, RolePreloadCache, RoleUpdateTask},
 };
 
 pub struct RoleManager;
 
 impl RoleManager {
+     /// Updates specific field within a role.
+    ///
+    /// # Arguments
+    /// - `identifier`: Find a role based on it's identifier.
+    ///
+    /// # Examples
+    /// ```
+    /// let role = PermissionBuilder::builder()
+    ///     .role_name("Member")
+    ///     .build();
+    /// create_role("Member");
+    /// ```
     pub fn create_role(role: Role) -> TaskResult<TaskStatus> {
         let task_request = Self::create_role_request(role);
         TaskManager::process_task(task_request)
@@ -32,8 +44,17 @@ impl RoleManager {
     fn create_role_request(role: Role) -> TaskRequest {
         TaskRequest::compose_request(RoleCreateTask::from(role), TaskType::Role, "role_create")
     }
-    
-    // todo comment...
+
+    /// Updates specific field within a role.
+    ///
+    /// # Arguments
+    /// - `identifier`: Find a role based on it's identifier.
+    ///
+    /// # Examples
+    /// ```
+    /// delete_role("dd2546c3-e34a-4fcb-9b12-1a96eb6873e3");
+    /// delete_role("Admin");
+    /// ```
     pub fn delete_role(identifier: &str) -> TaskResult<TaskStatus> {
         let task_request = Self::delete_role_request(identifier);
         TaskManager::process_task(task_request)
@@ -61,8 +82,8 @@ impl RoleManager {
             "role_delete",
         )
     }
-    
-     /// Updates specific field within a role.
+
+    /// Updates specific field within a role.
     ///
     /// # Arguments
     /// - `search_for`: Find a role based on it's identifier.
@@ -74,11 +95,7 @@ impl RoleManager {
     /// update_role("dd2546c3-e34a-4fcb-9b12-1a96eb6873e3", "role_name", "Admin");
     /// update_role("Admin", "role_name", "Administrator");
     /// ```
-    pub fn update_role(
-        search_by: &str,
-        update_for: &str,
-        value: &str,
-    ) -> TaskResult<TaskStatus> {
+    pub fn update_role(search_by: &str, update_for: &str, value: &str) -> TaskResult<TaskStatus> {
         let request = Self::update_role_request(search_by, update_for, value);
         TaskManager::process_task(request)
     }
@@ -125,10 +142,6 @@ impl RoleManager {
     /// let task_response = preload_permission_request();
     /// ```
     fn preload_role_request() -> TaskRequest {
-        TaskRequest::compose_request(
-            RolePreloadCache {},
-            TaskType::Role,
-            "role_preload_cache",
-        )
+        TaskRequest::compose_request(RolePreloadCache {}, TaskType::Role, "role_preload_cache")
     }
 }

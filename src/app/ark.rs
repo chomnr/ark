@@ -6,6 +6,7 @@ use std::{
 };
 
 use axum::{extract::FromRef, Extension, Router};
+use bb8_postgres::PostgresConnectionManager;
 use tokio::net::TcpListener;
 use tower_cookies::{CookieManagerLayer, Key};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
@@ -19,7 +20,7 @@ use super::{
     },
     platform::iam::{
         permission::manager::PermissionManager,
-        role::{manager::RoleManager},
+        role::{manager::RoleManager, model::Role},
     },
     service::{cache::manager::CacheManager, task::manager::TaskManager},
 };
@@ -176,6 +177,12 @@ impl ArkServer {
     }
 
     async fn preload_necessities() {
+        // let role_mgr = RoleManager::new();
+        // role_mgr.create_role("Fool");
+
+        // RoleManager::stream_line().create_permission("ddd");
+        
+        //RoleManager::create_role(Role::builder().role_name("Member").build()).unwrap();
         //PermissionManager::preload_permission_cache().unwrap();
         //RoleManager::preload_role_cache().unwrap();
         //PermissionManager::create_permission(Permission::builder().permission_name("admin ban").permission_key("admin.ban").build()).unwrap();
