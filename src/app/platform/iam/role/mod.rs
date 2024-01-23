@@ -56,7 +56,6 @@ impl LocalizedCache<Role> for RoleCache {
             None => { /* Handle error. */ }
         }
     }
-
     fn remove(identifier: &str) {
         ROLE_CACHE.write().unwrap().retain(|permission| {
             permission.role_id != identifier && permission.role_name != identifier

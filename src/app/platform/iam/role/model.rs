@@ -3,11 +3,23 @@ use uuid::Uuid;
 
 use crate::app::platform::iam::permission::model::Permission;
 
+use super::task::RoleCreateTask;
+
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Role {
     pub role_id: String,
     pub role_name: String,
     pub role_permissions: Vec<Permission>
+}
+
+impl From<RoleCreateTask> for Role {
+    fn from(value: RoleCreateTask) -> Self {
+        Self {
+            role_id: value.role_id,
+            role_name: value.role_name,
+            role_permissions: value.role_permissions,
+        }
+    }
 }
 
 impl Role {
@@ -44,10 +56,12 @@ impl RoleBuilder {
         self
     }
 
+    /*
     pub fn role_permissions(mut self, permissions: Vec<Permission>) -> RoleBuilder {
         self.role_permissions = permissions;
         self
     }
+    */
 
     pub fn build(self) -> Role {
         Role {

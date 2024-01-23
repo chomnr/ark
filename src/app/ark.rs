@@ -1,10 +1,16 @@
 use core::fmt;
-use std::{env, sync::Arc, time::{UNIX_EPOCH, SystemTime}};
+use std::{
+    env,
+    sync::Arc,
+    time::{SystemTime, UNIX_EPOCH},
+};
 
 use axum::{extract::FromRef, Extension, Router};
 use tokio::net::TcpListener;
 use tower_cookies::{CookieManagerLayer, Key};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+
+use crate::app::service::cache::LocalizedCache;
 
 use super::{
     adapter::oauth_adapter::OAuthCollectionAdapter,
@@ -12,7 +18,10 @@ use super::{
         postgres::{PostgresConfig, PostgresDatabase},
         redis::{RedisConfig, RedisDatabase},
     },
-    platform::iam::permission::{manager::PermissionManager, model::Permission},
+    platform::iam::{
+        permission::{manager::PermissionManager, model::Permission},
+        role::{manager::RoleManager, model::Role, RoleCache},
+    },
     service::{cache::manager::CacheManager, task::manager::TaskManager},
 };
 
@@ -169,6 +178,7 @@ impl ArkServer {
 
     async fn preload_necessities() {
         PermissionManager::preload_permission_cache().unwrap();
+        RoleManager::delete_role("Moderator").unwrap();
     }
 
     /// Asynchronously loads prerequisites using PostgreSQL and Redis databases.
