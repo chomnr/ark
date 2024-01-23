@@ -10,7 +10,6 @@ use tokio::net::TcpListener;
 use tower_cookies::{CookieManagerLayer, Key};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
-use crate::app::service::cache::LocalizedCache;
 
 use super::{
     adapter::oauth_adapter::OAuthCollectionAdapter,
@@ -19,8 +18,8 @@ use super::{
         redis::{RedisConfig, RedisDatabase},
     },
     platform::iam::{
-        permission::{manager::PermissionManager, model::Permission},
-        role::{manager::RoleManager, model::Role, RoleCache},
+        permission::manager::PermissionManager,
+        role::{manager::RoleManager},
     },
     service::{cache::manager::CacheManager, task::manager::TaskManager},
 };
@@ -177,8 +176,8 @@ impl ArkServer {
     }
 
     async fn preload_necessities() {
-        PermissionManager::preload_permission_cache().unwrap();
-        RoleManager::preload_role_cache().unwrap();
+        //PermissionManager::preload_permission_cache().unwrap();
+        //RoleManager::preload_role_cache().unwrap();
         //PermissionManager::create_permission(Permission::builder().permission_name("admin ban").permission_key("admin.ban").build()).unwrap();
         //RoleManager::create_role(Role::builder().role_name("Administrator").build()).unwrap();
         //PermissionManager::delete_permission("b9389d1a-10ce-43c1-bb04-e4963409239c").unwrap();

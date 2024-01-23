@@ -1,23 +1,18 @@
-use std::time::Duration;
-
 use axum::async_trait;
 use serde::{Deserialize, Serialize};
-use tokio::time::sleep;
 
 use crate::app::{
     database::postgres::PostgresDatabase,
-    platform::iam::permission::{manager::PermissionManager, model::Permission, PermissionCache},
-    service::{
-        cache::LocalizedCache,
+    service::
         task::{
             error::TaskError,
             message::{TaskRequest, TaskResponse, TaskStatus},
             Task, TaskHandler,
-        },
-    },
+        }
+    ,
 };
 
-use super::{model::Role, RoleCache};
+use super::model::Role;
 
 pub struct RoleTaskHandler;
 
@@ -133,7 +128,7 @@ impl Task<PostgresDatabase, TaskRequest, RoleCreateTask> for RoleCreateTask {
         {
             Ok(_) => {
                 let role = Role::from(param);
-                RoleCache::add(role.clone());
+                //RoleCache::add(role.clone());
                 return TaskResponse::compose_response(
                     request,
                     TaskStatus::Completed,
@@ -198,7 +193,7 @@ impl Task<PostgresDatabase, TaskRequest, RoleUpdateTask> for RoleUpdateTask {
         match pool.execute(&stmt, &[&param.value, &param.search_by]).await {
             Ok(v) => {
                 if v != 0 {
-                    RoleCache::update(&param.search_by, &param.update_for, &param.value);
+                    //RoleCache::update(&param.search_by, &param.update_for, &param.value);
                     return TaskResponse::compose_response(
                         request,
                         TaskStatus::Completed,
@@ -246,7 +241,7 @@ impl Task<PostgresDatabase, TaskRequest, RoleDeleteTask> for RoleDeleteTask {
         match pool.execute(&stmt, &[&param.identifier]).await {
             Ok(v) => {
                 if v != 0 {
-                    RoleCache::remove(&param.identifier);
+                    //RoleCache::remove(&param.identifier);
                     return TaskResponse::compose_response(
                         request,
                         TaskStatus::Completed,
@@ -278,13 +273,16 @@ impl Task<PostgresDatabase, TaskRequest, RolePreloadCache> for RolePreloadCache 
         request: TaskRequest,
         param: RolePreloadCache,
     ) -> TaskResponse {
+        todo!();
+
+        
         let pool = db.pool.get().await.unwrap();
         let stmt = pool.prepare("SELECT * FROM iam_roles").await.unwrap();
 
         match pool.query(&stmt, &[]).await {
             Ok(rows) => {
-                let mut amt_items = 0;
-                let mut role_permissions = Vec::new();
+                //let mut amt_items = 0;
+                //let mut role_permissions = Vec::new();
                 for row in rows {
                     let stmt = pool
                         .prepare("SELECT permission_id FROM iam_role_permission WHERE role_id = $1")
@@ -293,7 +291,7 @@ impl Task<PostgresDatabase, TaskRequest, RolePreloadCache> for RolePreloadCache 
                     match pool.query(&stmt, &[&row.get::<usize, String>(0)]).await {
                         Ok(permissions) => {
                             for permission in permissions {
-                                role_permissions.push(permission.get(0))
+                                //role_permissions.push(permission.get(0))
                             }
                         }
                         Err(er) => {
@@ -302,10 +300,10 @@ impl Task<PostgresDatabase, TaskRequest, RolePreloadCache> for RolePreloadCache 
                         }
                     }
                     // add to cache.
-                    RoleCache::add(Role::new(row.get(0), row.get(1), role_permissions.clone()));
-                    amt_items += 1;
+                    //RoleCache::add(Role::new(row.get(0), row.get(1), role_permissions.clone()));
+                    //amt_items += 1;
                 }
-                println!("[CACHE] cached {} for role cache.", amt_items);
+                //println!("[CACHE] cached {} for role cache.", amt_items);
                 return TaskResponse::compose_response(
                     request,
                     TaskStatus::Completed,

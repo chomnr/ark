@@ -3,18 +3,16 @@ use serde::{Deserialize, Serialize};
 
 use crate::app::{
     database::postgres::PostgresDatabase,
-    platform::iam::role::RoleCache,
-    service::{
-        cache::{manager::CacheManager, LocalizedCache},
+    service::
         task::{
             error::TaskError,
             message::{TaskRequest, TaskResponse, TaskStatus},
             Task, TaskHandler,
-        },
-    },
+        }
+    ,
 };
 
-use super::{model::Permission};
+use super::model::Permission;
 
 pub struct PermissionTaskHandler;
 
@@ -434,6 +432,8 @@ impl Task<PostgresDatabase, TaskRequest, PermissionPreloadCache> for PermissionP
         request: TaskRequest,
         param: PermissionPreloadCache,
     ) -> TaskResponse {
+        todo!();
+        
         let pool = db.pool.get().await.unwrap();
         let stmt = pool.prepare("SELECT * FROM iam_permissions").await.unwrap();
 

@@ -15,6 +15,7 @@ pub mod manager;
 pub mod model;
 pub mod task;
 
+/* 
 static ROLE_CACHE: Lazy<RwLock<Vec<Role>>> = Lazy::new(|| RwLock::new(Vec::new()));
 
 pub struct RoleCache;
@@ -75,3 +76,4 @@ impl LocalizedCache<Role> for RoleCache {
         &ROLE_CACHE
     }
 }
+*/
