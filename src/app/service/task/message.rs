@@ -23,6 +23,7 @@ pub enum TaskStatus {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum TaskType {
     Permission,
+    Role
 }
 
 /// A request structure for a task.
