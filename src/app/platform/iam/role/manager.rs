@@ -8,7 +8,7 @@ use crate::app::service::task::{
 
 use super::{
     model::Role,
-    task::{RoleCreateTask, RoleDeleteTask, RolePreloadCache, RoleUpdateTask},
+    task::{RoleCreateTask, RoleDeleteTask, RolePreloadCache, RoleUpdateTask, RoleReadTask},
 };
 
 pub struct RoleManager;
@@ -120,6 +120,39 @@ impl RoleManager {
             },
             TaskType::Role,
             "role_update",
+        )
+    }
+
+    /// Read a specific role
+    ///
+    /// # Arguments
+    /// - `identifier`: Find a role based on it's identifier.
+    ///
+    /// # Examples
+    /// ```
+    /// get_role("Administrator");
+    /// ```
+    pub fn get_role(identifier: &str) -> TaskResult<Role> {
+        let request = Self::read_role_request(identifier);
+        TaskManager::process_task_with_result::<Role>(request)
+    }
+
+    /// Composes a role update request.
+    ///
+    /// # Arguments
+    /// - `identifier`: Find a role based on it's identifier.
+    ///
+    /// # Examples
+    /// ```
+    /// let task_response = read_role_request("Administrator");
+    /// ```
+    fn read_role_request(identifier: &str) -> TaskRequest {
+        TaskRequest::compose_request::<RoleReadTask>(
+            RoleReadTask {
+                identifier: String::from(identifier),
+            },
+            TaskType::Role,
+            "role_read",
         )
     }
 

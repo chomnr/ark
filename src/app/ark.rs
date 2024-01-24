@@ -173,6 +173,7 @@ impl ArkServer {
         PermissionManager::preload_permission_cache().unwrap();
         RoleManager::preload_role_cache().unwrap();
 
+        println!("{:?}", RoleManager::get_role("Administrator").unwrap().role_permissions)
         // let role_mgr = RoleManager::new();
         // role_mgr.create_role("Fool");
 
