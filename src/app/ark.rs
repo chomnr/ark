@@ -12,7 +12,7 @@ use super::{
         postgres::{PostgresConfig, PostgresDatabase},
         redis::{RedisConfig, RedisDatabase},
     },
-    platform::iam::permission::{manager::PermissionManager, model::Permission},
+    platform::iam::{permission::{manager::PermissionManager, model::Permission}, role::manager::RoleManager},
     service::task::manager::TaskManager,
 };
 
@@ -171,6 +171,7 @@ impl ArkServer {
 
     async fn preload_necessities() {
         PermissionManager::preload_permission_cache().unwrap();
+        RoleManager::preload_role_cache().unwrap();
         // let role_mgr = RoleManager::new();
         // role_mgr.create_role("Fool");
 

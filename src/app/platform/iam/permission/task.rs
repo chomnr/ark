@@ -1,5 +1,6 @@
 use axum::async_trait;
 use serde::{Deserialize, Serialize};
+use syn::parenthesized;
 
 use crate::app::{
     database::postgres::PostgresDatabase,
@@ -321,6 +322,14 @@ impl Task<PostgresDatabase, TaskRequest, PermissionUpdateTask> for PermissionUpd
         {
             Ok(v) => {
                 if v.len() != 0 {
+                    let old_perm = PermissionCache::get(v.get(0)).unwrap();
+                    // id should automatically get replaced...
+                    if param.update_for.eq("permission_name") {
+                        PermissionCache::remove(&old_perm.permission_name).unwrap();
+                    }
+                    if param.update_for.eq("permission_key") {
+                        PermissionCache::remove(&old_perm.permission_key).unwrap();
+                    }
                     PermissionCache::add(Permission::new(v.get(0), v.get(1), v.get(2)));
                     return TaskResponse::compose_response(
                         request,

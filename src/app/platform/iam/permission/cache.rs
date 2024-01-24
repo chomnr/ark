@@ -20,10 +20,20 @@ pub(super) struct PermissionCache;
 
 impl LocalizedCache<Permission> for PermissionCache {
     fn add(item: Permission) {
+        let shared_item = Arc::new(item); // Create a single Arc reference to the item
         let mut cache = PERMISSION_CACHE.write().unwrap();
-        cache.insert(item.clone().permission_id, Arc::new(item.clone()));
-        cache.insert(item.clone().permission_name, Arc::new(item.clone()));
-        cache.insert(item.clone().permission_key, Arc::new(item.clone()));
+        cache.insert(shared_item.permission_id.clone(), Arc::clone(&shared_item));
+        cache.insert(
+            shared_item.permission_name.clone(),
+            Arc::clone(&shared_item),
+        );
+        cache.insert(shared_item.permission_key.clone(), Arc::clone(&shared_item));
+    }
+
+    fn single_add(item: Permission) {
+        let shared_item = Arc::new(item);
+        let mut cache = PERMISSION_CACHE.write().unwrap();
+        cache.insert(shared_item.permission_id.clone(), Arc::clone(&shared_item));
     }
 
     fn remove(id: &str) -> CacheResult<bool> {

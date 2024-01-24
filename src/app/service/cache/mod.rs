@@ -41,6 +41,7 @@ pub mod reader;
 
 pub trait LocalizedCache<T> {
     fn add(item: T);
+    fn single_add(item: T);
     fn remove(id: &str) -> CacheResult<bool>;
     fn get(id: &str) -> CacheResult<T>;
 }
