@@ -28,14 +28,44 @@
 //                        +---------------+       | Result         |
 //                                                +----------------+
 
-//use self::message::{CacheRequest, CacheResponse};
+use std::sync::Arc;
 
-//use self::{message::CacheRequest, error::CacheResult};
+use chrono::Utc;
+
+use self::error::CacheResult;
 
 pub mod error;
 pub mod manager;
 pub mod message;
 pub mod reader;
+
+pub trait LocalizedCache<T> {
+    fn add(item: T);
+    fn remove(id: &str) -> CacheResult<bool>;
+    fn get(id: &str) -> CacheResult<T>;
+}
+
+pub fn notify_cache_hit(source: &str, cache_key: &str, task_id: &str) {
+    // todo do some actual logging here...
+    println!(
+        "[CACHE] HIT Successfully retrieved the requested item from the cache\n - Task Id: {}\n - Cache Key: {}\n - Timestamp: {}\n - Source: {}",
+        task_id,
+        cache_key,
+        Utc::now().format("%Y-%m-%d %H:%M:%S").to_string(),
+        source
+    );
+}
+
+pub fn notify_cache_miss(source: &str, cache_key: &str, task_id: &str) {
+    // todo do some actual logging here...
+    println!(
+        "[CACHE] MISS The requested item was not found in the cache.\n - Task Id: {}\n - Cache Key: {}\n - Timestamp: {}\n - Source: {}",
+        task_id,
+        cache_key,
+        Utc::now().format("%Y-%m-%d %H:%M:%S").to_string(),
+        source
+    );
+}
 
 //static INBOUND_CACHE: Lazy<(Sender<CacheRequest>, Receiver<CacheRequest>)> =
 //    Lazy::new(|| unbounded());

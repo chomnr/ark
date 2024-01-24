@@ -1,14 +1,10 @@
 use core::fmt;
-use std::{
-    env,
-    sync::Arc,
-};
+use std::{env, sync::Arc};
 
 use axum::{extract::FromRef, Extension, Router};
 use tokio::net::TcpListener;
 use tower_cookies::{CookieManagerLayer, Key};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
-
 
 use super::{
     adapter::oauth_adapter::OAuthCollectionAdapter,
@@ -16,6 +12,7 @@ use super::{
         postgres::{PostgresConfig, PostgresDatabase},
         redis::{RedisConfig, RedisDatabase},
     },
+    platform::iam::permission::{manager::PermissionManager, model::Permission},
     service::task::manager::TaskManager,
 };
 
@@ -167,15 +164,18 @@ impl ArkServer {
     /// ```
     async fn register_listeners(pg: PostgresDatabase, redis: RedisDatabase) {
         TaskManager::new(pg).listen();
+        //PermissionManager::create_permission(Permission::builder().permission_name("admin ban").permission_key("admin.ban").build()).unwrap();
+        //PermissionManager::create_permission(Permission::builder().permission_name("admin test").permission_key("admin.test").build()).unwrap();
         //CacheManager::new(redis).listen();
     }
 
     async fn preload_necessities() {
+        PermissionManager::preload_permission_cache().unwrap();
         // let role_mgr = RoleManager::new();
         // role_mgr.create_role("Fool");
 
         // RoleManager::stream_line().create_permission("ddd");
-        
+
         //RoleManager::create_role(Role::builder().role_name("Member").build()).unwrap();
         //PermissionManager::preload_permission_cache().unwrap();
         //RoleManager::preload_role_cache().unwrap();

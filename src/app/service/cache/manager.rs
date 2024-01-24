@@ -1,11 +1,9 @@
 // on site-caching
-pub struct LocalCacheManager;
+// pub struct LocalCacheManager;
 
-impl LocalCacheManager {
+// impl LocalCacheManager {//}
 
-}
-
-//LocalCacheManager<Permission>::
+//LocalCacheManager<Permission>//::
 
 // let cache = LocalCacheManager::from("ddd")
 // cache.add(33);
