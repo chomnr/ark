@@ -196,6 +196,8 @@ impl Task<PostgresDatabase, TaskRequest, RoleUpdateTask> for RoleUpdateTask {
         {
             Ok(v) => {
                 if v.len() != 0 {
+                    let old_role = RoleCache::get(v.get(0)).unwrap();
+                    RoleCache::remove(&old_role.role_name).unwrap();
                     // TODO THIS....
                     // TODO THIS....
                     // TODO THIS....
@@ -206,10 +208,6 @@ impl Task<PostgresDatabase, TaskRequest, RoleUpdateTask> for RoleUpdateTask {
                         v.get(1),
                         RoleCache::get(v.get(0)).unwrap().role_permissions,
                     ));
-                    
-                    // Remove old value
-                    RoleCache::remove(&param.search_by).unwrap();
-
                     return TaskResponse::compose_response(
                         request,
                         TaskStatus::Completed,
