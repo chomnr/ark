@@ -1,6 +1,8 @@
 use nanoid::nanoid;
 use serde::{Deserialize, Serialize};
 
+// caches 
+
 #[derive(Debug, Serialize, Deserialize)]
 pub enum CacheLocation {
     User,

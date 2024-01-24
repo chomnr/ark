@@ -28,12 +28,10 @@
 //                        +---------------+       | Result         |
 //                                                +----------------+
 
-use std::sync::RwLock;
-
 use crossbeam_channel::{unbounded, Receiver, Sender};
 use once_cell::sync::Lazy;
 
-use self::{message::{CacheRequest, CacheResponse}, error::CacheResult};
+use self::message::{CacheRequest, CacheResponse};
 
 //use self::{message::CacheRequest, error::CacheResult};
 
@@ -47,6 +45,7 @@ static INBOUND_CACHE: Lazy<(Sender<CacheRequest>, Receiver<CacheRequest>)> =
 static OUTBOUND_CACHE: Lazy<(Sender<CacheResponse>, Receiver<CacheResponse>)> =
     Lazy::new(|| unbounded());
 
+/*
 pub trait LocalizedCache<T> {
     fn add(perm: T);
     fn update(search_by: &str, update_for: &str, value: &str);
@@ -54,6 +53,7 @@ pub trait LocalizedCache<T> {
     fn get(identifier: &str) -> CacheResult<T>;
     fn get_cache() -> &'static RwLock<Vec<T>>;
 }
+*/
 
 /*
  pub search_by: String,

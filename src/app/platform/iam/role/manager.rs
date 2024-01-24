@@ -24,7 +24,7 @@ impl RoleManager {
     /// let role = PermissionBuilder::builder()
     ///     .role_name("Member")
     ///     .build();
-    /// create_role("Member");
+    /// create_role(role);
     /// ```
     pub fn create_role(role: Role) -> TaskResult<TaskStatus> {
         let task_request = Self::create_role_request(role);

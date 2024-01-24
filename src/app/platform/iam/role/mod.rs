@@ -1,16 +1,3 @@
-use std::sync::RwLock;
-
-use once_cell::sync::Lazy;
-
-use crate::app::service::cache::{
-    error::{CacheError, CacheResult},
-    LocalizedCache,
-};
-
-use self::model::Role;
-
-use super::permission::model::Permission;
-
 pub mod manager;
 pub mod model;
 pub mod task;
