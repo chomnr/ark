@@ -2,11 +2,9 @@ use core::fmt;
 use std::{
     env,
     sync::Arc,
-    time::{SystemTime, UNIX_EPOCH},
 };
 
 use axum::{extract::FromRef, Extension, Router};
-use bb8_postgres::PostgresConnectionManager;
 use tokio::net::TcpListener;
 use tower_cookies::{CookieManagerLayer, Key};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
@@ -18,11 +16,7 @@ use super::{
         postgres::{PostgresConfig, PostgresDatabase},
         redis::{RedisConfig, RedisDatabase},
     },
-    platform::iam::{
-        permission::manager::PermissionManager,
-        role::{manager::RoleManager, model::Role},
-    },
-    service::{cache::manager::CacheManager, task::manager::TaskManager},
+    service::task::manager::TaskManager,
 };
 
 static ADDRESS: &str = "0.0.0.0";
@@ -173,7 +167,7 @@ impl ArkServer {
     /// ```
     async fn register_listeners(pg: PostgresDatabase, redis: RedisDatabase) {
         TaskManager::new(pg).listen();
-        CacheManager::new(redis).listen();
+        //CacheManager::new(redis).listen();
     }
 
     async fn preload_necessities() {

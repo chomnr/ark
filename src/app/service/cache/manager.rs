@@ -1,11 +1,14 @@
-use chrono::Utc;
+// on site-caching
+pub struct LocalCacheManager;
 
-use crate::app::{database::redis::RedisDatabase, service::cache::INBOUND_CACHE};
+impl LocalCacheManager {
 
-use super::{
-    message::{CacheLocation, CacheRequest, CacheResponse},
-    OUTBOUND_CACHE,
-};
+}
+
+//LocalCacheManager<Permission>::
+
+// let cache = LocalCacheManager::from("ddd")
+// cache.add(33);
 
 // proof on concept new one:
 // CacheManager::send_modify_request::<Permission>("permission_cache_add", perm);
@@ -14,6 +17,7 @@ use super::{
 
 // CacheRequest {cache_id, cache_action, cache}
 
+/*
 pub struct CacheManager {
     redis: RedisDatabase,
 }
@@ -170,3 +174,6 @@ impl CacheManager {
         }
     }
 }
+*/
+
+//let cache = CacheManager::new();

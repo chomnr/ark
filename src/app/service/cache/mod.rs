@@ -28,10 +28,7 @@
 //                        +---------------+       | Result         |
 //                                                +----------------+
 
-use crossbeam_channel::{unbounded, Receiver, Sender};
-use once_cell::sync::Lazy;
-
-use self::message::{CacheRequest, CacheResponse};
+//use self::message::{CacheRequest, CacheResponse};
 
 //use self::{message::CacheRequest, error::CacheResult};
 
@@ -40,10 +37,17 @@ pub mod manager;
 pub mod message;
 pub mod reader;
 
-static INBOUND_CACHE: Lazy<(Sender<CacheRequest>, Receiver<CacheRequest>)> =
-    Lazy::new(|| unbounded());
-static OUTBOUND_CACHE: Lazy<(Sender<CacheResponse>, Receiver<CacheResponse>)> =
-    Lazy::new(|| unbounded());
+//static INBOUND_CACHE: Lazy<(Sender<CacheRequest>, Receiver<CacheRequest>)> =
+//    Lazy::new(|| unbounded());
+//static OUTBOUND_CACHE: Lazy<(Sender<CacheResponse>, Receiver<CacheResponse>)> =
+//    Lazy::new(|| unbounded());
+
+
+// Cache
+// CacheItem<Permission> 
+
+// Directional Linking?
+// 
 
 /*
 pub trait LocalizedCache<T> {
