@@ -46,12 +46,12 @@ pub trait LocalizedCache<T> {
     fn get(id: &str) -> CacheResult<T>;
 }
 
-pub fn notify_cache_hit(source: &str, cache_key: &str, task_id: &str) {
+pub fn notify_cache_hit(source: &str, action: &str, task_id: &str) {
     // todo do some actual logging here...
     println!(
         "[CACHE] HIT Successfully retrieved the requested item from the cache\n - Task Id: {}\n - Cache Key: {}\n - Timestamp: {}\n - Source: {}",
         task_id,
-        cache_key,
+        action,
         Utc::now().format("%Y-%m-%d %H:%M:%S").to_string(),
         source
     );

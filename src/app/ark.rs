@@ -12,7 +12,7 @@ use super::{
         postgres::{PostgresConfig, PostgresDatabase},
         redis::{RedisConfig, RedisDatabase},
     },
-    platform::iam::{permission::{manager::PermissionManager, model::Permission}, role::manager::RoleManager},
+    platform::iam::{permission::manager::PermissionManager, role::manager::RoleManager},
     service::task::manager::TaskManager,
 };
 
@@ -173,7 +173,17 @@ impl ArkServer {
         PermissionManager::preload_permission_cache().unwrap();
         RoleManager::preload_role_cache().unwrap();
 
-        println!("{:?}", RoleManager::get_role("Administrator").unwrap().role_permissions)
+        println!(
+            "{:?}",
+            RoleManager::get_role("Administrator")
+                .unwrap()
+                .role_permissions
+        );
+        
+        //RoleManager::link_permission_to_role("Moderator", "admin test").unwrap();
+
+
+        //println!("{:?}", RoleManager::get_role("Administrator").unwrap().role_permissions)
         // let role_mgr = RoleManager::new();
         // role_mgr.create_role("Fool");
 

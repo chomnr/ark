@@ -1,4 +1,7 @@
-use crate::app::service::cache::{notify_cache_hit, notify_cache_miss, LocalizedCache};
+use crate::app::{
+    platform::iam::permission::{cache::PermissionCache, manager::PermissionManager},
+    service::cache::{notify_cache_hit, notify_cache_miss, LocalizedCache},
+};
 use axum::async_trait;
 use serde::{Deserialize, Serialize};
 
@@ -61,21 +64,48 @@ impl TaskHandler for RoleTaskHandler {
         }
 
         if task_request.task_action.eq("role_read") {
-            let payload =
-                match TaskRequest::intepret_request_payload::<RoleReadTask>(&task_request) {
-                    Ok(p) => p,
-                    Err(_) => {
-                        return TaskResponse::throw_failed_response(
-                            task_request,
-                            vec![TaskError::FailedToInterpretPayload.to_string()],
-                        )
-                    }
-                };
+            let payload = match TaskRequest::intepret_request_payload::<RoleReadTask>(&task_request)
+            {
+                Ok(p) => p,
+                Err(_) => {
+                    return TaskResponse::throw_failed_response(
+                        task_request,
+                        vec![TaskError::FailedToInterpretPayload.to_string()],
+                    )
+                }
+            };
             return RoleReadTask::run(pg, task_request, payload).await;
         }
 
         if task_request.task_action.eq("role_add_permission") {
-            todo!()
+            let payload = match TaskRequest::intepret_request_payload::<RolePermissionLinkToRole>(
+                &task_request,
+            ) {
+                Ok(p) => p,
+                Err(_) => {
+                    return TaskResponse::throw_failed_response(
+                        task_request,
+                        vec![TaskError::FailedToInterpretPayload.to_string()],
+                    )
+                }
+            };
+            return RolePermissionLinkToRole::run(pg, task_request, payload).await;
+        }
+
+        if task_request.task_action.eq("role_delete_permission") {
+            let payload = match TaskRequest::intepret_request_payload::<
+                RolePermissionDeleteLinkToRole,
+            >(&task_request)
+            {
+                Ok(p) => p,
+                Err(_) => {
+                    return TaskResponse::throw_failed_response(
+                        task_request,
+                        vec![TaskError::FailedToInterpretPayload.to_string()],
+                    )
+                }
+            };
+            return RolePermissionDeleteLinkToRole::run(pg, task_request, payload).await;
         }
 
         if task_request.task_action.eq("role_preload_cache") {
@@ -299,7 +329,7 @@ impl Task<PostgresDatabase, TaskRequest, RoleReadTask> for RoleReadTask {
         let pool = db.pool.get().await.unwrap();
         match RoleCache::get(&param.identifier) {
             Ok(role) => {
-                notify_cache_hit("RoleCache", &param.identifier, &request.task_id);
+                notify_cache_hit("RoleCache", "RoleReadTask", &request.task_id);
                 return TaskResponse::compose_response(
                     request,
                     TaskStatus::Completed,
@@ -317,7 +347,7 @@ impl Task<PostgresDatabase, TaskRequest, RoleReadTask> for RoleReadTask {
                     .unwrap();
                 match pool.query_one(&stmt, &[&param.identifier]).await {
                     Ok(row) => {
-                        notify_cache_miss("RoleCache", &param.identifier, &request.task_id);
+                        notify_cache_miss("RoleCache", "RoleReadTask", &request.task_id);
                         let mut role_permissions: Vec<String> = Vec::new();
                         let stmt = pool
                             .prepare(
@@ -347,7 +377,7 @@ impl Task<PostgresDatabase, TaskRequest, RoleReadTask> for RoleReadTask {
                     Err(_) => {
                         return TaskResponse::throw_failed_response(
                             request,
-                            vec![TaskError::PermissionNotFound.to_string()],
+                            vec![TaskError::RoleNotFound.to_string()],
                         )
                     }
                 }
@@ -371,8 +401,8 @@ impl Task<PostgresDatabase, TaskRequest, RolePreloadCache> for RolePreloadCache 
         match pool.query(&stmt, &[]).await {
             Ok(rows) => {
                 let mut amt_items = 0;
-                let mut role_permissions: Vec<String> = Vec::new();
                 for row in rows {
+                    let mut role_permissions: Vec<String> = Vec::new();
                     let stmt = pool
                         .prepare("SELECT permission_id FROM iam_role_permission WHERE role_id = $1")
                         .await
@@ -403,6 +433,136 @@ impl Task<PostgresDatabase, TaskRequest, RolePreloadCache> for RolePreloadCache 
                     request,
                     vec![TaskError::PermissionFailedToPreload.to_string()],
                 )
+            }
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+pub(super) struct RolePermissionLinkToRole {
+    pub role_id: String,
+    pub permission_id: String,
+}
+#[async_trait]
+impl Task<PostgresDatabase, TaskRequest, RolePermissionLinkToRole> for RolePermissionLinkToRole {
+    async fn run(
+        db: &PostgresDatabase,
+        request: TaskRequest,
+        param: RolePermissionLinkToRole,
+    ) -> TaskResponse {
+        let pool = db.pool.get().await.unwrap();
+
+        let role_to_id = match RoleCache::get(&param.role_id) {
+            Ok(v) => v.role_id,
+            Err(_) => {
+                return TaskResponse::throw_failed_response(
+                    request,
+                    vec![TaskError::RoleNotFound.to_string()],
+                )
+            }
+        };
+        let permission_to_id = match PermissionCache::get(&param.permission_id) {
+            Ok(v) => v.permission_id,
+            Err(_) => {
+                return TaskResponse::throw_failed_response(
+                    request,
+                    vec![TaskError::PermissionNotFound.to_string()],
+                )
+            }
+        };
+
+        let stmt = pool
+            .prepare("INSERT INTO iam_role_permission (role_id, permission_id) VALUES ($1, $2)")
+            .await
+            .unwrap();
+        match pool.query(&stmt, &[&role_to_id, &permission_to_id]).await {
+            Ok(_) => {
+                // overrides the existing role (because value is the value is a shared state(arc))
+                // it should reflect throughout the rest of the application
+                let mut role = RoleCache::get(&param.role_id).unwrap();
+                role.role_permissions.push(permission_to_id);
+                RoleCache::single_add(role);
+                return TaskResponse::compose_response(
+                    request,
+                    TaskStatus::Completed,
+                    param,
+                    Vec::default(),
+                );
+            }
+            Err(_) => {
+                return TaskResponse::throw_failed_response(
+                    request,
+                    vec![TaskError::RoleLinkFailedToLink.to_string()],
+                )
+            }
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+pub(super) struct RolePermissionDeleteLinkToRole {
+    pub role_id: String,
+    pub permission_id: String,
+}
+#[async_trait]
+impl Task<PostgresDatabase, TaskRequest, RolePermissionDeleteLinkToRole>
+    for RolePermissionDeleteLinkToRole
+{
+    async fn run(
+        db: &PostgresDatabase,
+        request: TaskRequest,
+        param: RolePermissionDeleteLinkToRole,
+    ) -> TaskResponse {
+        let pool = db.pool.get().await.unwrap();
+        // role to id conversion incase the param is not an id.
+        let role_to_id = match RoleCache::get(&param.role_id) {
+            Ok(v) => v.role_id,
+            Err(_) => {
+                return TaskResponse::throw_failed_response(
+                    request,
+                    vec![TaskError::RoleNotFound.to_string()],
+                )
+            }
+        };
+        let permission_to_id = match PermissionCache::get(&param.permission_id) {
+            Ok(v) => v.permission_id,
+            Err(_) => {
+                return TaskResponse::throw_failed_response(
+                    request,
+                    vec![TaskError::PermissionNotFound.to_string()],
+                )
+            }
+        };
+        // conversion ends here..
+        let stmt = pool
+            .prepare(
+                "DELETE FROM iam_role_permission
+            WHERE role_id = $1
+               AND permission_id = $2",
+            )
+            .await
+            .unwrap();
+        match pool.query(&stmt, &[&role_to_id, &permission_to_id]).await {
+            Ok(_) => {
+                // overrides the existing role (because value is the value is a shared state(arc))
+                // it should reflect throughout the rest of the application
+                let mut role = RoleCache::get(&param.role_id).unwrap();
+                role.role_permissions
+                    .retain(|permission| !permission.eq_ignore_ascii_case(&permission_to_id));
+                RoleCache::single_add(role);
+                return TaskResponse::compose_response(
+                    request,
+                    TaskStatus::Completed,
+                    param,
+                    Vec::default(),
+                );
+            }
+            Err(er) => {
+                println!("{}", er);
+                return TaskResponse::throw_failed_response(
+                    request,
+                    vec![TaskError::RoleLinkFailedToLink.to_string()],
+                );
             }
         }
     }

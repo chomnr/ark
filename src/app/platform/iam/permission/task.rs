@@ -1,6 +1,5 @@
 use axum::async_trait;
 use serde::{Deserialize, Serialize};
-use syn::parenthesized;
 
 use crate::app::{
     database::postgres::PostgresDatabase,
@@ -94,7 +93,7 @@ impl TaskHandler for PermissionTaskHandler {
             };
             return PermissionPreloadCache::run(pg, task_request, payload).await;
         }
-
+        
         return TaskResponse::throw_failed_response(
             task_request,
             vec![TaskError::FailedToFindAction.to_string()],
@@ -369,7 +368,7 @@ impl Task<PostgresDatabase, TaskRequest, PermissionReadTask> for PermissionReadT
         let pool = db.pool.get().await.unwrap();
         match PermissionCache::get(&param.identifier) {
             Ok(permission) => {
-                notify_cache_hit("PermissionCache", &param.identifier, &request.task_id);
+                notify_cache_hit("PermissionCache", "PermissionReadTask", &request.task_id);
                 return TaskResponse::compose_response(
                     request,
                     TaskStatus::Completed,
@@ -388,7 +387,11 @@ impl Task<PostgresDatabase, TaskRequest, PermissionReadTask> for PermissionReadT
                     .unwrap();
                 match pool.query_one(&stmt, &[&param.identifier]).await {
                     Ok(row) => {
-                        notify_cache_miss("PermissionCache", &param.identifier, &request.task_id);
+                        notify_cache_miss(
+                            "PermissionCache",
+                            "PermissionReadTask",
+                            &request.task_id,
+                        );
                         let permission = Permission::new(row.get(0), row.get(1), row.get(2));
                         PermissionCache::add(permission.clone());
                         return TaskResponse::compose_response(

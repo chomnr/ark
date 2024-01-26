@@ -19,6 +19,8 @@ pub enum TaskError {
     PermissionNotFound,
     #[error("PermissionFailedToPreload")]
     PermissionFailedToPreload,
+    #[error("PermissionLinkAlreadyExist")]
+    PermissionLinkAlreadyExist,
     #[error("RoleDuplication")]
     RoleDuplication,
     #[error("RoleFieldNotFound")]
@@ -27,6 +29,8 @@ pub enum TaskError {
     RoleNotFound,
     #[error("RoleFailedToPreload")]
     RoleFailedToPreload,
+    #[error("RoleLinkFailedToLink")]
+    RoleLinkFailedToLink,
     // Task
     #[error("TaskInternalError")]
     TaskInternalError,

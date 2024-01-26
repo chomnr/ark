@@ -8,13 +8,13 @@ use crate::app::service::task::{
 
 use super::{
     model::Role,
-    task::{RoleCreateTask, RoleDeleteTask, RolePreloadCache, RoleUpdateTask, RoleReadTask},
+    task::{RoleCreateTask, RoleDeleteTask, RolePreloadCache, RoleReadTask, RoleUpdateTask, RolePermissionLinkToRole, RolePermissionDeleteLinkToRole},
 };
 
 pub struct RoleManager;
 
 impl RoleManager {
-     /// Updates specific field within a role.
+    /// Updates specific field within a role.
     ///
     /// # Arguments
     /// - `identifier`: Find a role based on it's identifier.
@@ -135,6 +135,78 @@ impl RoleManager {
     pub fn get_role(identifier: &str) -> TaskResult<Role> {
         let request = Self::read_role_request(identifier);
         TaskManager::process_task_with_result::<Role>(request)
+    }
+
+    /// Add a permission to a role
+    ///
+    /// # Arguments
+    /// - `role_id`: Find a role based on it's identifier.
+    /// - `permission_id`: Find a role based on it's identifier.
+    ///
+    /// # Examples
+    /// ```
+    /// link_permission_to_role("Administrator");
+    /// ```
+    pub fn link_permission_to_role(role_identifier: &str, permission_identifier: &str) -> TaskResult<TaskStatus> {
+        let request = Self::add_role_add_permission_request(role_identifier, permission_identifier);
+        TaskManager::process_task(request)
+    }
+
+    /// Composes an add role permission request.
+    ///
+    /// # Arguments
+    /// - `role_identifier`: Find a role based on it's identifier.
+    /// - `permission_identifier`: Find a role based on it's identifier.
+    ///
+    /// # Examples
+    /// ```
+    /// let task_response = add_role_add_permission_request("55d9b8a5-167c-4ca3-9387-a62d8fad0394", "e028e747-0ef6-49b9-8ae8-00212c455d16");
+    /// ```
+    fn add_role_add_permission_request(role_identifier: &str, permission_identifier: &str) -> TaskRequest {
+        TaskRequest::compose_request::<RolePermissionLinkToRole>(
+            RolePermissionLinkToRole {
+                role_id: String::from(role_identifier),
+                permission_id: String::from(permission_identifier),
+            },
+            TaskType::Role,
+            "role_add_permission",
+        )
+    }
+
+    /// Deletes a permission to a role
+    ///
+    /// # Arguments
+    /// - `role_id`: Find a role based on it's identifier.
+    /// - `permission_id`: Find a role based on it's identifier.
+    ///
+    /// # Examples
+    /// ```
+    /// delete_permission_from_role("Administrator", "Admin Ban");
+    /// ```
+    pub fn delete_permission_from_role(role_identifier: &str, permission_identifier: &str) -> TaskResult<TaskStatus> {
+        let request = Self::remove_role_add_permission_request(role_identifier, permission_identifier);
+        TaskManager::process_task(request)
+    }
+
+    /// Composes an remove role permission request.
+    ///
+    /// # Arguments
+    /// - `role_identifier`: Find a role based on it's identifier.
+    /// - `permission_identifier`: Find a role based on it's identifier.
+    ///
+    /// # Examples
+    /// ```
+    /// let task_response = remove_role_add_permission_request("55d9b8a5-167c-4ca3-9387-a62d8fad0394", "e028e747-0ef6-49b9-8ae8-00212c455d16");
+    /// ```
+    fn remove_role_add_permission_request(role_identifier: &str, permission_identifier: &str) -> TaskRequest {
+        TaskRequest::compose_request::<RolePermissionDeleteLinkToRole>(
+            RolePermissionDeleteLinkToRole {
+                role_id: String::from(role_identifier),
+                permission_id: String::from(permission_identifier),
+            },
+            TaskType::Role,
+            "role_delete_permission",
+        )
     }
 
     /// Composes a role update request.

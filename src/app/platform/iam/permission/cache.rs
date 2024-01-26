@@ -16,7 +16,7 @@ use super::model::Permission;
 static PERMISSION_CACHE: Lazy<RwLock<HashMap<String, Arc<Permission>>>> =
     Lazy::new(|| RwLock::new(HashMap::new()));
 
-pub(super) struct PermissionCache;
+pub struct PermissionCache;
 
 impl LocalizedCache<Permission> for PermissionCache {
     fn add(item: Permission) {

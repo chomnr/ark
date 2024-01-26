@@ -22,14 +22,14 @@ impl LocalizedCache<Role> for RoleCache {
         let item_arc = Arc::new(item);
         let mut cache = ROLE_CACHE.write().unwrap();
         cache.insert(item_arc.role_id.clone(), Arc::clone(&item_arc));
-        cache.insert(item_arc.role_name.clone(), item_arc);
+        cache.insert(item_arc.role_name.clone(), Arc::clone(&item_arc));
     }
 
     fn single_add(item: Role) {
         let item_arc = Arc::new(item);
         let mut cache = ROLE_CACHE.write().unwrap();
 
-        cache.insert(item_arc.role_id.clone(), item_arc);
+        cache.insert(item_arc.role_id.clone(), Arc::clone(&item_arc));
     }
 
     fn remove(id: &str) -> CacheResult<bool> {
