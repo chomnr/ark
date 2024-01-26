@@ -481,7 +481,7 @@ impl Task<PostgresDatabase, TaskRequest, RolePermissionLinkToRole> for RolePermi
                 // it should reflect throughout the rest of the application
                 let mut role = RoleCache::get(&param.role_id).unwrap();
                 role.role_permissions.push(permission_to_id);
-                RoleCache::single_add(role);
+                RoleCache::add(role);
                 return TaskResponse::compose_response(
                     request,
                     TaskStatus::Completed,
@@ -548,8 +548,8 @@ impl Task<PostgresDatabase, TaskRequest, RolePermissionDeleteLinkToRole>
                 // it should reflect throughout the rest of the application
                 let mut role = RoleCache::get(&param.role_id).unwrap();
                 role.role_permissions
-                    .retain(|permission| !permission.eq_ignore_ascii_case(&permission_to_id));
-                RoleCache::single_add(role);
+                    .retain(|permission| permission != &permission_to_id);
+                RoleCache::add(role);
                 return TaskResponse::compose_response(
                     request,
                     TaskStatus::Completed,

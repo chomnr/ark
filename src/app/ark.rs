@@ -175,14 +175,19 @@ impl ArkServer {
 
         println!(
             "{:?}",
-            RoleManager::get_role("Administrator")
+            RoleManager::get_role("Member")
                 .unwrap()
                 .role_permissions
         );
         
-        //RoleManager::link_permission_to_role("Moderator", "admin test").unwrap();
+        RoleManager::delete_permission_from_role("Member", "admin test").unwrap();
 
-
+        println!(
+            "{:?}",
+            RoleManager::get_role("Member")
+                .unwrap()
+                .role_permissions
+        );
         //println!("{:?}", RoleManager::get_role("Administrator").unwrap().role_permissions)
         // let role_mgr = RoleManager::new();
         // role_mgr.create_role("Fool");
