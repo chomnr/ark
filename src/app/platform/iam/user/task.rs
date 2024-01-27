@@ -1,7 +1,5 @@
-use serde::{Deserialize, Serialize};
 
-
-use super::model::User;
+pub struct UserTaskHandler;
 
 /*
 /// Represents a task for creating a new user, containing SQL statements and user parameters.
