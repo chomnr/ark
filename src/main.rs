@@ -3,7 +3,7 @@ use app::{
     database::{
         postgres::{PostgresConfig, PostgresDatabase},
         redis::{RedisConfig, RedisDatabase},
-    },
+    }, platform::iam::user::manager::UserManager,
 };
 
 
@@ -15,7 +15,6 @@ async fn main() {
     let pg = PostgresDatabase::new(PostgresConfig::default()).await;
     let redis = RedisDatabase::new(RedisConfig::default()).await;
     ark.run(pg, redis).await;
-
     
     /*
      let test = SenderMessage::compose::<UserWorkerMessage>(SenderType::User, UserWorkerMessage {

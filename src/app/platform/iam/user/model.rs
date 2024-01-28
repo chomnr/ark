@@ -14,6 +14,7 @@ pub struct UserInfo {
     pub username: Option<String>,
     pub email: Option<String>,
     pub verified: bool,
+    pub security_stamp: SecurityStamp,
     pub created_at: i64,
     pub updated_at: i64,
 }
@@ -29,6 +30,12 @@ pub struct UserAuthInfo {
 pub struct UserAccessInfo {
     pub role: Vec<Role>,
     pub permission: Vec<Permission>
+}
+
+#[derive(Default, Debug, PartialEq, Serialize, Deserialize)]
+pub struct SecurityStamp {
+    token: String,
+    action: String
 }
 
 /// Represents a user.
@@ -65,6 +72,7 @@ impl UserBuilder {
                 username: None,
                 email: None,
                 verified: false,
+                security_stamp: SecurityStamp::default(),
                 created_at: SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos() as i64,
                 updated_at: SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos() as i64,
             },

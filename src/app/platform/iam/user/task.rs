@@ -1,5 +1,26 @@
+use axum::async_trait;
+
+use crate::app::{service::task::{TaskHandler, message::{TaskRequest, TaskResponse}, error::TaskError}, database::postgres::PostgresDatabase};
 
 pub struct UserTaskHandler;
+
+#[async_trait]
+impl TaskHandler for UserTaskHandler {
+    async fn handle(pg: &PostgresDatabase, task_request: TaskRequest) -> TaskResponse {
+        if task_request.task_action.eq("user_create") {
+            todo!()
+        }
+
+        if task_request.task_action.eq("user_read") {
+            // pull from redis cache....
+            todo!()
+        }
+        return TaskResponse::throw_failed_response(
+            task_request,
+            vec![TaskError::FailedToFindAction.to_string()],
+        );
+    }
+}
 
 /*
 /// Represents a task for creating a new user, containing SQL statements and user parameters.
