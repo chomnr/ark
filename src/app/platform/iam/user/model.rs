@@ -14,7 +14,6 @@ pub struct UserInfo {
     pub username: Option<String>,
     pub email: Option<String>,
     pub verified: bool,
-    pub security_stamp: SecurityStamp,
     pub created_at: i64,
     pub updated_at: i64,
 }
@@ -33,8 +32,16 @@ pub struct UserAccessInfo {
 }
 
 #[derive(Default, Debug, PartialEq, Serialize, Deserialize)]
-pub struct SecurityStamp {
+pub struct UserSecurity {
+    token: SecurityToken,
+    stamp: String,
+}
+
+#[derive(Default, Debug, PartialEq, Serialize, Deserialize)]
+// security token for the user...
+pub struct SecurityToken {
     token: String,
+    expiry: u64,
     action: String
 }
 
@@ -48,7 +55,9 @@ pub struct User {
     // Fields from the 'user_oauth' table
     pub auth: UserAuthInfo, // Authentication details
     // Fields from 'user_roles' and 'user_permissions'
-    pub access: UserAccessInfo // Permission and role details
+    pub access: UserAccessInfo, // Permission and role details
+    // Security stamp and token used to generate reset passwords etc;
+    pub security: UserSecurity
 }
 
 impl User {
@@ -61,7 +70,8 @@ impl User {
 pub struct UserBuilder {
     info: UserInfo,
     auth: UserAuthInfo,
-    access: UserAccessInfo
+    access: UserAccessInfo,
+    security: UserSecurity
 }
 
 impl UserBuilder {
@@ -72,12 +82,12 @@ impl UserBuilder {
                 username: None,
                 email: None,
                 verified: false,
-                security_stamp: SecurityStamp::default(),
                 created_at: SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos() as i64,
                 updated_at: SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos() as i64,
             },
             auth: UserAuthInfo::default(),
             access: UserAccessInfo::default(),
+            security: UserSecurity::default(),
         }
     }
 
@@ -138,11 +148,12 @@ impl UserBuilder {
     }
     */
 
-    pub fn build(self) -> User {
+    pub fn build(mut self) -> User {
         User {
             info: self.info,
             auth: self.auth,
-            access: self.access
+            access: self.access,
+            security: UserSecurity::default(),
         }
     }
 }
