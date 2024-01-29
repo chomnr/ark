@@ -38,7 +38,9 @@ pub enum TaskError {
     FieldNotMutable,
     // User
     #[error("UserNotFound")]
-    UserNotFound
+    UserNotFound,
+    #[error("UserAlreadyExists")]
+    UserAlreadyExists
 }
 
 pub type TaskResult<T> = Result<T, TaskError>;
