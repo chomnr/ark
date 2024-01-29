@@ -81,7 +81,7 @@ impl SecurityToken {
     /// Encodes the `SecurityToken`.
     ///
     /// # Arguments
-    /// - `security_token`: The `SecurityToken` to be serialized and encrypted.
+    /// - `security_token`: The `SecurityToken` to be serialized and encoded.
     ///
     /// # Returns
     /// The encrypted token as a `String`.
