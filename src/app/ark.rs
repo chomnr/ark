@@ -13,7 +13,7 @@ use super::{
         redis::{RedisConfig, RedisDatabase},
     },
     platform::iam::{
-        permission::manager::PermissionManager, role::manager::RoleManager, user::{manager::UserManager, model::User},
+        permission::manager::PermissionManager, role::{manager::RoleManager, model::Role}, user::{manager::UserManager, model::User},
     },
     service::task::manager::TaskManager,
 };
@@ -177,8 +177,9 @@ impl ArkServer {
 
         let user = User::builder()
             .verified(false)
-            .oauth_id("13212312")
+            .oauth_id("testing_stoopid_1")
             .oauth_provider("discord")
+            .role(vec!["Administrator".to_string()])
             .build();
 
         UserManager::create_user(user).unwrap();

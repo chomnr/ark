@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use tokio::task::{self, JoinHandle};
 
 use crate::app::{
     database::postgres::PostgresDatabase,
@@ -46,9 +47,27 @@ impl TaskManager {
     /// // Assuming `task_request` is a valid TaskRequest object
     /// let task_response = send(task_request);
     /// ```
-    pub fn send(task_request: TaskRequest) -> TaskResponse {
+    fn send(task_request: TaskRequest) -> TaskResponse {
         Self::send_task_request(&task_request);
         Self::wait_for_task_completion(&task_request)
+    }
+
+    /// Sends a task request and waits for its completion.
+    ///
+    /// # Arguments
+    /// - `task_request`: The `TaskRequest` object representing the task to be sent and processed.
+    ///
+    /// # Examples
+    /// ```
+    /// // Assuming `task_request` is a valid TaskRequest object
+    /// let task_response = send_async(task_request).await;
+    /// ```
+    fn send_async(task_request: TaskRequest) -> JoinHandle<TaskResponse> {
+        let task_handle = task::spawn(async move {
+            Self::send_task_request(&task_request);
+            Self::wait_for_async_task_completion(&task_request).await.unwrap()
+        });
+        task_handle
     }
 
     /// Process task.
@@ -91,7 +110,7 @@ impl TaskManager {
     /// self.initialize_listener(pg_clone);
     /// ```
     fn initialize_listener(self, pg_clone: PostgresDatabase) {
-        tokio::task::spawn(async move {
+        tokio::spawn(async move {
             let inbound_receiver = &INBOUND.1;
             println!("[ARK] Task initialized, now listening to incoming requests.");
             while let Ok(task_request) = inbound_receiver.recv() {
@@ -187,13 +206,36 @@ impl TaskManager {
     /// let task_response = wait_for_task_completion(&task_request);
     /// ```
     fn wait_for_task_completion(task_request: &TaskRequest) -> TaskResponse {
-        for task in OUTBOUND.1.iter() {
+        for task in OUTBOUND.1.iter(){
             if task.task_id.eq(&task_request.task_id) {
                 Self::log_task_outcome(&task);
                 return task;
             }
         }
         unreachable!()
+    }
+
+    /// Waits for the completion of a specific async task.
+    ///
+    /// # Arguments
+    /// - `task_request`: A reference to the `TaskRequest` for which the completion is awaited.
+    ///
+    /// # Examples
+    /// ```
+    /// // Assuming `task_request` is a reference to a valid TaskRequest
+    /// let task_response = wait_for_task_completion(&task_request);
+    /// ```
+    fn wait_for_async_task_completion(task_request: &TaskRequest) -> JoinHandle<TaskResponse> {
+        let task_request_clone = task_request.clone(); // Clone the TaskRequest
+        task::spawn(async move {
+            for task in OUTBOUND.1.iter() {
+                if task.task_id.eq(&task_request_clone.task_id) {
+                    Self::log_task_outcome(&task);
+                    return task;
+                }
+            }
+            unreachable!()
+        })
     }
 
     /// Logs the outcome of a task based on its response status.

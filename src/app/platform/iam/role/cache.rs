@@ -15,7 +15,7 @@ use super::model::Role;
 static ROLE_CACHE: Lazy<RwLock<HashMap<String, Arc<Role>>>> =
     Lazy::new(|| RwLock::new(HashMap::new()));
 
-pub(super) struct RoleCache;
+pub struct RoleCache;
 
 impl LocalizedCache<Role> for RoleCache {
     fn add(item: Role) {

@@ -28,8 +28,8 @@ pub struct UserAuthInfo {
 
 #[derive(Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct UserAccessInfo {
-    pub role: Vec<Role>,
-    pub permission: Vec<Permission>,
+    pub role: Vec<String>,
+    pub permission: Vec<String>,
 }
 
 #[derive(Default, Debug, PartialEq, Serialize, Deserialize)]
@@ -116,8 +116,8 @@ impl User {
         updated_at: i64,
         oauth_id: String,
         oauth_provider: String,
-        roles: Vec<Role>,
-        permissions: Vec<Permission>,
+        roles: Vec<String>,
+        permissions: Vec<String>,
         security: Option<UserSecurity>,
     ) -> Self {
         User {
@@ -211,12 +211,12 @@ impl UserBuilder {
         self
     }
 
-    pub fn role(mut self, roles: Vec<Role>) -> UserBuilder {
+    pub fn role(mut self, roles: Vec<String>) -> UserBuilder {
         self.access.role = roles;
         self
     }
 
-    pub fn permission(mut self, permissions: Vec<Permission>) -> UserBuilder {
+    pub fn permission(mut self, permissions: Vec<String>) -> UserBuilder {
         self.access.permission = permissions;
         self
     }

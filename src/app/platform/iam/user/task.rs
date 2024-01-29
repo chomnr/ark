@@ -1,14 +1,15 @@
 use axum::async_trait;
 use serde::{Deserialize, Serialize};
+use tokio::task;
 
 use crate::app::{
     database::postgres::PostgresDatabase,
-    platform::iam::{permission::manager::PermissionManager, role::manager::RoleManager},
-    service::task::{
+    platform::iam::{permission::{cache::PermissionCache, manager::PermissionManager, model::Permission}, role::{self, cache::RoleCache, manager::RoleManager, model::Role}},
+    service::{cache::LocalizedCache, task::{
         error::TaskError,
         message::{TaskRequest, TaskResponse, TaskStatus},
         Task, TaskHandler,
-    },
+    }},
 };
 
 use super::model::User;
@@ -77,33 +78,37 @@ impl Task<PostgresDatabase, TaskRequest, UserCreateTask> for UserCreateTask {
                 vec![TaskError::UserAlreadyExists.to_string()],
             ),
         }
-
-        // Insert roles if any
         if !param.user.access.role.is_empty() {
-            for role in &param.user.access.role {
-                if RoleManager::get_role(&role.role_id).is_ok() {
+            for role_identifier in &param.user.access.role {           
+                let role: Option<Role> = match RoleCache::get(role_identifier) {
+                    Ok(v) => Some(v),
+                    Err(_) => None,
+                };
+                if role != None {
                     transaction
                         .execute(
                             "INSERT INTO iam_user_role (user_id, role_id) VALUES ($1, $2)",
-                            &[&param.user.info.user_id, &role.role_id],
+                            &[&param.user.info.user_id, &role.unwrap().role_id],
                         )
                         .await
                         .unwrap();
                 }
             }
         }
-
         if !param.user.access.permission.is_empty() {
-            for permission in &param.user.access.permission {
-                if PermissionManager::get_permission(&permission.permission_id).is_ok() {
+            for permission_identifier in &param.user.access.permission {
+                let permission: Option<Permission> = match PermissionCache::get(permission_identifier) {
+                    Ok(v) => Some(v),
+                    Err(_) => None,
+                };
+                if permission != None {
                     transaction.execute(
                     "INSERT INTO iam_user_permission (user_id, permission_id) VALUES ($1, $2)",
-                    &[&param.user.info.user_id, &permission.permission_id],
+                    &[&param.user.info.user_id, &permission.unwrap().permission_id],
                 ).await.unwrap();
                 }
             }
         }
-
         match transaction.commit().await {
             Ok(_) => {
                 return TaskResponse::compose_response(
