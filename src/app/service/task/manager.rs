@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::app::{
     database::postgres::PostgresDatabase,
-    platform::iam::{permission::task::PermissionTaskHandler, role::task::RoleTaskHandler},
+    platform::iam::{permission::task::PermissionTaskHandler, role::task::RoleTaskHandler, user::task::UserTaskHandler},
     service::task::{
         message::{TaskStatus, TaskType},
         TaskHandler,
@@ -143,6 +143,10 @@ impl TaskManager {
             TaskType::Role => {
                 let task_response = RoleTaskHandler::handle(pg, task_request).await;
                 Self::send_task_response(task_response);
+            },
+            TaskType::User => {
+                let task_response = UserTaskHandler::handle(pg, task_request).await;
+                Self::send_task_response(task_response)
             },
         }
     }

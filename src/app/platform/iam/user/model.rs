@@ -1,4 +1,4 @@
-use std::time::{UNIX_EPOCH, SystemTime};
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -28,7 +28,7 @@ pub struct UserAuthInfo {
 #[derive(Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct UserAccessInfo {
     pub role: Vec<Role>,
-    pub permission: Vec<Permission>
+    pub permission: Vec<Permission>,
 }
 
 #[derive(Default, Debug, PartialEq, Serialize, Deserialize)]
@@ -42,7 +42,7 @@ pub struct UserSecurity {
 pub struct SecurityToken {
     token: String,
     expiry: u64,
-    action: String
+    action: String,
 }
 
 /// Represents a user.
@@ -57,7 +57,7 @@ pub struct User {
     // Fields from 'user_roles' and 'user_permissions'
     pub access: UserAccessInfo, // Permission and role details
     // Security stamp and token used to generate reset passwords etc;
-    pub security: UserSecurity
+    pub security: UserSecurity,
 }
 
 impl User {
@@ -71,7 +71,7 @@ pub struct UserBuilder {
     info: UserInfo,
     auth: UserAuthInfo,
     access: UserAccessInfo,
-    security: UserSecurity
+    security: UserSecurity,
 }
 
 impl UserBuilder {
@@ -82,8 +82,14 @@ impl UserBuilder {
                 username: None,
                 email: None,
                 verified: false,
-                created_at: SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos() as i64,
-                updated_at: SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos() as i64,
+                created_at: SystemTime::now()
+                    .duration_since(UNIX_EPOCH)
+                    .unwrap()
+                    .as_nanos() as i64,
+                updated_at: SystemTime::now()
+                    .duration_since(UNIX_EPOCH)
+                    .unwrap()
+                    .as_nanos() as i64,
             },
             auth: UserAuthInfo::default(),
             access: UserAccessInfo::default(),
@@ -133,6 +139,11 @@ impl UserBuilder {
 
     pub fn permission(mut self, permissions: Vec<Permission>) -> UserBuilder {
         self.access.permission = permissions;
+        self
+    }
+
+    pub fn security_stamp(mut self) -> UserBuilder {
+        self.security.stamp = Uuid::new_v4().as_simple().to_string();
         self
     }
 
