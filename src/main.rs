@@ -1,9 +1,10 @@
+use aes_gcm::{aead::OsRng, Aes256Gcm, KeyInit};
 use app::{
     ark::ArkServer,
     database::{
         postgres::{PostgresConfig, PostgresDatabase},
         redis::{RedisConfig, RedisDatabase},
-    }, platform::iam::user::manager::UserManager,
+    }, platform::iam::user::{manager::UserManager, model::SecurityToken},
 };
 
 
@@ -14,6 +15,12 @@ async fn main() {
     let ark = ArkServer::default().await;
     let pg = PostgresDatabase::new(PostgresConfig::default()).await;
     let redis = RedisDatabase::new(RedisConfig::default()).await;
+    let yes = SecurityToken { 
+        token: "adsasddsa".to_string(), 
+        expiry: todo!(), 
+        action: todo!()
+    };
+        
     ark.run(pg, redis).await;
     
     /*

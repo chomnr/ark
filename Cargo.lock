@@ -80,6 +80,7 @@ dependencies = [
 name = "ark"
 version = "0.1.0"
 dependencies = [
+ "aes-gcm",
  "axum",
  "axum-core",
  "bb8",

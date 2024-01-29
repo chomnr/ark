@@ -1,5 +1,12 @@
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::{
+    env,
+    time::{Duration, SystemTime, UNIX_EPOCH},
+};
 
+use aes_gcm::{
+    aead::{generic_array::GenericArray, Aead},
+    Aes256Gcm, KeyInit, Nonce,
+};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -40,9 +47,89 @@ pub struct UserSecurity {
 #[derive(Default, Debug, PartialEq, Serialize, Deserialize)]
 // security token for the user...
 pub struct SecurityToken {
-    token: String,
-    expiry: u64,
-    action: String,
+    pub token: String,
+    pub expiry: u128,
+    pub action: String,
+}
+
+impl SecurityToken {
+    /// Creates a new `SecurityToken` instance.
+    ///
+    /// # Arguments
+    /// - `token`: The security token string.
+    /// - `action`: The action this token is associated with.
+    ///
+    /// # Returns
+    /// A new `SecurityToken` instance.
+    pub fn new(token: &str, action: &str) -> SecurityToken {
+        SecurityToken {
+            token: token.to_string(),
+            expiry: Self::get_expiration_time(),
+            action: action.to_string(),
+        }
+    }
+
+    /// Calculates the expiration time for the token.
+    ///
+    /// # Returns
+    /// The expiration time as u128 representing the number of milliseconds since UNIX EPOCH.
+    fn get_expiration_time() -> u128 {
+        match SystemTime::now().duration_since(UNIX_EPOCH) {
+            Ok(n) => {
+                let fifteen_minutes = Duration::from_secs(15 * 60); // 15 minutes in seconds
+                let expiration_time = n + fifteen_minutes;
+                expiration_time.as_millis() as u128
+            }
+            Err(_) => panic!("SystemTime before UNIX EPOCH!"),
+        }
+    }
+
+    /// Serializes and encrypts the `SecurityToken`.
+    ///
+    /// # Arguments
+    /// - `security_token`: The `SecurityToken` to be serialized and encrypted.
+    /// - `nonce`: The nonce used for encryption.
+    ///
+    /// # Returns
+    /// The encrypted token as a `String`.
+    pub fn serialize_and_encrypt(security_token: SecurityToken, nonce: &str) -> String {
+        let serialized_token = serde_json::to_string(&security_token).unwrap();
+        String::from_utf8(Self::encrypt(serialized_token.as_bytes(), nonce.as_bytes()).unwrap())
+            .unwrap()
+    }
+
+    /// Encrypts the given plaintext.
+    ///
+    /// # Arguments
+    /// - `plaintext`: The data to be encrypted.
+    /// - `nonce`: The nonce used for encryption.
+    ///
+    /// # Returns
+    /// Encrypted data as a `Result<Vec<u8>, aes_gcm::Error>`.
+    fn encrypt(plaintext: &[u8], nonce: &[u8]) -> Result<Vec<u8>, aes_gcm::Error> {
+        let key_str = env::var("SECURITY_TOKEN").expect("SECURITY_TOKEN not found");
+        if key_str.as_bytes().len() != 32 {
+            panic!("SECURITY_TOKEN must be exactly 32 bytes long");
+        }
+        let key = GenericArray::from_slice(key_str.as_bytes());
+        let cipher = Aes256Gcm::new(key);
+        cipher.encrypt(Nonce::from_slice(nonce), plaintext)
+    }
+
+    /// Decrypts the given ciphertext.
+    ///
+    /// # Arguments
+    /// - `key`: The key used for decryption.
+    /// - `ciphertext`: The data to be decrypted.
+    /// - `nonce`: The nonce used for decryption.
+    ///
+    /// # Returns
+    /// Decrypted data as a `Result<Vec<u8>, aes_gcm::Error>`.
+    fn decrypt(key: &[u8; 32], ciphertext: &[u8], nonce: &[u8]) -> Result<Vec<u8>, aes_gcm::Error> {
+        let key = GenericArray::from_slice(key);
+        let cipher = Aes256Gcm::new(key);
+        cipher.decrypt(Nonce::from_slice(nonce), ciphertext)
+    }
 }
 
 /// Represents a user.

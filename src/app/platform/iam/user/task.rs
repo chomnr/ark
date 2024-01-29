@@ -1,6 +1,15 @@
 use axum::async_trait;
 
-use crate::app::{service::task::{TaskHandler, message::{TaskRequest, TaskResponse}, error::TaskError}, database::postgres::PostgresDatabase};
+use crate::app::{
+    database::postgres::PostgresDatabase,
+    service::task::{
+        error::TaskError,
+        message::{TaskRequest, TaskResponse},
+        Task, TaskHandler,
+    },
+};
+
+use super::model::User;
 
 pub struct UserTaskHandler;
 
@@ -15,11 +24,30 @@ impl TaskHandler for UserTaskHandler {
             // pull from redis cache....
             todo!()
         }
-        
+
         return TaskResponse::throw_failed_response(
             task_request,
             vec![TaskError::FailedToFindAction.to_string()],
         );
+    }
+}
+
+pub struct UserCreateTask;
+
+#[async_trait]
+impl Task<PostgresDatabase, TaskRequest, User> for UserCreateTask {
+    async fn run(db: &PostgresDatabase, request: TaskRequest, param: User) -> TaskResponse {
+        let mut pool = db.pool.get().await.unwrap();
+        let mut transaction = pool.transaction().await.unwrap();
+        transaction.execute("INSERT INTO iam_users (id, username, email, verified, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)", &[
+            &param.info.user_id,
+            &param.info.username,
+            &param.info.email,
+            &param.info.verified,
+            &param.info.created_at,
+            &param.info.updated_at
+        ]).await.unwrap();
+        todo!()
     }
 }
 
@@ -57,7 +85,7 @@ impl UserCreateTask {
         // UserCreateTask Here...........
         match transaction.commit().await {
             Ok(_) => Ok(()),
-            Err(_) => Err(TaskError::TaskWentWrong), // 
+            Err(_) => Err(TaskError::TaskWentWrong), //
         }
         // check if user is in cache
         // check if user exists.
