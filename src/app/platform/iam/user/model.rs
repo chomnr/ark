@@ -1,12 +1,6 @@
-use std::{
-    env,
-    time::{Duration, SystemTime, UNIX_EPOCH},
-};
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-use aes_gcm::{
-    aead::{generic_array::GenericArray, Aead},
-    Aes256Gcm, KeyInit, Nonce,
-};
+use base64::Engine;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -84,51 +78,16 @@ impl SecurityToken {
         }
     }
 
-    /// Serializes and encrypts the `SecurityToken`.
+    /// Encodes the `SecurityToken`.
     ///
     /// # Arguments
     /// - `security_token`: The `SecurityToken` to be serialized and encrypted.
-    /// - `nonce`: The nonce used for encryption.
     ///
     /// # Returns
     /// The encrypted token as a `String`.
-    pub fn serialize_and_encrypt(security_token: SecurityToken, nonce: &str) -> String {
+    pub fn serialize_and_encode(security_token: SecurityToken) -> String {
         let serialized_token = serde_json::to_string(&security_token).unwrap();
-        String::from_utf8(Self::encrypt(serialized_token.as_bytes(), nonce.as_bytes()).unwrap())
-            .unwrap()
-    }
-
-    /// Encrypts the given plaintext.
-    ///
-    /// # Arguments
-    /// - `plaintext`: The data to be encrypted.
-    /// - `nonce`: The nonce used for encryption.
-    ///
-    /// # Returns
-    /// Encrypted data as a `Result<Vec<u8>, aes_gcm::Error>`.
-    fn encrypt(plaintext: &[u8], nonce: &[u8]) -> Result<Vec<u8>, aes_gcm::Error> {
-        let key_str = env::var("SECURITY_TOKEN").expect("SECURITY_TOKEN not found");
-        if key_str.as_bytes().len() != 32 {
-            panic!("SECURITY_TOKEN must be exactly 32 bytes long");
-        }
-        let key = GenericArray::from_slice(key_str.as_bytes());
-        let cipher = Aes256Gcm::new(key);
-        cipher.encrypt(Nonce::from_slice(nonce), plaintext)
-    }
-
-    /// Decrypts the given ciphertext.
-    ///
-    /// # Arguments
-    /// - `key`: The key used for decryption.
-    /// - `ciphertext`: The data to be decrypted.
-    /// - `nonce`: The nonce used for decryption.
-    ///
-    /// # Returns
-    /// Decrypted data as a `Result<Vec<u8>, aes_gcm::Error>`.
-    fn decrypt(key: &[u8; 32], ciphertext: &[u8], nonce: &[u8]) -> Result<Vec<u8>, aes_gcm::Error> {
-        let key = GenericArray::from_slice(key);
-        let cipher = Aes256Gcm::new(key);
-        cipher.decrypt(Nonce::from_slice(nonce), ciphertext)
+        base64::encode(serialized_token)
     }
 }
 

@@ -1,4 +1,5 @@
-use aes_gcm::{aead::OsRng, Aes256Gcm, KeyInit};
+use std::env;
+
 use app::{
     ark::ArkServer,
     database::{
@@ -12,17 +13,22 @@ pub mod app;
 
 #[tokio::main]
 async fn main() {
+    // set key for security token
+    //let key = Aes256Gcm::generate_key(OsRng);
+
+    // Convert the key to a byte slice
+    //let key_bytes = key.as_slice();
+    //println!("{:?}", key_bytes);
+    //let key_hex = hex::encode(key_bytes);
+    //env::set_var("SECURITY_TOKEN_KEY", key_hex.clone());
+    //println!("{:?}", key_hex);
+
+    //let nonce = Aes256Gcm::generate_nonce(&mut OsRng); // 96-bits; unique per message
+
     let ark = ArkServer::default().await;
     let pg = PostgresDatabase::new(PostgresConfig::default()).await;
     let redis = RedisDatabase::new(RedisConfig::default()).await;
-    let yes = SecurityToken { 
-        token: "adsasddsa".to_string(), 
-        expiry: todo!(), 
-        action: todo!()
-    };
-        
     ark.run(pg, redis).await;
-    
     /*
      let test = SenderMessage::compose::<UserWorkerMessage>(SenderType::User, UserWorkerMessage {
             message: "sdsda".to_string(),

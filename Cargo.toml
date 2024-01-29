@@ -6,9 +6,9 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-aes-gcm = "0.10.3"
 axum = { version = "0.7.2", features = ["query", "json", "tokio"] }
 axum-core = "0.4.1"
+base64 = "0.21.7"
 bb8 = "0.8.1"
 bb8-postgres = "0.8.1"
 bb8-redis = "0.14.0"
