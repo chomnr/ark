@@ -1,10 +1,12 @@
 use axum::async_trait;
+use serde::{Deserialize, Serialize};
 
 use crate::app::{
     database::postgres::PostgresDatabase,
+    platform::iam::{permission::manager::PermissionManager, role::manager::RoleManager},
     service::task::{
         error::TaskError,
-        message::{TaskRequest, TaskResponse},
+        message::{TaskRequest, TaskResponse, TaskStatus},
         Task, TaskHandler,
     },
 };
@@ -17,7 +19,17 @@ pub struct UserTaskHandler;
 impl TaskHandler for UserTaskHandler {
     async fn handle(pg: &PostgresDatabase, task_request: TaskRequest) -> TaskResponse {
         if task_request.task_action.eq("user_create") {
-            todo!()
+            let payload =
+                match TaskRequest::intepret_request_payload::<UserCreateTask>(&task_request) {
+                    Ok(p) => p,
+                    Err(_) => {
+                        return TaskResponse::throw_failed_response(
+                            task_request,
+                            vec![TaskError::FailedToInterpretPayload.to_string()],
+                        )
+                    }
+                };
+            return UserCreateTask::run(pg, task_request, payload).await;
         }
 
         if task_request.task_action.eq("user_read") {
@@ -32,64 +44,96 @@ impl TaskHandler for UserTaskHandler {
     }
 }
 
-pub struct UserCreateTask;
-
-#[async_trait]
-impl Task<PostgresDatabase, TaskRequest, User> for UserCreateTask {
-    async fn run(db: &PostgresDatabase, request: TaskRequest, param: User) -> TaskResponse {
-        let mut pool = db.pool.get().await.unwrap();
-        let mut transaction = pool.transaction().await.unwrap();
-        transaction.execute("INSERT INTO iam_users (id, username, email, verified, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)", &[
-            &param.info.user_id,
-            &param.info.username,
-            &param.info.email,
-            &param.info.verified,
-            &param.info.created_at,
-            &param.info.updated_at
-        ]).await.unwrap();
-        todo!()
-    }
-}
-
-/*
-/// Represents a task for creating a new user, containing SQL statements and user parameters.
 #[derive(Serialize, Deserialize)]
 pub struct UserCreateTask {
-    sql_1: String,
-    sql_2: String,
-    sql_3: String,
-    sql_4: String,
-    pub param: User,
+    pub user: User
 }
 
-impl Default for UserCreateTask {
-    fn default() -> Self {
-        Self {
-            sql_1: String::from("INSERT INTO iam_users (id, username, email, created_at, updated_at) VALUES ($1, $2, $3, $4, $5)"),
-            sql_2: String::from("INSERT INTO iam_user_oauth (user_id, oauth_id, oauth_provider) VALUES ($1, $2, $3)"),
-            sql_3: String::from("INSERT INTO iam_roles (id, role_name) VALUES ($1, $2)"),
-            sql_4: String::from("todo"),
-            param: Default::default(),
+#[async_trait]
+impl Task<PostgresDatabase, TaskRequest, UserCreateTask> for UserCreateTask {
+    async fn run(db: &PostgresDatabase, request: TaskRequest, param: UserCreateTask) -> TaskResponse {
+        // because of how the users create their account (through oauth)
+        // this operation should never fail.
+        let mut pool = db.pool.get().await.unwrap();
+        // dont include this as part of the transaction because if it fails the transaction fails.
+        let insert_user_result = pool.query(
+        "INSERT INTO iam_users (id, verified, created_at, updated_at) VALUES ($1, $2, $3, $4)",
+        &[&param.user.info.user_id, &param.user.info.verified, &param.user.info.created_at, &param.user.info.updated_at]
+    ).await;
+        if insert_user_result.is_err() {
+            match pool
+                .query(
+                    "SELECT u.*, r.*, p.*, o.*
+            FROM iam_users u
+            LEFT JOIN iam_user_role r ON u.user_id = r.user_id
+            LEFT JOIN iam_user_permission p ON u.user_id = p.permission_id
+            LEFT JOIN iam_user_oauth o ON u.user_id = o.user_id
+            WHERE u.user_id = $1;",
+                    &[&param.user.info.user_id],
+                )
+                .await
+            {
+                Ok(user) => {
+                    //let user = User::new(user.get(0), user.get(1), user.get(2), user.get(3), user.get(4), user.get(5), user.get(6), user.get(7), roles, permissions, security)
+                    println!("{:#?}", user.get(0));
+                    return TaskResponse::compose_response(
+                        request,
+                        TaskStatus::Completed,
+                        param,
+                        Vec::default(),
+                    );
+                }
+                Err(_) => {
+                    // should be impossible...
+                    return TaskResponse::throw_failed_response(
+                        request,
+                        vec![TaskError::UserNotFound.to_string()],
+                    );
+                }
+            }
+            // the user already exists inside the database (call the select query and return the user then cache them...)
+            // check if the user exists already in the cache.
+            //return Err(YourErrorType::new("User insertion failed"));
         }
-    }
-}
 
-impl UserCreateTask {
-    pub fn new() -> Self {
-        UserCreateTask::default()
-    }
-
-    pub async fn process(&self, pg: &PostgresDatabase) -> TaskResult<()> {
-        let mut pool = pg.pool.get().await.unwrap();
         let mut transaction = pool.transaction().await.unwrap();
-        // UserCreateTask Here...........
-        match transaction.commit().await {
-            Ok(_) => Ok(()),
-            Err(_) => Err(TaskError::TaskWentWrong), //
+        transaction.execute(
+        "INSERT INTO iam_user_oauth (user_id, oauth_id, oauth_provider) VALUES ($1, $2, $3)",
+        &[&param.user.info.user_id, &param.user.auth.oauth_id, &param.user.auth.oauth_provider]
+    ).await.unwrap();
+
+        // Insert roles if any
+        if !param.user.access.role.is_empty() {
+            for role in &param.user.access.role {
+                if RoleManager::get_role(&role.role_id).is_ok() {
+                    transaction
+                        .execute(
+                            "INSERT INTO iam_user_role (user_id, role_id) VALUES ($1, $2)",
+                            &[&param.user.info.user_id, &role.role_id],
+                        )
+                        .await
+                        .unwrap();
+                }
+            }
         }
-        // check if user is in cache
-        // check if user exists.
-        // then process transaction.
+
+        if !param.user.access.permission.is_empty() {
+            for permission in &param.user.access.permission {
+                if PermissionManager::get_permission(&permission.permission_id).is_ok() {
+                    transaction.execute(
+                    "INSERT INTO iam_user_permission (user_id, permission_id) VALUES ($1, $2)",
+                    &[&param.user.info.user_id, &permission.permission_id],
+                ).await.unwrap();
+                }
+            }
+        }
+
+        transaction.commit().await.unwrap();
+        return TaskResponse::compose_response(
+            request,
+            TaskStatus::Completed,
+            param,
+            Vec::default(),
+        );
     }
 }
-*/

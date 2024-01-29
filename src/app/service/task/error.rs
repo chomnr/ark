@@ -35,7 +35,10 @@ pub enum TaskError {
     #[error("TaskInternalError")]
     TaskInternalError,
     #[error("FieldNotMutable")]
-    FieldNotMutable
+    FieldNotMutable,
+    // User
+    #[error("UserNotFound")]
+    UserNotFound
 }
 
 pub type TaskResult<T> = Result<T, TaskError>;

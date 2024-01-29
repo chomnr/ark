@@ -12,7 +12,9 @@ use super::{
         postgres::{PostgresConfig, PostgresDatabase},
         redis::{RedisConfig, RedisDatabase},
     },
-    platform::iam::{permission::manager::PermissionManager, role::manager::RoleManager},
+    platform::iam::{
+        permission::manager::PermissionManager, role::manager::RoleManager, user::{manager::UserManager, model::User},
+    },
     service::task::manager::TaskManager,
 };
 
@@ -173,6 +175,13 @@ impl ArkServer {
         PermissionManager::preload_permission_cache().unwrap();
         RoleManager::preload_role_cache().unwrap();
 
+        let user = User::builder()
+            .verified(false)
+            .oauth_id("adsadsdasdsa")
+            .oauth_provider("discord")
+            .build();
+
+        UserManager::create_user(user).unwrap();
         /*
         println!(
             "{:?}",

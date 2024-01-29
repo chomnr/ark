@@ -103,10 +103,43 @@ pub struct User {
     // Fields from 'user_roles' and 'user_permissions'
     pub access: UserAccessInfo, // Permission and role details
     // Security stamp and token used to generate reset passwords etc;
-    pub security: UserSecurity,
+    pub security: Option<UserSecurity>,
 }
 
 impl User {
+    pub fn new(
+        user_id: String,
+        username: Option<String>,
+        email: Option<String>,
+        verified: bool,
+        created_at: i64,
+        updated_at: i64,
+        oauth_id: String,
+        oauth_provider: String,
+        roles: Vec<Role>,
+        permissions: Vec<Permission>,
+        security: Option<UserSecurity>,
+    ) -> Self {
+        User {
+            info: UserInfo {
+                user_id,
+                username,
+                email,
+                verified,
+                created_at,
+                updated_at,
+            },
+            auth: UserAuthInfo {
+                oauth_id,
+                oauth_provider,
+            },
+            access: UserAccessInfo {
+                role: roles,
+                permission: permissions,
+            },
+            security,
+        }
+    }
     pub fn builder() -> UserBuilder {
         UserBuilder::new()
     }
@@ -210,7 +243,7 @@ impl UserBuilder {
             info: self.info,
             auth: self.auth,
             access: self.access,
-            security: UserSecurity::default(),
+            security: Some(UserSecurity::default()),
         }
     }
 }
