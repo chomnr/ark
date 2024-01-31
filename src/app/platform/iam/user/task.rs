@@ -4,7 +4,7 @@ use tokio::task;
 
 use crate::app::{
     database::postgres::PostgresDatabase,
-    platform::iam::{permission::{cache::PermissionCache, manager::PermissionManager, model::Permission}, role::{self, cache::RoleCache, manager::RoleManager, model::Role}},
+    platform::iam::{permission::{cache::PermissionCache, model::Permission}, role::{cache::RoleCache, model::Role}},
     service::{cache::LocalizedCache, task::{
         error::TaskError,
         message::{TaskRequest, TaskResponse, TaskStatus},

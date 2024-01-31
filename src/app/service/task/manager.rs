@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use tokio::task::{self, JoinHandle};
 
 use crate::app::{
-    database::postgres::PostgresDatabase,
+    database::{postgres::PostgresDatabase, redis::RedisDatabase},
     platform::iam::{permission::task::PermissionTaskHandler, role::task::RoleTaskHandler, user::task::UserTaskHandler},
     service::task::{
         message::{TaskStatus, TaskType},
@@ -18,11 +18,12 @@ use super::{
 /// A structure for handling tasks within the system.
 pub struct TaskManager {
     pg: PostgresDatabase,
+    redis: RedisDatabase
 }
 
 impl TaskManager {
-    pub fn new(pg: PostgresDatabase) -> Self {
-        Self { pg }
+    pub fn new(pg: PostgresDatabase, redis: RedisDatabase) -> Self {
+        Self { pg, redis }
     }
 
     /// Starts the listening process for task requests.

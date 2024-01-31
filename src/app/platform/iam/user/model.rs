@@ -4,7 +4,6 @@ use base64::Engine;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::app::platform::iam::{permission::model::Permission, role::model::Role};
 
 /// Represents a user's basic information.
 ///
@@ -222,7 +221,7 @@ impl UserBuilder {
     }
 
     pub fn security_stamp(mut self) -> UserBuilder {
-        self.security.stamp = Uuid::new_v4().as_simple().to_string();
+         self.security.stamp = Uuid::new_v4().as_simple().to_string();
         self
     }
 

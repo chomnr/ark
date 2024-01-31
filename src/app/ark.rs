@@ -13,7 +13,9 @@ use super::{
         redis::{RedisConfig, RedisDatabase},
     },
     platform::iam::{
-        permission::manager::PermissionManager, role::{manager::RoleManager, model::Role}, user::{manager::UserManager, model::User},
+        permission::manager::PermissionManager,
+        role::{manager::RoleManager, model::Role},
+        user::{manager::UserManager, model::User},
     },
     service::task::manager::TaskManager,
 };
@@ -165,7 +167,7 @@ impl ArkServer {
     /// }
     /// ```
     async fn register_listeners(pg: PostgresDatabase, redis: RedisDatabase) {
-        TaskManager::new(pg).listen();
+        TaskManager::new(pg, redis).listen();
         //PermissionManager::create_permission(Permission::builder().permission_name("admin ban").permission_key("admin.ban").build()).unwrap();
         //PermissionManager::create_permission(Permission::builder().permission_name("admin test").permission_key("admin.test").build()).unwrap();
         //CacheManager::new(redis).listen();
@@ -175,14 +177,16 @@ impl ArkServer {
         PermissionManager::preload_permission_cache().unwrap();
         RoleManager::preload_role_cache().unwrap();
 
+        /*
         let user = User::builder()
             .verified(false)
-            .oauth_id("testing_stoopid_1")
+            .oauth_id("testing_stoopid_12")
             .oauth_provider("discord")
-            .role(vec!["Administrator".to_string()])
+            .role(vec!["Administrator".to_string(), "Member".to_string()])
             .build();
+        */
+        //UserManager::create_user(user).unwrap();
 
-        UserManager::create_user(user).unwrap();
         /*
         println!(
             "{:?}",
