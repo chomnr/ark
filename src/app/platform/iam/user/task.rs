@@ -1,6 +1,5 @@
 use axum::async_trait;
 use serde::{Deserialize, Serialize};
-use tokio::task;
 
 use crate::app::{
     database::postgres::PostgresDatabase,

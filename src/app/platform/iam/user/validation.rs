@@ -1,10 +1,10 @@
-use super::model::User;
+//use super::model::User;
 
-static USERNAME_MAX_LENGTH: usize = 32;
-static USERNAME_MIN_LENGTH: usize = 2;
+//static USERNAME_MAX_LENGTH: usize = 32;
+//static USERNAME_MIN_LENGTH: usize = 2;
 
-static EMAIL_MAX_LENGTH: usize = 320;
-static EMAIL_MIN_LENGTH: usize = 5;
+//static EMAIL_MAX_LENGTH: usize = 320;
+//static EMAIL_MIN_LENGTH: usize = 5;
 
 /* 
 pub struct UserValidator;
