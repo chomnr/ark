@@ -89,6 +89,16 @@ impl TaskManager {
         }
     }
 
+    /// Process task and return a result.
+    ///
+    /// # Arguments
+    /// - `request`: A reference to the `TaskRequest` to process.
+    ///
+    /// # Examples
+    /// ```
+    /// // Assuming `permission` is a reference to a valid Permission
+    /// Self::process_task_with_result(request) -> TaskResult<T>
+    /// ```
     pub fn process_task_with_result<T: for<'a> Deserialize<'a> + Serialize>(request: TaskRequest) -> TaskResult<T> {
         let task_response = Self::send(request);
         match task_response.task_status {
@@ -166,6 +176,10 @@ impl TaskManager {
             TaskType::User => {
                 let task_response = UserTaskHandler::handle(pg, task_request).await;
                 Self::send_task_response(task_response)
+            },
+            TaskType::Session => {
+                // do session...
+                // when session is executed should return the session token and expiration....
             },
         }
     }

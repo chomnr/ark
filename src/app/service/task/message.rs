@@ -24,7 +24,8 @@ pub enum TaskStatus {
 pub enum TaskType {
     Permission,
     Role,
-    User
+    User,
+    Session
 }
 
 /// A request structure for a task.
