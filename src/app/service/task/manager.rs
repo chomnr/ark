@@ -35,7 +35,7 @@ impl TaskManager {
     /// ```
     pub fn listen(self) {
         let pg_clone = self.pg.clone();
-        self.initialize_listener(pg_clone);
+        Self::initialize_listener(pg_clone);
     }
 
     /// Sends a task request and waits for its completion.
@@ -110,12 +110,12 @@ impl TaskManager {
     /// // Assume `pg_clone` is a cloned instance of PostgresDatabase
     /// self.initialize_listener(pg_clone);
     /// ```
-    fn initialize_listener(self, pg_clone: PostgresDatabase) {
+    fn initialize_listener(pg_clone: PostgresDatabase) {
         tokio::spawn(async move {
             let inbound_receiver = &INBOUND.1;
             println!("[ARK] Task initialized, now listening to incoming requests.");
             while let Ok(task_request) = inbound_receiver.recv() {
-                self.process_incoming_request(&pg_clone, task_request).await;
+                Self::process_incoming_request(&pg_clone, task_request).await;
             }
         });
     }
@@ -132,7 +132,6 @@ impl TaskManager {
     /// self.process_incoming_request(&pg_clone, task_request).await;
     /// ```
     async fn process_incoming_request(
-        &self,
         pg_clone: &PostgresDatabase,
         task_request: TaskRequest,
     ) {
@@ -140,7 +139,7 @@ impl TaskManager {
             "[TASK] Successfully received a task from {}. Task type: {:?}.",
             task_request.task_id, task_request.task_type
         );
-        self.handle_task_request(pg_clone, task_request).await;
+        Self::handle_task_request(pg_clone, task_request).await;
     }
 
     /// Handles a given task request based on its type.
@@ -154,7 +153,7 @@ impl TaskManager {
     /// // Assume `pg` is a reference to a PostgresDatabase and `task_request` is a valid TaskRequest
     /// self.handle_task_request(&pg, task_request).await;
     /// ```
-    async fn handle_task_request(&self, pg: &PostgresDatabase, task_request: TaskRequest) {
+    async fn handle_task_request(pg: &PostgresDatabase, task_request: TaskRequest) {
         match task_request.task_type {
             TaskType::Permission => {
                 let task_response = PermissionTaskHandler::handle(pg, task_request).await;
