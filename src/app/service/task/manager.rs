@@ -36,7 +36,7 @@ impl TaskManager {
     pub fn listen(self) {
         let pg_clone = self.pg.clone();
         let redis_clone = self.redis.clone();
-        Self::initialize_listener(pg_clone, &redis_clone);
+        Self::initialize_listener(pg_clone, redis_clone);
     }
 
     /// Sends a task request and waits for its completion.
