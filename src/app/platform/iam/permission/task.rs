@@ -18,7 +18,7 @@ use super::{cache::PermissionCache, model::Permission};
 pub struct PermissionTaskHandler;
 
 #[async_trait]
-impl TaskHandler for PermissionTaskHandler {
+impl TaskHandler<PostgresDatabase> for PermissionTaskHandler {
     async fn handle(pg: &PostgresDatabase, task_request: TaskRequest) -> TaskResponse {
         if task_request.task_action.eq("permission_create") {
             let payload = match TaskRequest::intepret_request_payload::<PermissionCreateTask>(

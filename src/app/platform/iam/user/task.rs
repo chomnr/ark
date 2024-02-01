@@ -16,7 +16,7 @@ use super::model::User;
 pub struct UserTaskHandler;
 
 #[async_trait]
-impl TaskHandler for UserTaskHandler {
+impl TaskHandler<PostgresDatabase> for UserTaskHandler {
     async fn handle(pg: &PostgresDatabase, task_request: TaskRequest) -> TaskResponse {
         if task_request.task_action.eq("user_create") {
             let payload =

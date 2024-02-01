@@ -53,6 +53,6 @@ pub trait Task<D, R, P> {
 
 /// Handles the task
 #[async_trait]
-pub trait TaskHandler {
-    async fn handle(pg: &PostgresDatabase, task_request: TaskRequest) -> TaskResponse;
+pub trait TaskHandler<T> {
+    async fn handle(pg: &T, task_request: TaskRequest) -> TaskResponse;
 }

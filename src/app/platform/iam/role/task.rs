@@ -19,7 +19,7 @@ use super::{cache::RoleCache, model::Role};
 pub struct RoleTaskHandler;
 
 #[async_trait]
-impl TaskHandler for RoleTaskHandler {
+impl TaskHandler<PostgresDatabase> for RoleTaskHandler {
     async fn handle(pg: &PostgresDatabase, task_request: TaskRequest) -> TaskResponse {
         if task_request.task_action.eq("role_create") {
             let payload =
