@@ -1,12 +1,12 @@
 use axum::async_trait;
 
-use crate::app::{database::postgres::PostgresDatabase, service::task::{message::{TaskRequest, TaskResponse}, TaskHandler}};
+use crate::app::{database::{postgres::PostgresDatabase, redis::RedisDatabase}, service::task::{message::{TaskRequest, TaskResponse}, TaskHandler}};
 
 pub struct SessionTaskHandler;
 
 #[async_trait]
-impl TaskHandler<PostgresDatabase> for SessionTaskHandler {
-    async fn handle(pg: &PostgresDatabase, task_request: TaskRequest) -> TaskResponse {
+impl TaskHandler<RedisDatabase> for SessionTaskHandler {
+    async fn handle(redis: &RedisDatabase, task_request: TaskRequest) -> TaskResponse {
         todo!()
     }
 }

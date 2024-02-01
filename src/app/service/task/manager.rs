@@ -3,7 +3,7 @@ use tokio::task::{self, JoinHandle};
 
 use crate::app::{
     database::{postgres::PostgresDatabase, redis::RedisDatabase},
-    platform::iam::{permission::task::PermissionTaskHandler, role::task::RoleTaskHandler, user::task::UserTaskHandler},
+    platform::iam::{permission::task::PermissionTaskHandler, role::task::RoleTaskHandler, session::task::SessionTaskHandler, user::task::UserTaskHandler},
     service::task::{
         message::{TaskStatus, TaskType},
         TaskHandler,
@@ -35,7 +35,8 @@ impl TaskManager {
     /// ```
     pub fn listen(self) {
         let pg_clone = self.pg.clone();
-        Self::initialize_listener(pg_clone);
+        let redis_clone = self.redis.clone();
+        Self::initialize_listener(pg_clone, &redis_clone);
     }
 
     /// Sends a task request and waits for its completion.
@@ -120,12 +121,12 @@ impl TaskManager {
     /// // Assume `pg_clone` is a cloned instance of PostgresDatabase
     /// self.initialize_listener(pg_clone);
     /// ```
-    fn initialize_listener(pg_clone: PostgresDatabase) {
+    fn initialize_listener(pg_clone: PostgresDatabase, redis_clone: RedisDatabase) {
         tokio::spawn(async move {
             let inbound_receiver = &INBOUND.1;
             println!("[ARK] Task initialized, now listening to incoming requests.");
             while let Ok(task_request) = inbound_receiver.recv() {
-                Self::process_incoming_request(&pg_clone, task_request).await;
+                Self::process_incoming_request(&pg_clone, &redis_clone, task_request).await;
             }
         });
     }
@@ -143,13 +144,14 @@ impl TaskManager {
     /// ```
     async fn process_incoming_request(
         pg_clone: &PostgresDatabase,
+        redis_clone: &RedisDatabase,
         task_request: TaskRequest,
     ) {
         println!(
             "[TASK] Successfully received a task from {}. Task type: {:?}.",
             task_request.task_id, task_request.task_type
         );
-        Self::handle_task_request(pg_clone, task_request).await;
+        Self::handle_task_request(pg_clone, redis_clone, task_request).await;
     }
 
     /// Handles a given task request based on its type.
@@ -163,7 +165,7 @@ impl TaskManager {
     /// // Assume `pg` is a reference to a PostgresDatabase and `task_request` is a valid TaskRequest
     /// self.handle_task_request(&pg, task_request).await;
     /// ```
-    async fn handle_task_request(pg: &PostgresDatabase, task_request: TaskRequest) {
+    async fn handle_task_request(pg: &PostgresDatabase, redis: &RedisDatabase, task_request: TaskRequest) {
         match task_request.task_type {
             TaskType::Permission => {
                 let task_response = PermissionTaskHandler::handle(pg, task_request).await;
@@ -178,6 +180,8 @@ impl TaskManager {
                 Self::send_task_response(task_response)
             },
             TaskType::Session => {
+                let task_response = SessionTaskHandler::handle(redis, task_request).await;
+                Self::send_task_response(task_response)
                 // do session...
                 // when session is executed should return the session token and expiration....
             },
