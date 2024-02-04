@@ -176,7 +176,7 @@ impl ArkServer {
     async fn preload_necessities() {
         PermissionManager::preload_permission_cache().unwrap();
         RoleManager::preload_role_cache().unwrap();
-
+        
         /*
         let user = User::builder()
             .verified(false)
