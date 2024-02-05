@@ -1,3 +1,7 @@
+// this class was intended to just be used by user cache.
+// because you can't send a task_request within another task_request
+// so instead of sending a task request, we're sending a cache_request.
+
 use serde::{Deserialize, Serialize};
 use tokio::task::{self, JoinHandle};
 

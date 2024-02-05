@@ -2,12 +2,19 @@ use nanoid::nanoid;
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum CacheLocation {
     User,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub enum CacheStatus {
+    Completed,
+    Failed,
+}
+
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CacheRequest {
     /// A unique identifier for the requested cache item.
     pub cache_id: String,
@@ -49,18 +56,23 @@ pub struct CacheResponse {
     /// The errors that occur when the task_status fails when processing the given
     /// task.
     pub cache_error: Vec<String>,
+
+    /// Status of cache
+    pub cache_status: CacheStatus,
 }
 
 impl CacheResponse {
     pub fn compose_response<'a, T: Deserialize<'a> + Serialize>(
         request: CacheRequest,
         cache_result: T,
-        cache_error: Vec<String>
+        cache_error: Vec<String>,
+        cache_status: CacheStatus
     ) -> Self {
         Self {
             cache_id: request.cache_id,
             cache_result: serde_json::to_string(&cache_result).unwrap(),
             cache_error,
+            cache_status,
         }
     }
 
@@ -69,6 +81,7 @@ impl CacheResponse {
             cache_id: request.cache_id,
             cache_result: String::default(),
             cache_error: errors,
+            cache_status: CacheStatus::Failed
         }
     }
 }

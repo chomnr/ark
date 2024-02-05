@@ -17,7 +17,7 @@
 
 use crate::app::{database::redis::RedisDatabase, service::cache::INBOUND_CACHE};
 
-use super::{message::{CacheLocation, CacheRequest, CacheResponse}, OUTBOUND_CACHE};
+use super::{error::{CacheError, CacheResult}, message::{CacheLocation, CacheRequest, CacheResponse, CacheStatus}, OUTBOUND_CACHE};
 
 
 pub struct CacheManager {
@@ -51,8 +51,41 @@ impl CacheManager {
     /// // Assume `redis` is a reference to a RedisDatabase and `cache_request` is a valid CacheRequest
     /// self.send(cache_request).await;
     /// ```
-    pub fn send(cache_request: CacheRequest) {
-        INBOUND_CACHE.0.send(cache_request).unwrap();
+    pub fn send(cache_request: CacheRequest) -> CacheResponse {
+        INBOUND_CACHE.0.send(cache_request.clone()).unwrap();
+        Self::wait_for_cache_completion(&cache_request)
+    }
+
+    /// Sends a cache_response to the cache_response channel.
+    ///
+    /// # Arguments
+    /// - `cache_response`: The `CacheResponse` object containing details about the task to be handled.       
+    ///
+    /// # Examples
+    /// ```
+    /// // Assume `redis` is a reference to a RedisDatabase and `cache_response` is a valid CacheRequest
+    /// self.send_response(cache_request).await;
+    /// ```
+    fn send_response(cache_response: CacheResponse) {
+        OUTBOUND_CACHE.0.send(cache_response).unwrap();
+    }
+
+    /// Process task.
+    ///
+    /// # Arguments
+    /// - `request`: A reference to the `TaskRequest` to process.
+    ///
+    /// # Examples
+    /// ```
+    /// // Assuming `permission` is a reference to a valid Permission
+    /// Self::process_permission_task(request)
+    /// ```
+    pub fn process_cache(request: CacheRequest) -> CacheResult<CacheStatus> {
+        let cache_response = Self::send(request);
+        match cache_response.cache_status {
+            CacheStatus::Completed => Ok(CacheStatus::Completed),
+            CacheStatus::Failed => Err(CacheError::FailedToCompleteCache),
+        }
     }
 
     /*
@@ -101,20 +134,6 @@ impl CacheManager {
     }
     */
 
-    /// Sends a cache_response to the cache_response channel.
-    ///
-    /// # Arguments
-    /// - `cache_response`: The `CacheResponse` object containing details about the task to be handled.       
-    ///
-    /// # Examples
-    /// ```
-    /// // Assume `redis` is a reference to a RedisDatabase and `cache_response` is a valid CacheRequest
-    /// self.send_response(cache_request).await;
-    /// ```
-    fn send_response(cache_response: CacheResponse) {
-        OUTBOUND_CACHE.0.send(cache_response).unwrap();
-    }
-
     /// Initializes and starts the cache listener.
     ///
     /// # Arguments
@@ -134,6 +153,18 @@ impl CacheManager {
                     .await;
             }
         });
+    }
+
+    ///
+    /// todo comment.
+    fn wait_for_cache_completion(cache_request: &CacheRequest) -> CacheResponse {
+        for cache in OUTBOUND_CACHE.1.iter(){
+            if cache_request.cache_id.eq(&cache_request.cache_id) {
+                Self::log_cache_outcome(&cache);
+                return cache;
+            }
+        }
+        unreachable!()
     }
 
     /// Processes an incoming cache request.
@@ -175,6 +206,29 @@ impl CacheManager {
             CacheLocation::User => {
                 todo!()
             }
+        }
+    }
+
+     /// Logs the outcome of a cache based on its response status.
+    ///
+    /// # Arguments
+    /// - `cache_response`: A reference to the `CacheResponse` object whose outcome is to be logged.
+    ///
+    /// # Examples
+    /// ```
+    /// // Assuming `cache_response` is a reference to a valid CacheResponse
+    /// log_task_outcome(&task_response);
+    /// ```
+    fn log_cache_outcome(cache_response: &CacheResponse) {
+        match cache_response.cache_status {
+            CacheStatus::Completed => println!(
+                "[CACHE] Cache: {} successfully completed.",
+                cache_response.cache_id
+            ),
+            CacheStatus::Failed => println!(
+                "[CACHE] Cache: {} did not complete successfully. Error: {}",
+                cache_response.cache_id, cache_response.cache_error[0]
+            ),
         }
     }
 }

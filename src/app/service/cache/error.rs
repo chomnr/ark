@@ -13,7 +13,9 @@ pub enum CacheError {
     #[error("CacheFailedToInterpretPayload")]
     FailedToInterpretPayload,
     #[error("CacheFailedToFindAction")]
-    FailedToFindAction
+    FailedToFindAction,
+    #[error("FailedToCompleteCache")]
+    FailedToCompleteCache
 }
 
 pub type CacheResult<T> = Result<T, CacheError>;
