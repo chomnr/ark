@@ -11,7 +11,7 @@ use crate::app::{
     },
 };
 
-use super::model::{ UserSession};
+use super::model::UserSession;
 
 pub struct SessionTaskHandler;
 
@@ -53,14 +53,10 @@ impl Task<RedisDatabase, TaskRequest, SessionCreateTask> for SessionCreateTask {
         param: SessionCreateTask,
     ) -> TaskResponse {
         let mut pool = db.pool.get().await.unwrap();
-
         let hash: Vec<(String, String)> = pool.hgetall("user-sessions").await.unwrap();
         if let Some(existing_key) = hash.iter().find_map(|(k, v)| {
-            // Attempt to deserialize `v` into your struct
             if let Ok(session) = serde_json::from_str::<UserSession>(v) {
-                // Check if deserialized `user_id` matches `param.user_id`
                 if session.user_id.eq(&param.user_id) {
-                    // Return the key if there's a match
                     return Some(k);
                 }
             }
@@ -70,9 +66,8 @@ impl Task<RedisDatabase, TaskRequest, SessionCreateTask> for SessionCreateTask {
                 .await
                 .unwrap();
         }
-
         // Set the new session token for the user
-        let hset_result = pool
+        let _ = pool
             .hset::<&str, String, String, ()>(
                 "user-sessions",
                 param.token.clone(),
