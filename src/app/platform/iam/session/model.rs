@@ -1,7 +1,11 @@
+use serde::{Deserialize, Serialize};
+
+
+#[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct UserSession {
-    token: String,
-    expires_in: u128,
-    user_id: String
+    pub token: String,
+    pub expires_in: u128,
+    pub user_id: String
 }
 
 impl UserSession {

@@ -40,7 +40,9 @@ pub enum TaskError {
     #[error("UserNotFound")]
     UserNotFound,
     #[error("UserAlreadyExists")]
-    UserAlreadyExists
+    UserAlreadyExists,
+    #[error("SessionCreationFailed")]
+    SessionCreationFailed
 }
 
 pub type TaskResult<T> = Result<T, TaskError>;

@@ -13,9 +13,7 @@ use super::{
         redis::{RedisConfig, RedisDatabase},
     },
     platform::iam::{
-        permission::manager::PermissionManager,
-        role::{manager::RoleManager, model::Role},
-        user::{manager::UserManager, model::User},
+        permission::manager::PermissionManager, role::{manager::RoleManager, model::Role}, session::manager::SessionManager, user::{manager::UserManager, model::User}
     },
     service::task::manager::TaskManager,
 };
@@ -177,6 +175,7 @@ impl ArkServer {
         PermissionManager::preload_permission_cache().unwrap();
         RoleManager::preload_role_cache().unwrap();
         
+        SessionManager::create_session("123213321312").unwrap();
         /*
         let user = User::builder()
             .verified(false)
