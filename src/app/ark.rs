@@ -175,7 +175,7 @@ impl ArkServer {
         PermissionManager::preload_permission_cache().unwrap();
         RoleManager::preload_role_cache().unwrap();
         
-        SessionManager::create_session("123213321312").unwrap();
+        SessionManager::create_session("12321332131").unwrap();
         /*
         let user = User::builder()
             .verified(false)

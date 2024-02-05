@@ -52,11 +52,7 @@ impl Task<RedisDatabase, TaskRequest, SessionCreateTask> for SessionCreateTask {
         request: TaskRequest,
         param: SessionCreateTask,
     ) -> TaskResponse {
-        // todo later when needed verify if the user_id is connected to a real user.
-
         let mut pool = db.pool.get().await.unwrap();
-
-        //let silhouette_token = Uuid::new_v4().as_simple().to_string();
 
         let hash: Vec<(String, String)> = pool.hgetall("user-sessions").await.unwrap();
         if let Some(existing_key) =
@@ -76,8 +72,6 @@ impl Task<RedisDatabase, TaskRequest, SessionCreateTask> for SessionCreateTask {
                 param.user_id.clone(),
             )
             .await;
-
-        // if token failed to create
         match hset_result {
             Ok(_) => {
                 pool.expire::<&str, i32>("user-sessions", param.expires_in.try_into().unwrap()) // 7 days in seconds
@@ -92,7 +86,6 @@ impl Task<RedisDatabase, TaskRequest, SessionCreateTask> for SessionCreateTask {
                 );
             }
         }
-
         return TaskResponse::compose_response(
             request,
             TaskStatus::Completed,
