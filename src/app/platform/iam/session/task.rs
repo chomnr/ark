@@ -11,7 +11,7 @@ use crate::app::{
     },
 };
 
-use super::model::UserSession;
+use super::model::{ UserSession};
 
 pub struct SessionTaskHandler;
 
@@ -41,7 +41,7 @@ impl TaskHandler<RedisDatabase> for SessionTaskHandler {
 #[derive(Serialize, Deserialize)]
 pub struct SessionCreateTask {
     pub token: String,
-    pub expires_in: u128,
+    pub expires_in: i64,
     pub user_id: String,
 }
 
@@ -55,37 +55,30 @@ impl Task<RedisDatabase, TaskRequest, SessionCreateTask> for SessionCreateTask {
         let mut pool = db.pool.get().await.unwrap();
 
         let hash: Vec<(String, String)> = pool.hgetall("user-sessions").await.unwrap();
-        if let Some(existing_key) =
-            hash.iter()
-                .find_map(|(k, v)| if v.eq(&param.user_id) { Some(k) } else { None })
-        {
-            // If an existing session is found, delete it
+        if let Some(existing_key) = hash.iter().find_map(|(k, v)| {
+            // Attempt to deserialize `v` into your struct
+            if let Ok(session) = serde_json::from_str::<UserSession>(v) {
+                // Check if deserialized `user_id` matches `param.user_id`
+                if session.user_id.eq(&param.user_id) {
+                    // Return the key if there's a match
+                    return Some(k);
+                }
+            }
+            None
+        }) {
             pool.hdel::<&str, &str, ()>("user-sessions", existing_key)
                 .await
                 .unwrap();
         }
+
         // Set the new session token for the user
         let hset_result = pool
             .hset::<&str, String, String, ()>(
                 "user-sessions",
                 param.token.clone(),
-                param.user_id.clone(),
+                serde_json::to_string(&param).unwrap(),
             )
             .await;
-        match hset_result {
-            Ok(_) => {
-                pool.expire::<&str, i32>("user-sessions", param.expires_in.try_into().unwrap()) // 7 days in seconds
-                    .await
-                    .unwrap();
-            }
-            Err(_) => {
-                // should not happen...
-                return TaskResponse::throw_failed_response(
-                    request,
-                    vec![TaskError::SessionCreationFailed.to_string()],
-                );
-            }
-        }
         return TaskResponse::compose_response(
             request,
             TaskStatus::Completed,

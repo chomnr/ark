@@ -163,11 +163,11 @@ impl UserBuilder {
                 created_at: SystemTime::now()
                     .duration_since(UNIX_EPOCH)
                     .unwrap()
-                    .as_nanos() as i64,
+                    .as_millis() as i64,
                 updated_at: SystemTime::now()
                     .duration_since(UNIX_EPOCH)
                     .unwrap()
-                    .as_nanos() as i64,
+                    .as_millis() as i64,
             },
             auth: UserAuthInfo::default(),
             access: UserAccessInfo::default(),
