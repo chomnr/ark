@@ -31,13 +31,21 @@
 use std::sync::Arc;
 
 use chrono::Utc;
+use crossbeam_channel::{unbounded, Receiver, Sender};
+use once_cell::sync::Lazy;
 
-use self::error::CacheResult;
+use self::{error::CacheResult, message::{CacheRequest, CacheResponse}};
 
 pub mod error;
 pub mod manager;
 pub mod message;
 pub mod reader;
+
+
+static INBOUND_CACHE: Lazy<(Sender<CacheRequest>, Receiver<CacheRequest>)> =
+   Lazy::new(|| unbounded());
+static OUTBOUND_CACHE: Lazy<(Sender<CacheResponse>, Receiver<CacheResponse>)> =
+    Lazy::new(|| unbounded());
 
 pub trait LocalizedCache<T> {
     fn add(item: T);

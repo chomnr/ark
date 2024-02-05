@@ -15,7 +15,11 @@
 
 // CacheRequest {cache_id, cache_action, cache}
 
-/*
+use crate::app::{database::redis::RedisDatabase, service::cache::INBOUND_CACHE};
+
+use super::{message::{CacheLocation, CacheRequest, CacheResponse}, OUTBOUND_CACHE};
+
+
 pub struct CacheManager {
     redis: RedisDatabase,
 }
@@ -51,6 +55,7 @@ impl CacheManager {
         INBOUND_CACHE.0.send(cache_request).unwrap();
     }
 
+    /*
     /// Notify that the cache was missed
     ///
     /// # Arguments
@@ -94,6 +99,7 @@ impl CacheManager {
             source
         );
     }
+    */
 
     /// Sends a cache_response to the cache_response channel.
     ///
@@ -172,6 +178,5 @@ impl CacheManager {
         }
     }
 }
-*/
 
 //let cache = CacheManager::new();

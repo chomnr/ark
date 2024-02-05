@@ -1,5 +1,6 @@
-/*
-// caches 
+use nanoid::nanoid;
+
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub enum CacheLocation {
@@ -71,7 +72,7 @@ impl CacheResponse {
         }
     }
 }
-*/
+
 /*
 /// Represents the type of CacheStatus
 ///

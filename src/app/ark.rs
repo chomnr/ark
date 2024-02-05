@@ -15,7 +15,7 @@ use super::{
     platform::iam::{
         permission::manager::PermissionManager, role::{manager::RoleManager, model::Role}, session::manager::SessionManager, user::{manager::UserManager, model::User}
     },
-    service::task::manager::TaskManager,
+    service::{cache::manager::CacheManager, task::manager::TaskManager},
 };
 
 static ADDRESS: &str = "0.0.0.0";
@@ -165,7 +165,8 @@ impl ArkServer {
     /// }
     /// ```
     async fn register_listeners(pg: PostgresDatabase, redis: RedisDatabase) {
-        TaskManager::new(pg, redis).listen();
+        TaskManager::new(pg, redis.clone()).listen();
+        CacheManager::new(redis).listen();
         //PermissionManager::create_permission(Permission::builder().permission_name("admin ban").permission_key("admin.ban").build()).unwrap();
         //PermissionManager::create_permission(Permission::builder().permission_name("admin test").permission_key("admin.test").build()).unwrap();
         //CacheManager::new(redis).listen();
@@ -175,7 +176,7 @@ impl ArkServer {
         PermissionManager::preload_permission_cache().unwrap();
         RoleManager::preload_role_cache().unwrap();
         
-        SessionManager::create_session("12321332131").unwrap();
+        //SessionManager::create_session("12321332131").unwrap();
         /*
         let user = User::builder()
             .verified(false)
