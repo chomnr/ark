@@ -15,9 +15,9 @@
 
 // CacheRequest {cache_id, cache_action, cache}
 
-use crate::app::{database::redis::RedisDatabase, service::cache::INBOUND_CACHE};
+use crate::app::{database::redis::RedisDatabase, platform::iam::user::cache::UserCacheHandler, service::cache::INBOUND_CACHE};
 
-use super::{error::{CacheError, CacheResult}, message::{CacheLocation, CacheRequest, CacheResponse, CacheStatus}, OUTBOUND_CACHE};
+use super::{error::{CacheError, CacheResult}, message::{CacheLocation, CacheRequest, CacheResponse, CacheStatus}, CacheHandler, OUTBOUND_CACHE};
 
 
 pub struct CacheManager {
@@ -204,7 +204,8 @@ impl CacheManager {
     async fn handle_cache_request(&self, redis: &RedisDatabase, cache_request: CacheRequest) {
         match cache_request.cache_location {
             CacheLocation::User => {
-                todo!()
+                let cache_response = UserCacheHandler::handle(redis.clone(), cache_request).await;
+                Self::send_response(cache_response);
             }
         }
     }

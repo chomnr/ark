@@ -30,6 +30,7 @@
 
 use std::sync::Arc;
 
+use axum::async_trait;
 use chrono::Utc;
 use crossbeam_channel::{unbounded, Receiver, Sender};
 use once_cell::sync::Lazy;
@@ -52,6 +53,17 @@ pub trait LocalizedCache<T> {
     fn single_add(item: T);
     fn remove(id: &str) -> CacheResult<bool>;
     fn get(id: &str) -> CacheResult<T>;
+}
+
+#[async_trait]
+pub trait CacheEvent<D, R, P> {
+    async fn run(db: &D, request: R, param: P) -> CacheResponse;
+}
+
+/// Handles the task
+#[async_trait]
+pub trait CacheHandler<T> {
+    async fn handle(cache_db: T, cache_request: CacheRequest) -> CacheResponse;
 }
 
 pub fn notify_cache_hit(source: &str, action: &str, task_id: &str) {
