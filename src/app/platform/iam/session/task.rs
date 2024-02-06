@@ -55,7 +55,6 @@ impl Task<RedisDatabase, TaskRequest, SessionCreateTask> for SessionCreateTask {
         param: SessionCreateTask,
     ) -> TaskResponse {
         let mut pool = db.pool.get().await.unwrap();
-
         //let hash: Vec<(String, String)> = pool.hgetall("user-sessions").await.unwrap();
         //if let Some(existing_key) =
         //    hash.iter()
@@ -67,23 +66,18 @@ impl Task<RedisDatabase, TaskRequest, SessionCreateTask> for SessionCreateTask {
         //        .unwrap();
         //}
         let pattern = format!("session:*:{}", param.user_id);
-
         let mut scan_result: AsyncIter<String> = pool.scan_match(&pattern).await.unwrap();
-
         // need to collect into a vec to go around rust borrowing rules
         let mut sessions_to_invalidate: Vec<String> = Vec::new();
         while let Some(key_result) = scan_result.next_item().await {
             sessions_to_invalidate.push(key_result);
         }
-
         // drop scan_result after loop so it can be reused.
         mem::drop(scan_result);
-
         // invalidate any existing session.
         for key in sessions_to_invalidate.iter() {
             let _: () = pool.del(key).await.unwrap();
         }
-
         // Set the new session token for the user
         //  let hset_result = pool
         //    .hset::<&str, String, String, ()>(
@@ -92,10 +86,8 @@ impl Task<RedisDatabase, TaskRequest, SessionCreateTask> for SessionCreateTask {
         //        param.user_id.clone(),
         //    )1
         //    .await;
-
         // session key
         let session_key = format!("session:{}:{}", param.token, param.user_id).to_string();
-
         let hset_result = pool
             .set::<&str, String, ()>(&session_key, param.user_id.clone())
             .await;
