@@ -71,15 +71,16 @@ impl Task<RedisDatabase, TaskRequest, SessionCreateTask> for SessionCreateTask {
         let mut scan_result: AsyncIter<String> = pool.scan_match(&pattern).await.unwrap();
 
         // need to collect into a vec to go around rust borrowing rules
-        let mut keys_to_delete: Vec<String> = Vec::new();
+        let mut sessions_to_invalidate: Vec<String> = Vec::new();
         while let Some(key_result) = scan_result.next_item().await {
-            keys_to_delete.push(key_result);
+            sessions_to_invalidate.push(key_result);
         }
 
-        // drop scan_result after loop so it can be used.
+        // drop scan_result after loop so it can be reused.
         mem::drop(scan_result);
 
-        for key in keys_to_delete.iter() {
+        // invalidate any existing session.
+        for key in sessions_to_invalidate.iter() {
             let _: () = pool.del(key).await.unwrap();
         }
 
