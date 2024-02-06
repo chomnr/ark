@@ -63,6 +63,12 @@ impl CacheEvent<RedisDatabase, CacheRequest, UserAddToCache> for UserAddToCache 
             .await;
         match query_result {
             Ok(_) => {
+                let expire_result: () = Cmd::new()
+                    .arg("EXPIRE")
+                    .arg(&cache_key)
+                    .arg(604800) // 7 days expressed in seconds
+                    .query_async(&mut *pool)
+                    .await.unwrap();
                 return CacheResponse::compose_response(
                     request,
                     CacheStatus::Completed,
