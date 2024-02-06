@@ -28,10 +28,7 @@ impl SessionManager {
     pub fn create_session(user_id: &str) -> TaskResult<UserSession> {
         let task_request = Self::create_session_request(UserSession {
             token: Uuid::new_v4().as_simple().to_string(),
-            expires_in: SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .unwrap()
-                .as_millis() as i64 + 604800000,
+            expires_in: 604800,
             user_id: user_id.to_string(),
         });
         TaskManager::process_task_with_result::<UserSession>(task_request)

@@ -177,6 +177,14 @@ impl ArkServer {
         RoleManager::preload_role_cache().unwrap();
         
         SessionManager::create_session("3b9cd87a-5228-4168-9a56-2923883b2885").unwrap();
+        let user = User::builder()
+            .verified(false)
+            .oauth_id("test_With_cache")
+            .oauth_provider("discord")
+            .build();
+
+        UserManager::create_user(user).unwrap();
+
         /*
         let user = User::builder()
             .verified(false)

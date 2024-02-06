@@ -93,7 +93,7 @@ impl Task<RedisDatabase, TaskRequest, SessionCreateTask> for SessionCreateTask {
             .await;
         match hset_result {
             Ok(_) => {
-                pool.expire::<&str, i32>(&session_key, param.expires_in.try_into().unwrap()) // 7 days in seconds
+                pool.expire::<&str, i64>(&session_key, param.expires_in) // 7 days in seconds
                     .await
                     .unwrap();
             }

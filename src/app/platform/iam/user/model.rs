@@ -8,7 +8,7 @@ use uuid::Uuid;
 /// Represents a user's basic information.
 ///
 /// Includes identification, contact details, and account timestamps.
-#[derive(Default, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct UserInfo {
     pub user_id: String,
     pub username: Option<String>,
@@ -19,25 +19,25 @@ pub struct UserInfo {
 }
 
 /// Represents a user's authentication information with an OAuth provider.
-#[derive(Default, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct UserAuthInfo {
     pub oauth_id: String,
     pub oauth_provider: String,
 }
 
-#[derive(Default, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct UserAccessInfo {
     pub role: Vec<String>,
     pub permission: Vec<String>,
 }
 
-#[derive(Default, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct UserSecurity {
     token: SecurityToken,
     stamp: String,
 }
 
-#[derive(Default, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 // security token for the user...
 pub struct SecurityToken {
     pub token: String,
@@ -93,7 +93,7 @@ impl SecurityToken {
 /// Represents a user.
 ///
 /// Combines basic user information and authentication details.
-#[derive(Default, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct User {
     // Fields from the 'users' table
     pub info: UserInfo, // Basic user information

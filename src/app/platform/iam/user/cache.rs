@@ -1,12 +1,13 @@
 use axum::async_trait;
-use bb8_redis::redis::AsyncCommands;
+use bb8_redis::redis::{AsyncCommands, Cmd, RedisError};
 use serde::{Deserialize, Serialize};
+use tracing_subscriber::fmt::format;
 
 use crate::app::{
     database::redis::RedisDatabase,
     service::cache::{
         error::CacheError,
-        message::{CacheRequest, CacheResponse},
+        message::{CacheRequest, CacheResponse, CacheStatus},
         CacheEvent, CacheHandler,
     },
 };
@@ -40,7 +41,7 @@ impl CacheHandler<RedisDatabase> for UserCacheHandler {
 
 #[derive(Serialize, Deserialize)]
 pub struct UserAddToCache {
-    user: User,
+    pub user: User,
 }
 
 #[async_trait]
@@ -50,8 +51,31 @@ impl CacheEvent<RedisDatabase, CacheRequest, UserAddToCache> for UserAddToCache 
         request: CacheRequest,
         param: UserAddToCache,
     ) -> CacheResponse {
-        let pool = db.pool.get().await.unwrap();
-        //pool.hset(key, field, value)
-        todo!()
+        let mut pool = db.pool.get().await.unwrap();
+        let user_json = serde_json::to_string_pretty(&param.user).unwrap();
+        let cache_key = format!("user:{}", param.user.info.user_id).to_string();
+        let query_result: Result<(), RedisError> = Cmd::new()
+            .arg("JSON.SET")
+            .arg(&cache_key)
+            .arg("$") // Specify the path where the JSON should be set. `$` refers to the root.
+            .arg(&user_json)
+            .query_async(&mut *pool)
+            .await;
+        match query_result {
+            Ok(_) => {
+                return CacheResponse::compose_response(
+                    request,
+                    CacheStatus::Completed,
+                    String::default(),
+                    Vec::default(),
+                );
+            }
+            Err(_) => {
+                return CacheResponse::throw_failed_response(
+                    request,
+                    vec![CacheError::FailedToCompleteCache.to_string()],
+                );
+            }
+        }
     }
 }

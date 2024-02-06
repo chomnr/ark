@@ -36,8 +36,8 @@ pub struct CacheRequest {
 impl CacheRequest {
     pub fn compose_request<T: for<'a> Deserialize<'a> + Serialize>(
         cache_payload: T,
-        cache_action: &str,
         cache_location: CacheLocation,
+        cache_action: &str,
     ) -> Self {
         Self {
             cache_id: format!("cache-{}", nanoid!(7)),
@@ -77,9 +77,9 @@ pub struct CacheResponse {
 impl CacheResponse {
     pub fn compose_response<'a, T: Deserialize<'a> + Serialize>(
         request: CacheRequest,
+        cache_status: CacheStatus,
         cache_result: T,
         cache_error: Vec<String>,
-        cache_status: CacheStatus
     ) -> Self {
         Self {
             cache_id: request.cache_id,

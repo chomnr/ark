@@ -11,7 +11,7 @@ use crate::app::{
     }},
 };
 
-use super::model::User;
+use super::{manager::UserCacheManager, model::User};
 
 pub struct UserTaskHandler;
 
@@ -110,6 +110,7 @@ impl Task<PostgresDatabase, TaskRequest, UserCreateTask> for UserCreateTask {
         }
         match transaction.commit().await {
             Ok(_) => {
+                UserCacheManager::create_user_cache(param.user.clone()).unwrap();
                 return TaskResponse::compose_response(
                     request,
                     TaskStatus::Completed,
