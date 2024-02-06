@@ -53,7 +53,7 @@ impl CacheEvent<RedisDatabase, CacheRequest, UserAddToCache> for UserAddToCache 
     ) -> CacheResponse {
         let mut pool = db.pool.get().await.unwrap();
         let user_json = serde_json::to_string_pretty(&param.user).unwrap();
-        let cache_key = format!("user:{}", param.user.info.user_id).to_string();
+        let cache_key = format!("user-cache:{}", param.user.info.user_id).to_string();
         let query_result: Result<(), RedisError> = Cmd::new()
             .arg("JSON.SET")
             .arg(&cache_key)
