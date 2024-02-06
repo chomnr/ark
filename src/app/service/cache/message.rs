@@ -2,6 +2,10 @@ use nanoid::nanoid;
 
 use serde::{Deserialize, Serialize};
 
+use crate::app::service::task::error::TaskError;
+
+use super::error::{CacheError, CacheResult};
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum CacheLocation {
     User,
@@ -40,6 +44,15 @@ impl CacheRequest {
             cache_payload: serde_json::to_string(&cache_payload).unwrap(),
             cache_action: String::from(cache_action),
             cache_location,
+        }
+    }
+
+    pub fn intepret_request_payload<T: for<'a> Deserialize<'a>>(
+        cache_request: &CacheRequest,
+    ) -> CacheResult<T> {
+        match serde_json::from_str::<T>(&cache_request.cache_payload) {
+            Ok(result) => Ok(result),
+            Err(_) => Err(CacheError::FailedToInterpretPayload),
         }
     }
 }
