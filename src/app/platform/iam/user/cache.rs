@@ -1,4 +1,5 @@
 use axum::async_trait;
+use bb8_redis::redis::AsyncCommands;
 use serde::{Deserialize, Serialize};
 
 use crate::app::{
@@ -17,7 +18,7 @@ pub struct UserCacheHandler;
 #[async_trait]
 impl CacheHandler<RedisDatabase> for UserCacheHandler {
     async fn handle(cache_db: RedisDatabase, cache_request: CacheRequest) -> CacheResponse {
-        if cache_request.cache_action == "add_user_to_cache" {
+        if cache_request.cache_action == "user_add_to_cache" {
             let payload =
                 match CacheRequest::intepret_request_payload::<UserAddToCache>(&cache_request) {
                     Ok(p) => p,
@@ -50,6 +51,7 @@ impl CacheEvent<RedisDatabase, CacheRequest, UserAddToCache> for UserAddToCache 
         param: UserAddToCache,
     ) -> CacheResponse {
         let pool = db.pool.get().await.unwrap();
+        //pool.hset(key, field, value)
         todo!()
     }
 }
