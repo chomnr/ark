@@ -33,8 +33,17 @@ impl TaskHandler<PostgresDatabase> for UserTaskHandler {
         }
 
         if task_request.task_action.eq("user_read") {
-            // pull from redis cache....
-            todo!()
+            let payload =
+                match TaskRequest::intepret_request_payload::<UserReadTask>(&task_request) {
+                    Ok(p) => p,
+                    Err(_) => {
+                        return TaskResponse::throw_failed_response(
+                            task_request,
+                            vec![TaskError::FailedToInterpretPayload.to_string()],
+                        )
+                    }
+                };
+            return UserReadTask::run(pg, task_request, payload).await;
         }
 
         return TaskResponse::throw_failed_response(
@@ -125,6 +134,22 @@ impl Task<PostgresDatabase, TaskRequest, UserCreateTask> for UserCreateTask {
                 )
             }
         }
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct UserReadTask {
+    pub identifier: User,
+}
+
+#[async_trait]
+impl Task<PostgresDatabase, TaskRequest, UserReadTask> for UserReadTask {
+    async fn run(
+        db: &PostgresDatabase,
+        request: TaskRequest,
+        param: UserReadTask,
+    ) -> TaskResponse { 
+        todo!()
     }
 }
 
