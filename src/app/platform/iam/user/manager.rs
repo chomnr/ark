@@ -36,7 +36,7 @@ impl UserManager {
 pub(super) struct UserCacheManager;
 
 impl UserCacheManager {
-    pub fn create_user_cache(user: User) -> CacheResult<CacheStatus> {
+    pub fn add_user_to_cache(user: User) -> CacheResult<CacheStatus> {
         let cache_request = Self::create_user_cache_request(user);
         CacheManager::process_cache(cache_request)
     }
