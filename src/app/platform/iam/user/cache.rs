@@ -66,7 +66,7 @@ impl CacheEvent<RedisDatabase, CacheRequest, UserAddToCache> for UserAddToCache 
                 let _: () = Cmd::new()
                     .arg("EXPIRE")
                     .arg(&cache_key)
-                    .arg(604800) // 7 days expressed in seconds
+                    .arg(900) // 7 days expressed in seconds
                     .query_async(&mut *pool)
                     .await.unwrap();
                 return CacheResponse::compose_response(

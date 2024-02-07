@@ -149,9 +149,17 @@ impl Task<PostgresDatabase, TaskRequest, UserReadTask> for UserReadTask {
         request: TaskRequest,
         param: UserReadTask,
     ) -> TaskResponse { 
+        /*
+        1. check if user exists in cache,
+        2. retrieve if person does not exist in cache retrieve from database if user does not
+        3. if user does not exist store in cache afterwards...
+        user should be able to retrieved, by uid, auth_id, name or email. */
         todo!()
     }
 }
+
+
+// todo preload cache with user who last logged in the last 7 days.
 
 /*
 /// Represents a task for creating a new user, containing SQL statements and user parameters.
