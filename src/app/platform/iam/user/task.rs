@@ -3,12 +3,18 @@ use serde::{Deserialize, Serialize};
 
 use crate::app::{
     database::postgres::PostgresDatabase,
-    platform::iam::{permission::{cache::PermissionCache, model::Permission}, role::{cache::RoleCache, model::Role}},
-    service::{cache::LocalizedCache, task::{
-        error::TaskError,
-        message::{TaskRequest, TaskResponse, TaskStatus},
-        Task, TaskHandler,
-    }},
+    platform::iam::{
+        permission::{cache::PermissionCache, model::Permission},
+        role::{cache::RoleCache, model::Role},
+    },
+    service::{
+        cache::{error::CacheError, notify_cache_hit, notify_cache_miss, LocalizedCache},
+        task::{
+            error::TaskError,
+            message::{TaskRequest, TaskResponse, TaskStatus},
+            Task, TaskHandler,
+        },
+    },
 };
 
 use super::{manager::UserCacheManager, model::User};
@@ -33,16 +39,16 @@ impl TaskHandler<PostgresDatabase> for UserTaskHandler {
         }
 
         if task_request.task_action.eq("user_read") {
-            let payload =
-                match TaskRequest::intepret_request_payload::<UserReadTask>(&task_request) {
-                    Ok(p) => p,
-                    Err(_) => {
-                        return TaskResponse::throw_failed_response(
-                            task_request,
-                            vec![TaskError::FailedToInterpretPayload.to_string()],
-                        )
-                    }
-                };
+            let payload = match TaskRequest::intepret_request_payload::<UserReadTask>(&task_request)
+            {
+                Ok(p) => p,
+                Err(_) => {
+                    return TaskResponse::throw_failed_response(
+                        task_request,
+                        vec![TaskError::FailedToInterpretPayload.to_string()],
+                    )
+                }
+            };
             return UserReadTask::run(pg, task_request, payload).await;
         }
 
@@ -87,7 +93,7 @@ impl Task<PostgresDatabase, TaskRequest, UserCreateTask> for UserCreateTask {
             ),
         }
         if !param.user.access.role.is_empty() {
-            for role_identifier in &param.user.access.role {           
+            for role_identifier in &param.user.access.role {
                 let role: Option<Role> = match RoleCache::get(role_identifier) {
                     Ok(v) => Some(v),
                     Err(_) => None,
@@ -105,10 +111,11 @@ impl Task<PostgresDatabase, TaskRequest, UserCreateTask> for UserCreateTask {
         }
         if !param.user.access.permission.is_empty() {
             for permission_identifier in &param.user.access.permission {
-                let permission: Option<Permission> = match PermissionCache::get(permission_identifier) {
-                    Ok(v) => Some(v),
-                    Err(_) => None,
-                };
+                let permission: Option<Permission> =
+                    match PermissionCache::get(permission_identifier) {
+                        Ok(v) => Some(v),
+                        Err(_) => None,
+                    };
                 if permission != None {
                     transaction.execute(
                     "INSERT INTO iam_user_permission (user_id, permission_id) VALUES ($1, $2)",
@@ -125,7 +132,7 @@ impl Task<PostgresDatabase, TaskRequest, UserCreateTask> for UserCreateTask {
                     TaskStatus::Completed,
                     param,
                     Vec::default(),
-                )
+                );
             }
             Err(_) => {
                 return TaskResponse::throw_failed_response(
@@ -144,20 +151,39 @@ pub struct UserReadTask {
 
 #[async_trait]
 impl Task<PostgresDatabase, TaskRequest, UserReadTask> for UserReadTask {
-    async fn run(
-        db: &PostgresDatabase,
-        request: TaskRequest,
-        param: UserReadTask,
-    ) -> TaskResponse {
+    async fn run(db: &PostgresDatabase, request: TaskRequest, param: UserReadTask) -> TaskResponse {
+        // very messy what we should do propogate/push onto call back the error but the way i built the system... yeah that won't work.
+
+        let mut pool = db.pool.get().await.unwrap();
+        match UserCacheManager::read_user_from_cache(&param.identifier) {
+            Ok(user) => {
+                notify_cache_hit("UserRead", "UserCache", &request.task_id);
+                UserCacheManager::add_user_to_cache(user.clone()).unwrap();
+                return TaskResponse::compose_response(
+                    request,
+                    TaskStatus::Completed,
+                    user,
+                    Vec::default(),
+                );
+            }
+            Err(er) => {
+                if er == CacheError::IdentifierMustBeAUuid {
+                    return TaskResponse::throw_failed_response(
+                        request,
+                        vec![TaskError::FailedToCompleteTask.to_string()],
+                    );
+                }
+                notify_cache_miss("UserRead", "UserCache", &request.task_id);
+                todo!()
+            }
+        }
         /*
         1. check if user exists in cache,
         2. retrieve if person does not exist in cache retrieve from database if user does not
         3. if user does not exist store in cache afterwards...
         user should be able to retrieved, by uid, auth_id, name or email. */
-        todo!()
     }
 }
-
 
 // todo preload cache with user who last logged in the last 7 days.
 

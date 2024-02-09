@@ -133,7 +133,7 @@ impl CacheEvent<RedisDatabase, CacheRequest, UserReadFromCache> for UserReadFrom
             .await;
         match query_result {
             Ok(v) => {
-                notify_cache_hit("UserCache", "UserReadFromCache", &request.cache_id);
+                //notify_cache_hit("UserCache", "UserReadFromCache", &request.cache_id);
                 let cache_result: Vec<User> = serde_json::from_str(&v).unwrap();
                 return CacheResponse::compose_response(
                     request,
@@ -143,7 +143,7 @@ impl CacheEvent<RedisDatabase, CacheRequest, UserReadFromCache> for UserReadFrom
                 );
             }
             Err(_) => {
-                notify_cache_miss("UserCache", "UserReadFromCache", &request.cache_id);
+                //notify_cache_miss("UserCache", "UserReadFromCache", &request.cache_id);
                 return CacheResponse::throw_failed_response(
                     request,
                     vec![CacheError::FailedToCompleteCache.to_string()],
