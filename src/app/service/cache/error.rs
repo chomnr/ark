@@ -15,7 +15,9 @@ pub enum CacheError {
     #[error("CacheFailedToFindAction")]
     FailedToFindAction,
     #[error("FailedToCompleteCache")]
-    FailedToCompleteCache
+    FailedToCompleteCache,
+    #[error("IdentifierMustBeAUuid")]
+    IdentifierMustBeAUuid
 }
 
 pub type CacheResult<T> = Result<T, CacheError>;

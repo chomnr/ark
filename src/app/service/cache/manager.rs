@@ -15,9 +15,11 @@
 
 // CacheRequest {cache_id, cache_action, cache}
 
+use serde::{Deserialize, Serialize};
+
 use crate::app::{database::redis::RedisDatabase, platform::iam::user::cache::UserCacheHandler, service::cache::INBOUND_CACHE};
 
-use super::{error::{CacheError, CacheResult}, message::{CacheLocation, CacheRequest, CacheResponse, CacheStatus}, CacheHandler, OUTBOUND_CACHE};
+use super::{error::{CacheError, CacheResult}, message::{CacheLocation, CacheRequest, CacheResponse, CacheStatus}, CacheEvent, CacheHandler, OUTBOUND_CACHE};
 
 
 pub struct CacheManager {
@@ -84,6 +86,27 @@ impl CacheManager {
         let cache_response = Self::send(request);
         match cache_response.cache_status {
             CacheStatus::Completed => Ok(CacheStatus::Completed),
+            CacheStatus::Failed => Err(CacheError::FailedToCompleteCache),
+        }
+    }
+
+    /// Process cache and return a result.
+    ///
+    /// # Arguments
+    /// - `request`: A reference to the `CacheReqeust` to process.
+    ///
+    /// # Examples
+    /// ```
+    /// // Assuming `user` is a reference to a valid User
+    /// Self::process_task_with_result(request) -> CacheRequest<T>
+    /// ```
+    pub fn process_cache_with_result<T: for<'a> Deserialize<'a> + Serialize>(request: CacheRequest) -> CacheResult<T> {
+        let cache_response = Self::send(request);
+        match cache_response.cache_status {
+            CacheStatus::Completed => {
+                let response = CacheResponse::intepret_response_result::<T>(&cache_response);
+                response
+            },
             CacheStatus::Failed => Err(CacheError::FailedToCompleteCache),
         }
     }

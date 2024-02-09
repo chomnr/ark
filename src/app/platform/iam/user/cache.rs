@@ -1,14 +1,12 @@
 use axum::async_trait;
 use bb8_redis::redis::{AsyncCommands, Cmd, RedisError};
 use serde::{Deserialize, Serialize};
-use tracing_subscriber::fmt::format;
+use uuid::{uuid, Uuid};
 
 use crate::app::{
     database::redis::RedisDatabase,
     service::cache::{
-        error::CacheError,
-        message::{CacheRequest, CacheResponse, CacheStatus},
-        CacheEvent, CacheHandler,
+        error::CacheError, message::{CacheRequest, CacheResponse, CacheStatus}, notify_cache_hit, notify_cache_miss, CacheEvent, CacheHandler
     },
 };
 
@@ -32,6 +30,20 @@ impl CacheHandler<RedisDatabase> for UserCacheHandler {
                 };
             return UserAddToCache::run(&cache_db, cache_request, payload).await;
         }
+        if cache_request.cache_action == "user_read_from_cache" {
+            let payload =
+                match CacheRequest::intepret_request_payload::<UserReadFromCache>(&cache_request) {
+                    Ok(p) => p,
+                    Err(_) => {
+                        return CacheResponse::throw_failed_response(
+                            cache_request,
+                            vec![CacheError::FailedToInterpretPayload.to_string()],
+                        )
+                    }
+                };
+            return UserReadFromCache::run(&cache_db, cache_request, payload).await;
+        }
+
         return CacheResponse::throw_failed_response(
             cache_request,
             vec![CacheError::FailedToFindAction.to_string()],
@@ -66,9 +78,10 @@ impl CacheEvent<RedisDatabase, CacheRequest, UserAddToCache> for UserAddToCache 
                 let _: () = Cmd::new()
                     .arg("EXPIRE")
                     .arg(&cache_key)
-                    .arg(900) // 7 days expressed in seconds
+                    .arg(900) // 15 minutes expressed in seconds
                     .query_async(&mut *pool)
-                    .await.unwrap();
+                    .await
+                    .unwrap();
                 return CacheResponse::compose_response(
                     request,
                     CacheStatus::Completed,
@@ -82,6 +95,52 @@ impl CacheEvent<RedisDatabase, CacheRequest, UserAddToCache> for UserAddToCache 
                     vec![CacheError::FailedToCompleteCache.to_string()],
                 );
             }
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct UserReadFromCache {
+    pub identifier: String,
+}
+
+#[async_trait]
+impl CacheEvent<RedisDatabase, CacheRequest, UserReadFromCache> for UserReadFromCache {
+    async fn run(
+        db: &RedisDatabase,
+        request: CacheRequest,
+        param: UserReadFromCache,
+    ) -> CacheResponse {
+        let mut pool = db.pool.get().await.unwrap();
+        match Uuid::parse_str(&param.identifier) {
+            Ok(_) => {}
+            Err(_) => {
+                return CacheResponse::throw_failed_response(
+                    request,
+                    vec![CacheError::IdentifierMustBeAUuid.to_string()],
+                );
+            }
+        }
+        let cache_key = format!("user-cache:{}", param.identifier).to_string();
+        //pool.get("key").await.unwrap();
+        match pool.get::<String, String>(cache_key).await {
+            Ok(v) => {
+                notify_cache_hit("UserCache", "UserReadFromCache", &request.cache_id);
+                let cache_value: User = serde_json::from_str(&v).unwrap();
+                return CacheResponse::compose_response(
+                    request,
+                    CacheStatus::Completed,
+                    cache_value,
+                    Vec::default(),
+                );
+            },
+            Err(_) => {
+                notify_cache_miss("UserCache", "UserReadFromCache", &request.cache_id);
+                return CacheResponse::throw_failed_response(
+                    request,
+                    vec![CacheError::FailedToCompleteCache.to_string()],
+                );
+            },
         }
     }
 }

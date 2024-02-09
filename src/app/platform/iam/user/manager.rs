@@ -1,6 +1,8 @@
+use syn::token::Use;
+
 use crate::app::service::{cache::{error::CacheResult, manager::CacheManager, message::{CacheLocation, CacheRequest, CacheResponse, CacheStatus}}, task::{error::TaskResult, manager::TaskManager, message::{TaskRequest, TaskStatus, TaskType}}};
 
-use super::{cache::UserAddToCache, model::User, task::UserCreateTask};
+use super::{cache::{UserAddToCache, UserReadFromCache}, model::User, task::UserCreateTask};
 
 
 //use super::{task::UserCreateTask, model::User};
@@ -48,6 +50,21 @@ impl UserCacheManager {
             },
             CacheLocation::User,
             "user_add_to_cache",
+        )
+    }
+
+    pub fn read_user_from_cache(identifier: &str) -> CacheResult<User> {
+        let cache_request = Self::read_user_cache_request(identifier);
+        CacheManager::process_cache_with_result::<User>(cache_request)
+    }
+
+    fn read_user_cache_request(identifier: &str) -> CacheRequest {
+        CacheRequest::compose_request(
+            UserReadFromCache {
+                identifier: String::from(identifier),
+            },
+            CacheLocation::User,
+            "user_read_from_cache",
         )
     }
 }

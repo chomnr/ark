@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::app::service::task::error::TaskError;
 
-use super::error::{CacheError, CacheResult};
+use super::{error::{CacheError, CacheResult}, CacheEvent};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum CacheLocation {
@@ -95,6 +95,15 @@ impl CacheResponse {
             cache_result: String::default(),
             cache_error: errors,
             cache_status: CacheStatus::Failed
+        }
+    }
+
+    pub fn intepret_response_result<T: for<'a> Deserialize<'a>>(
+        cache_response: &CacheResponse,
+    ) -> CacheResult<T> {
+        match serde_json::from_str::<T>(&cache_response.cache_result) {
+            Ok(result) => Ok(result),
+            Err(_) => Err(CacheError::FailedToInterpretPayload),
         }
     }
 }
