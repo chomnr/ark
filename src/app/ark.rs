@@ -176,7 +176,7 @@ impl ArkServer {
         PermissionManager::preload_permission_cache().unwrap();
         RoleManager::preload_role_cache().unwrap();
         
-        let test: User = UserManager::get_user("d19447ee-6037-4803-9a81-e4566c489c59").unwrap();
+        let test: User = UserManager::get_user("23980417-6ac7-436a-9031-4d7296f7c13b").unwrap();
 
         println!("{:?}", test.info.created_at);
         //SessionManager::create_session("3b9cd87a-5228-4168-9a56-2923883b2885").unwrap();

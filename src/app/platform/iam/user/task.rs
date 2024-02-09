@@ -17,7 +17,10 @@ use crate::app::{
     },
 };
 
-use super::{manager::UserCacheManager, model::User};
+use super::{
+    manager::UserCacheManager,
+    model::{SecurityToken, User, UserSecurity},
+};
 
 pub struct UserTaskHandler;
 
@@ -155,10 +158,10 @@ impl Task<PostgresDatabase, TaskRequest, UserReadTask> for UserReadTask {
         // very messy what we should do propogate/push onto call back the error but the way i built the system... yeah that won't work.
 
         let mut pool = db.pool.get().await.unwrap();
+
         match UserCacheManager::read_user_from_cache(&param.identifier) {
             Ok(user) => {
                 notify_cache_hit("UserRead", "UserCache", &request.task_id);
-                UserCacheManager::add_user_to_cache(user.clone()).unwrap();
                 return TaskResponse::compose_response(
                     request,
                     TaskStatus::Completed,
@@ -173,8 +176,72 @@ impl Task<PostgresDatabase, TaskRequest, UserReadTask> for UserReadTask {
                         vec![TaskError::FailedToCompleteTask.to_string()],
                     );
                 }
-                notify_cache_miss("UserRead", "UserCache", &request.task_id);
-                todo!()
+                // retriever user from postgres database here..1
+                // UserManager::get_id_from_oauth_id();
+
+                let fallback_stmt = pool
+                    .prepare(
+                        "SELECT 
+                        u.id, 
+                        u.username, 
+                        u.email, 
+                        u.verified, 
+                        u.created_at, 
+                        u.updated_at, 
+                        array_agg(DISTINCT ur.role_id) FILTER (WHERE ur.role_id IS NOT NULL) AS roles, 
+                        array_agg(DISTINCT up.permission_id) FILTER (WHERE up.permission_id IS NOT NULL) AS permissions,
+                        o.oauth_id, 
+                        o.oauth_provider,
+                        u.security_token, 
+                        u.security_stamp
+                    FROM iam_users u
+                    LEFT JOIN iam_user_role ur ON u.id = ur.user_id
+                    LEFT JOIN iam_user_permission up ON u.id = up.user_id
+                    LEFT JOIN iam_user_oauth o ON u.id = o.user_id
+                    WHERE u.id = $1
+                    GROUP BY u.id, o.oauth_id, o.oauth_provider;",
+                    )
+                    .await
+                    .unwrap();
+                let fallback_query = pool.query_one(&fallback_stmt, &[&param.identifier]).await;
+                match fallback_query {
+                    Ok(row) => {
+                        let user = User::new(
+                            row.get(0),
+                            row.get(1),
+                            row.get(2),
+                            row.get::<_, bool>(3),
+                            row.get::<_, i64>(4),
+                            row.get::<_, i64>(5),
+                            row.get::<_, String>(8),
+                            row.get::<_, String>(9),
+                            row.get::<_, Option<Vec<String>>>(6).unwrap_or_default(),
+                            row.get::<_, Option<Vec<String>>>(7).unwrap_or_default(),
+                            UserSecurity::new(
+                                SecurityToken::deserialize_and_decode(row.get::<_, Option<&str>>(10)),
+                                row.get(11),
+                            ),
+                        );
+                        UserCacheManager::add_user_to_cache(user.clone()).unwrap();
+                        notify_cache_miss("UserRead", "UserCache", &request.task_id);
+                        return TaskResponse::compose_response(
+                            request,
+                            TaskStatus::Completed,
+                            user.clone(),
+                            Vec::default(),
+                        );
+                    }
+                    Err(_) => {
+                        return TaskResponse::throw_failed_response(
+                            request,
+                            vec![TaskError::UserNotFound.to_string()],
+                        );
+                    }
+                }
+                return TaskResponse::throw_failed_response(
+                    request,
+                    vec![TaskError::FailedToCompleteTask.to_string()],
+                );
             }
         }
         /*

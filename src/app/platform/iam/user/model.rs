@@ -1,9 +1,9 @@
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-use base64::Engine;
+use base64::{decode, Engine};
 use serde::{Deserialize, Serialize};
+use serde_json::from_slice;
 use uuid::Uuid;
-
 
 /// Represents a user's basic information.
 ///
@@ -33,8 +33,14 @@ pub struct UserAccessInfo {
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct UserSecurity {
-    token: SecurityToken,
-    stamp: String,
+    pub token: Option<SecurityToken>,
+    pub stamp: Option<String>,
+}
+
+impl UserSecurity {
+    pub fn new(token: Option<SecurityToken>, stamp: Option<String>) -> UserSecurity {
+        UserSecurity { token, stamp }
+    }
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -88,6 +94,21 @@ impl SecurityToken {
         let serialized_token = serde_json::to_string(&security_token).unwrap();
         base64::encode(serialized_token)
     }
+
+    pub fn deserialize_and_decode(base_64_serialized: Option<&str>) -> Option<SecurityToken> {
+        if base_64_serialized == None {
+            return None;
+        }
+        let decoded_bytes = match decode(base_64_serialized.unwrap()) {
+            Ok(bytes) => bytes,
+            Err(_) => return Some(SecurityToken::default()), // Handle decode error, returning a default SecurityToken
+        };
+    
+        match from_slice(&decoded_bytes) {
+            Ok(token) => token,
+            Err(_) => Some(SecurityToken::default()), // Handle deserialize error, returning a default SecurityToken
+        }
+    }
 }
 
 /// Represents a user.
@@ -102,7 +123,7 @@ pub struct User {
     // Fields from 'user_roles' and 'user_permissions'
     pub access: UserAccessInfo, // Permission and role details
     // Security stamp and token used to generate reset passwords etc;
-    pub security: Option<UserSecurity>,
+    pub security: UserSecurity,
 }
 
 impl User {
@@ -117,7 +138,7 @@ impl User {
         oauth_provider: String,
         roles: Vec<String>,
         permissions: Vec<String>,
-        security: Option<UserSecurity>,
+        security: UserSecurity,
     ) -> Self {
         User {
             info: UserInfo {
@@ -221,7 +242,7 @@ impl UserBuilder {
     }
 
     pub fn security_stamp(mut self) -> UserBuilder {
-         self.security.stamp = Uuid::new_v4().as_simple().to_string();
+        self.security.stamp = Some(Uuid::new_v4().as_simple().to_string());
         self
     }
 
@@ -242,7 +263,7 @@ impl UserBuilder {
             info: self.info,
             auth: self.auth,
             access: self.access,
-            security: Some(UserSecurity::default()),
+            security: UserSecurity::default(),
         }
     }
 }
