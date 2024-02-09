@@ -139,7 +139,7 @@ impl Task<PostgresDatabase, TaskRequest, UserCreateTask> for UserCreateTask {
 
 #[derive(Serialize, Deserialize)]
 pub struct UserReadTask {
-    pub identifier: User,
+    pub identifier: String,
 }
 
 #[async_trait]
@@ -148,7 +148,7 @@ impl Task<PostgresDatabase, TaskRequest, UserReadTask> for UserReadTask {
         db: &PostgresDatabase,
         request: TaskRequest,
         param: UserReadTask,
-    ) -> TaskResponse { 
+    ) -> TaskResponse {
         /*
         1. check if user exists in cache,
         2. retrieve if person does not exist in cache retrieve from database if user does not

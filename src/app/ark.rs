@@ -13,7 +13,7 @@ use super::{
         redis::{RedisConfig, RedisDatabase},
     },
     platform::iam::{
-        permission::manager::PermissionManager, role::{manager::RoleManager, model::Role}, session::manager::SessionManager, user::{manager::UserManager, model::User}
+        permission::manager::PermissionManager, role::{manager::RoleManager, model::Role}, session::manager::SessionManager, user::{manager::{UserCacheManager, UserManager}, model::User}
     },
     service::{cache::manager::CacheManager, task::manager::TaskManager},
 };
@@ -176,7 +176,16 @@ impl ArkServer {
         PermissionManager::preload_permission_cache().unwrap();
         RoleManager::preload_role_cache().unwrap();
         
-        SessionManager::create_session("3b9cd87a-5228-4168-9a56-2923883b2885").unwrap();
+        let test: User = UserCacheManager::read_user_from_cache("d19447ee-6037-4803-9a81-e4566c489c58").unwrap();
+
+        println!("{:?}", test.info.username);
+        //SessionManager::create_session("3b9cd87a-5228-4168-9a56-2923883b2885").unwrap();
+        //let user = User::builder()
+        //.verified(false)
+        //.oauth_id("testing_stoopid_123")
+        //.oauth_provider("discord")
+        //.role(vec!["Administrator".to_string(), "Member".to_string()])
+        //.build();
 
         //UserManager::create_user(user).unwrap();
         /*

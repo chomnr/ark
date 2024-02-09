@@ -1,12 +1,15 @@
 use axum::async_trait;
 use bb8_redis::redis::{AsyncCommands, Cmd, RedisError};
 use serde::{Deserialize, Serialize};
+use syn::token::Use;
 use uuid::{uuid, Uuid};
 
 use crate::app::{
     database::redis::RedisDatabase,
     service::cache::{
-        error::CacheError, message::{CacheRequest, CacheResponse, CacheStatus}, notify_cache_hit, notify_cache_miss, CacheEvent, CacheHandler
+        error::CacheError,
+        message::{CacheRequest, CacheResponse, CacheStatus},
+        notify_cache_hit, notify_cache_miss, CacheEvent, CacheHandler,
     },
 };
 
@@ -122,25 +125,30 @@ impl CacheEvent<RedisDatabase, CacheRequest, UserReadFromCache> for UserReadFrom
             }
         }
         let cache_key = format!("user-cache:{}", param.identifier).to_string();
-        //pool.get("key").await.unwrap();
-        match pool.get::<String, String>(cache_key).await {
+        let query_result: Result<String, RedisError> = Cmd::new()
+            .arg("JSON.GET")
+            .arg(&cache_key)
+            .arg("$")
+            .query_async(&mut *pool)
+            .await;
+        match query_result {
             Ok(v) => {
                 notify_cache_hit("UserCache", "UserReadFromCache", &request.cache_id);
-                let cache_value: User = serde_json::from_str(&v).unwrap();
+                let cache_result: Vec<User> = serde_json::from_str(&v).unwrap();
                 return CacheResponse::compose_response(
                     request,
                     CacheStatus::Completed,
-                    cache_value,
+                    cache_result[0].clone(),
                     Vec::default(),
                 );
-            },
+            }
             Err(_) => {
                 notify_cache_miss("UserCache", "UserReadFromCache", &request.cache_id);
                 return CacheResponse::throw_failed_response(
                     request,
                     vec![CacheError::FailedToCompleteCache.to_string()],
                 );
-            },
+            }
         }
     }
 }

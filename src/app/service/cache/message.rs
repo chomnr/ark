@@ -57,7 +57,7 @@ impl CacheRequest {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct CacheResponse {
     /// The unique identifier of the cache.
     pub cache_id: String,

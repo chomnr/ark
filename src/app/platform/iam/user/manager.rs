@@ -35,7 +35,7 @@ impl UserManager {
     }
 }
 
-pub(super) struct UserCacheManager;
+pub struct UserCacheManager;
 
 impl UserCacheManager {
     pub fn add_user_to_cache(user: User) -> CacheResult<CacheStatus> {
