@@ -238,10 +238,6 @@ impl Task<PostgresDatabase, TaskRequest, UserReadTask> for UserReadTask {
                         );
                     }
                 }
-                return TaskResponse::throw_failed_response(
-                    request,
-                    vec![TaskError::FailedToCompleteTask.to_string()],
-                );
             }
         }
         /*
