@@ -240,55 +240,5 @@ impl Task<PostgresDatabase, TaskRequest, UserReadTask> for UserReadTask {
                 }
             }
         }
-        /*
-        1. check if user exists in cache,
-        2. retrieve if person does not exist in cache retrieve from database if user does not
-        3. if user does not exist store in cache afterwards...
-        user should be able to retrieved, by uid, auth_id, name or email. */
     }
 }
-
-// todo preload cache with user who last logged in the last 7 days.
-
-/*
-/// Represents a task for creating a new user, containing SQL statements and user parameters.
-#[derive(Serialize, Deserialize)]
-pub struct UserCreateTask {
-    sql_1: String,
-    sql_2: String,
-    sql_3: String,
-    sql_4: String,
-    pub param: User,
-}
-
-impl Default for UserCreateTask {
-    fn default() -> Self {
-        Self {
-            sql_1: String::from("INSERT INTO iam_users (id, username, email, created_at, updated_at) VALUES ($1, $2, $3, $4, $5)"),
-            sql_2: String::from("INSERT INTO iam_user_oauth (user_id, oauth_id, oauth_provider) VALUES ($1, $2, $3)"),
-            sql_3: String::from("INSERT INTO iam_roles (id, role_name) VALUES ($1, $2)"),
-            sql_4: String::from("todo"),
-            param: Default::default(),
-        }
-    }
-}
-
-impl UserCreateTask {
-    pub fn new() -> Self {
-        UserCreateTask::default()
-    }
-
-    pub async fn process(&self, pg: &PostgresDatabase) -> TaskResult<()> {
-        let mut pool = pg.pool.get().await.unwrap();
-        let mut transaction = pool.transaction().await.unwrap();
-        // UserCreateTask Here...........
-        match transaction.commit().await {
-            Ok(_) => Ok(()),
-            Err(_) => Err(TaskError::TaskWentWrong), //
-        }
-        // check if user is in cache
-        // check if user exists.
-        // then process transaction.
-    }
-}
-*/
