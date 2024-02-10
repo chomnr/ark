@@ -1,5 +1,5 @@
 use core::fmt;
-use std::{env, sync::Arc};
+use std::{env, sync::Arc, thread::sleep, time::Duration};
 
 use axum::{extract::FromRef, Extension, Router};
 use tokio::net::TcpListener;
@@ -179,6 +179,9 @@ impl ArkServer {
         PermissionManager::preload_permission_cache().unwrap();
         RoleManager::preload_role_cache().unwrap();
         UserManager::preload_user_cache().unwrap();
+
+        sleep(Duration::from_secs(4));
+        UserManager::update_user("88393616-65f4-4117-a428-c8c431910832", "username", "chomnrupdated").unwrap();
         
         /*
         let user = User::builder()
