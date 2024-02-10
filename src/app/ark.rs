@@ -13,7 +13,10 @@ use super::{
         redis::{RedisConfig, RedisDatabase},
     },
     platform::iam::{
-        permission::manager::PermissionManager, role::{manager::RoleManager, model::Role}, session::manager::SessionManager, user::{manager::{UserManager}, model::User}
+        permission::manager::PermissionManager,
+        role::{manager::RoleManager, model::Role},
+        session::manager::SessionManager,
+        user::{manager::UserManager, model::User},
     },
     service::{cache::manager::CacheManager, task::manager::TaskManager},
 };
@@ -175,7 +178,7 @@ impl ArkServer {
     async fn preload_necessities() {
         PermissionManager::preload_permission_cache().unwrap();
         RoleManager::preload_role_cache().unwrap();
-        
+
         let test: User = UserManager::get_user("23980417-6ac7-436a-9031-4d7296f7c13b").unwrap();
 
         println!("{:?}", test.info.created_at);

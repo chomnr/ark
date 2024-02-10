@@ -63,7 +63,7 @@ impl TaskHandler<PostgresDatabase> for UserTaskHandler {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct UserCreateTask {
+pub(super) struct UserCreateTask {
     pub user: User,
 }
 
@@ -148,7 +148,7 @@ impl Task<PostgresDatabase, TaskRequest, UserCreateTask> for UserCreateTask {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct UserReadTask {
+pub(super) struct UserReadTask {
     pub identifier: String,
 }
 
