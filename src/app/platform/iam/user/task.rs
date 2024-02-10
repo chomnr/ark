@@ -55,6 +55,48 @@ impl TaskHandler<PostgresDatabase> for UserTaskHandler {
             return UserReadTask::run(pg, task_request, payload).await;
         }
 
+        if task_request.task_action.eq("user_update") {
+            let payload = match TaskRequest::intepret_request_payload::<UserUpdateTask>(&task_request)
+            {
+                Ok(p) => p,
+                Err(_) => {
+                    return TaskResponse::throw_failed_response(
+                        task_request,
+                        vec![TaskError::FailedToInterpretPayload.to_string()],
+                    )
+                }
+            };
+            return UserUpdateTask::run(pg, task_request, payload).await;
+        }
+
+        if task_request.task_action.eq("user_update_as_boolean") {
+            let payload = match TaskRequest::intepret_request_payload::<UserUpdateAsBooleanTask>(&task_request)
+            {
+                Ok(p) => p,
+                Err(_) => {
+                    return TaskResponse::throw_failed_response(
+                        task_request,
+                        vec![TaskError::FailedToInterpretPayload.to_string()],
+                    )
+                }
+            };
+            return UserUpdateAsBooleanTask::run(pg, task_request, payload).await;
+        }
+
+        if task_request.task_action.eq("user_update_as_integer") {
+            let payload = match TaskRequest::intepret_request_payload::<UserUpdateAsIntegerTask>(&task_request)
+            {
+                Ok(p) => p,
+                Err(_) => {
+                    return TaskResponse::throw_failed_response(
+                        task_request,
+                        vec![TaskError::FailedToInterpretPayload.to_string()],
+                    )
+                }
+            };
+            return UserUpdateAsIntegerTask::run(pg, task_request, payload).await;
+        }
+
         return TaskResponse::throw_failed_response(
             task_request,
             vec![TaskError::FailedToFindAction.to_string()],
@@ -218,7 +260,9 @@ impl Task<PostgresDatabase, TaskRequest, UserReadTask> for UserReadTask {
                             row.get::<_, Option<Vec<String>>>(6).unwrap_or_default(),
                             row.get::<_, Option<Vec<String>>>(7).unwrap_or_default(),
                             UserSecurity::new(
-                                SecurityToken::deserialize_and_decode(row.get::<_, Option<&str>>(10)),
+                                SecurityToken::deserialize_and_decode(
+                                    row.get::<_, Option<&str>>(10),
+                                ),
                                 row.get(11),
                             ),
                         );
@@ -238,6 +282,204 @@ impl Task<PostgresDatabase, TaskRequest, UserReadTask> for UserReadTask {
                         );
                     }
                 }
+            }
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+pub(super) struct UserUpdateTask {
+    pub search_by: String,
+    pub update_for: String,
+    pub value: String,
+}
+
+#[async_trait]
+impl Task<PostgresDatabase, TaskRequest, UserUpdateTask> for UserUpdateTask {
+    async fn run(
+        db: &PostgresDatabase,
+        request: TaskRequest,
+        param: UserUpdateTask,
+    ) -> TaskResponse {
+        let mut pool = db.pool.get().await.unwrap();
+        let stmt = match pool
+            .prepare(
+                format!(
+                    "UPDATE iam_users
+                SET {} = $1
+                WHERE id = $2
+                   OR username = $2
+                   OR email = $2
+                RETURNING *;",
+                    param.update_for
+                )
+                .as_str(),
+            )
+            .await
+        {
+            Ok(v) => v,
+            Err(_) => {
+                return TaskResponse::throw_failed_response(
+                    request,
+                    vec![TaskError::UserFieldNotFound.to_string()],
+                )
+            }
+        };
+        match pool
+            .query_one(&stmt, &[&param.value, &param.search_by])
+            .await
+        {
+            Ok(row) => {
+                if row.len() != 0 {
+                    return TaskResponse::compose_response(
+                        request,
+                        TaskStatus::Completed,
+                        param,
+                        Vec::default(),
+                    );
+                }
+                return TaskResponse::throw_failed_response(
+                    request,
+                    vec![TaskError::UserNotFound.to_string()],
+                );
+            }
+            Err(_) => {
+                return TaskResponse::throw_failed_response(
+                    request,
+                    vec![TaskError::UserUniqueConstraint.to_string()],
+                )
+            }
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+pub(super) struct UserUpdateAsBooleanTask {
+    pub search_by: String,
+    pub update_for: String,
+    pub value: bool,
+}
+
+#[async_trait]
+impl Task<PostgresDatabase, TaskRequest, UserUpdateAsBooleanTask> for UserUpdateAsBooleanTask {
+    async fn run(
+        db: &PostgresDatabase,
+        request: TaskRequest,
+        param: UserUpdateAsBooleanTask,
+    ) -> TaskResponse {
+        let mut pool = db.pool.get().await.unwrap();
+        let stmt = match pool
+            .prepare(
+                format!(
+                    "UPDATE iam_users
+                SET {} = $1
+                WHERE id = $2
+                   OR username = $2
+                   OR email = $2
+                RETURNING *;",
+                    param.update_for
+                )
+                .as_str(),
+            )
+            .await
+        {
+            Ok(v) => v,
+            Err(_) => {
+                return TaskResponse::throw_failed_response(
+                    request,
+                    vec![TaskError::UserFieldNotFound.to_string()],
+                )
+            }
+        };
+        match pool
+            .query_one(&stmt, &[&param.value, &param.search_by])
+            .await
+        {
+            Ok(row) => {
+                if row.len() != 0 {
+                    return TaskResponse::compose_response(
+                        request,
+                        TaskStatus::Completed,
+                        param,
+                        Vec::default(),
+                    );
+                }
+                return TaskResponse::throw_failed_response(
+                    request,
+                    vec![TaskError::UserNotFound.to_string()],
+                );
+            }
+            Err(_) => {
+                return TaskResponse::throw_failed_response(
+                    request,
+                    vec![TaskError::UserUniqueConstraint.to_string()],
+                )
+            }
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+pub(super) struct UserUpdateAsIntegerTask {
+    pub search_by: String,
+    pub update_for: String,
+    pub value: i64,
+}
+
+#[async_trait]
+impl Task<PostgresDatabase, TaskRequest, UserUpdateAsIntegerTask> for UserUpdateAsIntegerTask {
+    async fn run(
+        db: &PostgresDatabase,
+        request: TaskRequest,
+        param: UserUpdateAsIntegerTask,
+    ) -> TaskResponse {
+        let mut pool = db.pool.get().await.unwrap();
+        let stmt = match pool
+            .prepare(
+                format!(
+                    "UPDATE iam_users
+                SET {} = $1
+                WHERE id = $2
+                   OR username = $2
+                   OR email = $2
+                RETURNING *;",
+                    param.update_for
+                )
+                .as_str(),
+            )
+            .await
+        {
+            Ok(v) => v,
+            Err(_) => {
+                return TaskResponse::throw_failed_response(
+                    request,
+                    vec![TaskError::UserFieldNotFound.to_string()],
+                )
+            }
+        };
+        match pool
+            .query_one(&stmt, &[&param.value, &param.search_by])
+            .await
+        {
+            Ok(row) => {
+                if row.len() != 0 {
+                    return TaskResponse::compose_response(
+                        request,
+                        TaskStatus::Completed,
+                        param,
+                        Vec::default(),
+                    );
+                }
+                return TaskResponse::throw_failed_response(
+                    request,
+                    vec![TaskError::UserNotFound.to_string()],
+                );
+            }
+            Err(_) => {
+                return TaskResponse::throw_failed_response(
+                    request,
+                    vec![TaskError::UserUniqueConstraint.to_string()],
+                )
             }
         }
     }

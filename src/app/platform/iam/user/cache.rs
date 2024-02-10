@@ -1,7 +1,6 @@
 use axum::async_trait;
-use bb8_redis::redis::{AsyncCommands, Cmd, RedisError};
+use bb8_redis::redis::{Cmd, RedisError};
 use serde::{Deserialize, Serialize};
-use syn::token::Use;
 use uuid::{uuid, Uuid};
 
 use crate::app::{
@@ -9,7 +8,7 @@ use crate::app::{
     service::cache::{
         error::CacheError,
         message::{CacheRequest, CacheResponse, CacheStatus},
-        notify_cache_hit, notify_cache_miss, CacheEvent, CacheHandler,
+        CacheEvent, CacheHandler,
     },
 };
 
@@ -46,7 +45,6 @@ impl CacheHandler<RedisDatabase> for UserCacheHandler {
                 };
             return UserReadFromCache::run(&cache_db, cache_request, payload).await;
         }
-
         return CacheResponse::throw_failed_response(
             cache_request,
             vec![CacheError::FailedToFindAction.to_string()],

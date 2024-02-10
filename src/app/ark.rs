@@ -179,6 +179,7 @@ impl ArkServer {
         PermissionManager::preload_permission_cache().unwrap();
         RoleManager::preload_role_cache().unwrap();
         
+        UserManager::update_user("b98c3289-c4fb-45b3-a99e-3c43e04246cd", "created_at", "1337").unwrap();
         //let test: User = UserManager::get_user("e63cd0ab-a7e7-46c5-8417-2b2c71b63bb1").unwrap();
 
         //println!("{:?}", test.info.created_at);

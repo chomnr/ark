@@ -41,6 +41,13 @@ pub enum TaskError {
     UserNotFound,
     #[error("UserAlreadyExists")]
     UserAlreadyExists,
+    #[error("UserUpdateIncompatiableType")]
+    UserUpdateIncompatiableType,
+    #[error("UserFieldNotFound")]
+    UserFieldNotFound,
+    #[error("UserUniqueConstraint")]
+    UserUniqueConstraint,
+    // Session
     #[error("SessionCreationFailed")]
     SessionCreationFailed,
 }

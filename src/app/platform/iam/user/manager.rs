@@ -1,22 +1,26 @@
-use syn::token::Use;
+use core::panic;
+use std::{any::TypeId, usize};
 
-use crate::app::service::{
-    cache::{
-        error::CacheResult,
-        manager::CacheManager,
-        message::{CacheLocation, CacheRequest, CacheStatus},
-    },
-    task::{
-        error::TaskResult,
-        manager::TaskManager,
-        message::{TaskRequest, TaskStatus, TaskType},
+use crate::app::{
+    platform::iam::user::task::{UserUpdateAsBooleanTask, UserUpdateAsIntegerTask},
+    service::{
+        cache::{
+            error::CacheResult,
+            manager::CacheManager,
+            message::{CacheLocation, CacheRequest, CacheStatus},
+        },
+        task::{
+            error::TaskResult,
+            manager::TaskManager,
+            message::{TaskRequest, TaskStatus, TaskType},
+        },
     },
 };
 
 use super::{
     cache::{UserAddToCache, UserReadFromCache},
     model::User,
-    task::{UserCreateTask, UserReadTask},
+    task::{UserCreateTask, UserReadTask, UserUpdateTask},
 };
 
 //use super::{task::UserCreateTask, model::User};
@@ -92,6 +96,94 @@ impl UserManager {
             "user_read",
         )
     }
+
+    /// Update a specific field for the specified user.
+    ///
+    /// # Arguments
+    /// - `search_by`: the user identifier, id, username or email.
+    /// - `update_for`: the field to update.
+    /// - `value`: the desired value for the field.
+    ///
+    /// # Examples
+    /// ```
+    /// update_user("chomnr", "email", "newchomnr@gmail.com");
+    /// update_user("2f4afce2-ec56-429a-96b1-480c0b20943a", "email", "newchomnr@gmail.com");
+    /// update_user("chomnr@gmail.com", "email", "newchomnr@gmail.com");
+    /// ``
+    pub fn update_user(search_by: &str, update_for: &str, value: &str) -> TaskResult<TaskStatus> {
+        let mut cache_request =
+            Self::update_user_task_request::<String>(search_by, update_for, value);
+        if update_for.eq_ignore_ascii_case("verified") {
+            cache_request = Self::update_user_task_request::<bool>(search_by, update_for, value);
+        }
+
+        if update_for.eq_ignore_ascii_case("created_at")
+            || update_for.eq_ignore_ascii_case("updated_at")
+        {
+            cache_request = Self::update_user_task_request::<i64>(search_by, update_for, value);
+        }
+        TaskManager::process_task(cache_request)
+    }
+
+    /// Read user from cache request.
+    ///
+    /// # Arguments
+    /// - `search_by`: the user identifier, id, username or email.
+    /// - `update_for`: the field to update.
+    /// - `value`: the desired value for the field.
+    ///
+    /// # Examples
+    /// ```
+    /// update_user_task_request("chomnr", "email", "newchomnr@gmail.com");
+    /// update_user_task_request("2f4afce2-ec56-429a-96b1-480c0b20943a", "email", "newchomnr@gmail.com");
+    /// update_user_task_request("chomnr@gmail.com", "email", "newchomnr@gmail.com");
+    /// ``
+    fn update_user_task_request<T: 'static>(
+        search_by: &str,
+        update_for: &str,
+        value: &str,
+    ) -> TaskRequest {
+        if TypeId::of::<T>() == TypeId::of::<str>() || TypeId::of::<T>() == TypeId::of::<String>() {
+            return TaskRequest::compose_request(
+                UserUpdateTask {
+                    search_by: String::from(search_by),
+                    update_for: String::from(update_for),
+                    value: String::from(value),
+                },
+                TaskType::User,
+                "user_update",
+            );
+        }
+
+        if TypeId::of::<T>() == TypeId::of::<bool>() {
+            return TaskRequest::compose_request(
+                UserUpdateAsBooleanTask {
+                    search_by: String::from(search_by),
+                    update_for: String::from(update_for),
+                    value: value
+                        .parse::<bool>()
+                        .expect("[ARC] update_user_task_request value is not of a bool type."),
+                },
+                TaskType::User,
+                "user_update_as_boolean",
+            );
+        }
+
+        if TypeId::of::<T>() == TypeId::of::<i64>() {
+            return TaskRequest::compose_request(
+                UserUpdateAsIntegerTask {
+                    search_by: String::from(search_by),
+                    update_for: String::from(update_for),
+                    value: value
+                        .parse::<i64>()
+                        .expect("[ARC] update_user_task_request value is not of a integer type."),
+                },
+                TaskType::User,
+                "user_update_as_integer",
+            );
+        }
+        panic!("[ARC] update_user_task_request unsupported conversion type")
+    }
 }
 
 pub(super) struct UserCacheManager;
@@ -114,7 +206,7 @@ impl UserCacheManager {
     /// Add user to cache request.
     ///
     /// # Arguments
-    /// - `user`: Add the specified user to a cache. 
+    /// - `user`: Add the specified user to a cache.
     ///
     /// # Examples
     /// ```
