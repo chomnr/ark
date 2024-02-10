@@ -56,22 +56,23 @@ impl TaskHandler<PostgresDatabase> for UserTaskHandler {
         }
 
         if task_request.task_action.eq("user_update") {
-            let payload = match TaskRequest::intepret_request_payload::<UserUpdateTask>(&task_request)
-            {
-                Ok(p) => p,
-                Err(_) => {
-                    return TaskResponse::throw_failed_response(
-                        task_request,
-                        vec![TaskError::FailedToInterpretPayload.to_string()],
-                    )
-                }
-            };
+            let payload =
+                match TaskRequest::intepret_request_payload::<UserUpdateTask>(&task_request) {
+                    Ok(p) => p,
+                    Err(_) => {
+                        return TaskResponse::throw_failed_response(
+                            task_request,
+                            vec![TaskError::FailedToInterpretPayload.to_string()],
+                        )
+                    }
+                };
             return UserUpdateTask::run(pg, task_request, payload).await;
         }
 
         if task_request.task_action.eq("user_update_as_boolean") {
-            let payload = match TaskRequest::intepret_request_payload::<UserUpdateAsBooleanTask>(&task_request)
-            {
+            let payload = match TaskRequest::intepret_request_payload::<UserUpdateAsBooleanTask>(
+                &task_request,
+            ) {
                 Ok(p) => p,
                 Err(_) => {
                     return TaskResponse::throw_failed_response(
@@ -84,8 +85,9 @@ impl TaskHandler<PostgresDatabase> for UserTaskHandler {
         }
 
         if task_request.task_action.eq("user_update_as_integer") {
-            let payload = match TaskRequest::intepret_request_payload::<UserUpdateAsIntegerTask>(&task_request)
-            {
+            let payload = match TaskRequest::intepret_request_payload::<UserUpdateAsIntegerTask>(
+                &task_request,
+            ) {
                 Ok(p) => p,
                 Err(_) => {
                     return TaskResponse::throw_failed_response(
@@ -95,6 +97,21 @@ impl TaskHandler<PostgresDatabase> for UserTaskHandler {
                 }
             };
             return UserUpdateAsIntegerTask::run(pg, task_request, payload).await;
+        }
+
+        if task_request.task_action.eq("user_preload_cache") {
+            let payload = match TaskRequest::intepret_request_payload::<UserPreloadCache>(
+                &task_request,
+            ) {
+                Ok(p) => p,
+                Err(_) => {
+                    return TaskResponse::throw_failed_response(
+                        task_request,
+                        vec![TaskError::FailedToInterpretPayload.to_string()],
+                    )
+                }
+            };
+            return UserPreloadCache::run(pg, task_request, payload).await;
         }
 
         return TaskResponse::throw_failed_response(
@@ -479,6 +496,87 @@ impl Task<PostgresDatabase, TaskRequest, UserUpdateAsIntegerTask> for UserUpdate
                 return TaskResponse::throw_failed_response(
                     request,
                     vec![TaskError::UserUniqueConstraint.to_string()],
+                )
+            }
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+pub(super) struct UserPreloadCache;
+
+#[async_trait]
+impl Task<PostgresDatabase, TaskRequest, UserPreloadCache> for UserPreloadCache {
+    async fn run(
+        db: &PostgresDatabase,
+        request: TaskRequest,
+        param: UserPreloadCache,
+    ) -> TaskResponse {
+        let mut pool = db.pool.get().await.unwrap();
+        let stmt = pool
+            .prepare(
+                "SELECT * FROM iam_users WHERE updated_at >= EXTRACT(EPOCH FROM NOW()) - 604800",
+            )
+            .await
+            .unwrap();
+
+        let stmt = pool.prepare(
+            "SELECT 
+            u.id, 
+            u.username, 
+            u.email, 
+            u.verified, 
+            u.created_at, 
+            u.updated_at, 
+            array_agg(DISTINCT ur.role_id) FILTER (WHERE ur.role_id IS NOT NULL) AS roles, 
+            array_agg(DISTINCT up.permission_id) FILTER (WHERE up.permission_id IS NOT NULL) AS permissions,
+            o.oauth_id, 
+            o.oauth_provider,
+            u.security_token, 
+            u.security_stamp
+        FROM iam_users u
+        LEFT JOIN iam_user_role ur ON u.id = ur.user_id
+        LEFT JOIN iam_user_permission up ON u.id = up.user_id
+        LEFT JOIN iam_user_oauth o ON u.id = o.user_id
+        WHERE updated_at >= EXTRACT(EPOCH FROM NOW()) - 604800
+        GROUP BY u.id, o.oauth_id, o.oauth_provider;",
+        ).await.unwrap();
+
+        match pool.query(&stmt, &[]).await {
+            Ok(rows) => {
+                let mut amt_items = 0;
+                for row in rows {
+                    amt_items += 1;
+                    let user = User::new(
+                        row.get(0),
+                        row.get(1),
+                        row.get(2),
+                        row.get::<_, bool>(3),
+                        row.get::<_, i64>(4),
+                        row.get::<_, i64>(5),
+                        row.get::<_, String>(8),
+                        row.get::<_, String>(9),
+                        row.get::<_, Option<Vec<String>>>(6).unwrap_or_default(),
+                        row.get::<_, Option<Vec<String>>>(7).unwrap_or_default(),
+                        UserSecurity::new(
+                            SecurityToken::deserialize_and_decode(row.get::<_, Option<&str>>(10)),
+                            row.get(11),
+                        ),
+                    );
+                    UserCacheManager::add_user_to_cache(user.clone()).unwrap();
+                }
+                println!("[ARK] cached {} user(s) cache.", amt_items);
+                return TaskResponse::compose_response(
+                    request,
+                    TaskStatus::Completed,
+                    String::default(),
+                    Vec::default(),
+                );
+            }
+            Err(_) => {
+                return TaskResponse::throw_failed_response(
+                    request,
+                    vec![TaskError::UserFailedToPreload.to_string()],
                 )
             }
         }

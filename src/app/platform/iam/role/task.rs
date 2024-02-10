@@ -420,7 +420,7 @@ impl Task<PostgresDatabase, TaskRequest, RolePreloadCache> for RolePreloadCache 
                     RoleCache::add(Role::new(row.get(0), row.get(1), role_permissions.clone()));
                     amt_items += 1;
                 }
-                println!("[CACHE] cached {} for role cache.", amt_items);
+                println!("[CACHE] cached {} role(s) cache.", amt_items);
                 return TaskResponse::compose_response(
                     request,
                     TaskStatus::Completed,

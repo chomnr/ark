@@ -47,6 +47,8 @@ pub enum TaskError {
     UserFieldNotFound,
     #[error("UserUniqueConstraint")]
     UserUniqueConstraint,
+    #[error("UserFailedToPreload")]
+    UserFailedToPreload,
     // Session
     #[error("SessionCreationFailed")]
     SessionCreationFailed,

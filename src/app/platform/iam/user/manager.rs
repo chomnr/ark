@@ -1,5 +1,5 @@
 use core::panic;
-use std::{any::TypeId, usize};
+use std::any::TypeId;
 
 use crate::app::{
     platform::iam::user::task::{UserUpdateAsBooleanTask, UserUpdateAsIntegerTask},
@@ -20,10 +20,8 @@ use crate::app::{
 use super::{
     cache::{UserAddToCache, UserReadFromCache},
     model::User,
-    task::{UserCreateTask, UserReadTask, UserUpdateTask},
+    task::{UserCreateTask, UserPreloadCache, UserReadTask, UserUpdateTask},
 };
-
-//use super::{task::UserCreateTask, model::User};
 
 pub struct UserManager;
 
@@ -183,6 +181,32 @@ impl UserManager {
             );
         }
         panic!("[ARC] update_user_task_request unsupported conversion type")
+    }
+
+    /// Preload user cache.
+    ///
+    /// # Examples
+    /// ```
+    /// // Assuming `permission` is a reference to a valid Permission
+    /// preload_user_cache_request();
+    /// ```
+    pub fn preload_user_cache() -> TaskResult<TaskStatus> {
+        let task_request = Self::preload_user_cache_request();
+        TaskManager::process_task(task_request)
+    }
+
+    /// Composes a user preload cache request.
+    ///
+    /// # Examples
+    /// ```
+    /// let task_response = preload_permission_request();
+    /// ```
+    pub fn preload_user_cache_request() -> TaskRequest {
+        TaskRequest::compose_request(
+            UserPreloadCache {},
+            TaskType::User,
+            "user_preload_cache",
+        )
     }
 }
 

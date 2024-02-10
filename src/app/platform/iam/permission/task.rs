@@ -432,7 +432,7 @@ impl Task<PostgresDatabase, TaskRequest, PermissionPreloadCache> for PermissionP
                     PermissionCache::add(Permission::new(row.get(0), row.get(1), row.get(2)));
                     amt_items += 1;
                 }
-                println!("[CACHE] cached {} for permission cache.", amt_items);
+                println!("[CACHE] cached {} permission(s) cache.", amt_items);
                 return TaskResponse::compose_response(
                     request,
                     TaskStatus::Completed,
