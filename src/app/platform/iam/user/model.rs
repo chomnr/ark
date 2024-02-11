@@ -43,9 +43,11 @@ impl UserSecurity {
         UserSecurity { token, stamp }
     }
 
-    //pub fn new_s(action: &str, stamp: &str) {
-    //    let token = SecurityToken::new(Self::generate_security_stamp(), action);
-    //}
+    pub fn create(action: &str) -> UserSecurity {
+        let new_stamp = Self::generate_security_stamp();
+        let full = SecurityToken::new(new_stamp.clone(), action);
+        UserSecurity::new(Some(full), Some(new_stamp))
+    }
 
     pub fn generate_security_stamp() -> String {
         let mut hasher = Sha256::new();
@@ -92,7 +94,7 @@ impl SecurityToken {
     /// Deserialize a security token
     pub fn deserialize(security_token: Option<String>) -> Option<SecurityToken> {
         if security_token.is_none() {
-            return None
+            return None;
         }
         let decode_data = hex::decode(security_token.unwrap());
         let decode_data_result = match decode_data {

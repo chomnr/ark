@@ -49,6 +49,8 @@ pub enum TaskError {
     UserUniqueConstraint,
     #[error("UserFailedToPreload")]
     UserFailedToPreload,
+    #[error("UserFailedToCreateSecurityToken")]
+    UserFailedToCreateSecurityToken,
     // Session
     #[error("SessionCreationFailed")]
     SessionCreationFailed,

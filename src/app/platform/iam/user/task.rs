@@ -99,6 +99,21 @@ impl TaskHandler<PostgresDatabase> for UserTaskHandler {
             return UserUpdateAsIntegerTask::run(pg, task_request, payload).await;
         }
 
+        if task_request.task_action.eq("user_create_security_token") {
+            let payload = match TaskRequest::intepret_request_payload::<UserCreateSecurityToken>(
+                &task_request,
+            ) {
+                Ok(p) => p,
+                Err(_) => {
+                    return TaskResponse::throw_failed_response(
+                        task_request,
+                        vec![TaskError::FailedToInterpretPayload.to_string()],
+                    )
+                }
+            };
+            return UserCreateSecurityToken::run(pg, task_request, payload).await;
+        }
+
         if task_request.task_action.eq("user_preload_cache") {
             let payload =
                 match TaskRequest::intepret_request_payload::<UserPreloadCache>(&task_request) {
@@ -643,6 +658,84 @@ impl Task<PostgresDatabase, TaskRequest, UserUpdateAsIntegerTask> for UserUpdate
                 return TaskResponse::throw_failed_response(
                     request,
                     vec![TaskError::UserUniqueConstraint.to_string()],
+                )
+            }
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+pub(super) struct UserCreateSecurityToken {
+    pub search_by: String,
+    pub action: String,
+}
+
+#[async_trait]
+impl Task<PostgresDatabase, TaskRequest, UserCreateSecurityToken> for UserCreateSecurityToken {
+    async fn run(
+        db: &PostgresDatabase,
+        request: TaskRequest,
+        param: UserCreateSecurityToken,
+    ) -> TaskResponse {
+        let mut pool = db.pool.get().await.unwrap();
+        let user_security = UserSecurity::create(&param.action);
+        // updating security_stam
+        let stmt_1 = pool
+            .prepare(
+                format!(
+                    "UPDATE iam_users
+                SET security_stamp = $1
+                WHERE id = $2
+                   OR username = $2
+                   OR email = $2
+                   RETURNING *;"
+                )
+                .as_str(),
+            )
+            .await
+            .unwrap();
+        pool.execute(
+            &stmt_1,
+            &[&user_security.clone().stamp.unwrap(), &param.search_by],
+        )
+        .await
+        .unwrap();
+        // updating security_token
+        let stmt_2 = pool
+            .prepare(
+                format!(
+                    "UPDATE iam_users
+                SET security_token = $1
+                WHERE id = $2
+                   OR username = $2
+                   OR email = $2
+                   RETURNING *;"
+                ).as_str()
+            )
+            .await
+            .unwrap();
+        match pool
+            .query_one(
+                &stmt_2,
+                &[
+                    &user_security.clone().token.unwrap().serialize_then_hex(),
+                    &param.search_by,
+                ],
+            )
+            .await
+        {
+            Ok(_) => {
+                return TaskResponse::compose_response(
+                    request,
+                    TaskStatus::Completed,
+                    user_security.clone(),
+                    Vec::default(),
+                );
+            }
+            Err(er) => {
+                return TaskResponse::throw_failed_response(
+                    request,
+                    vec![TaskError::UserNotFound.to_string()],
                 )
             }
         }

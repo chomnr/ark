@@ -16,7 +16,7 @@ use super::{
         permission::manager::PermissionManager,
         role::{manager::RoleManager, model::Role},
         session::manager::SessionManager,
-        user::{manager::UserManager, model::User},
+        user::{manager::UserManager, model::{User, UserSecurity}},
     },
     service::{cache::manager::CacheManager, task::manager::TaskManager},
 };
@@ -181,7 +181,11 @@ impl ArkServer {
         UserManager::preload_user_cache().unwrap();
 
         //sleep(Duration::from_secs(4));
-        UserManager::update_user("4663c8fc-baae-4f85-8439-d23c81037b12", "username", "door").unwrap();
+
+        //UserSecurity::new(, stamp)
+        //UserManager::update_user("4663c8fc-baae-4f85-8439-d23c81037b12", "security_token", "door").unwrap();
+        let token = UserManager::create_security_token("chomnrupdated", "reset_email").unwrap();
+        println!("{}", token.token.unwrap().action)
         /*
         let user = User::builder()
             .verified(false)

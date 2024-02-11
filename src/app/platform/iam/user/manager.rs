@@ -19,8 +19,10 @@ use crate::app::{
 
 use super::{
     cache::{UserAddToCache, UserReadFromCache},
-    model::User,
-    task::{UserCreateTask, UserPreloadCache, UserReadTask, UserUpdateTask},
+    model::{User, UserSecurity},
+    task::{
+        UserCreateSecurityToken, UserCreateTask, UserPreloadCache, UserReadTask, UserUpdateTask,
+    },
 };
 
 pub struct UserManager;
@@ -183,6 +185,41 @@ impl UserManager {
         panic!("[ARC] update_user_task_request unsupported conversion type")
     }
 
+    /// Creates a security token for user.
+    ///
+    /// # Note
+    /// Security stamp automatically gets updated
+    /// 
+    /// # Arguments
+    /// - `search_for`: the user identifier, id, username or email.
+    /// - `action`: the action the token will be used for ex: email_reset, password_reset etc;.
+    /// # Examples
+    /// ```
+    /// // Assuming `permission` is a reference to a valid Permission
+    /// preload_user_cache_request();
+    /// ```
+    pub fn create_security_token(search_by: &str, action: &str) -> TaskResult<UserSecurity> {
+        let task_request = Self::create_security_token_request(search_by, action);
+        TaskManager::process_task_with_result::<UserSecurity>(task_request)
+    }
+
+    /// Composes a security token request.
+    ///
+    /// # Examples
+    /// ```
+    /// let task_response = preload_permission_request();
+    /// ```
+    pub fn create_security_token_request(search_by: &str, action: &str) -> TaskRequest {
+        TaskRequest::compose_request(
+            UserCreateSecurityToken {
+                search_by: String::from(search_by),
+                action: String::from(action),
+            },
+            TaskType::User,
+            "user_create_security_token",
+        )
+    }
+
     /// Preload user cache.
     ///
     /// # Examples
@@ -202,11 +239,7 @@ impl UserManager {
     /// let task_response = preload_permission_request();
     /// ```
     pub fn preload_user_cache_request() -> TaskRequest {
-        TaskRequest::compose_request(
-            UserPreloadCache {},
-            TaskType::User,
-            "user_preload_cache",
-        )
+        TaskRequest::compose_request(UserPreloadCache {}, TaskType::User, "user_preload_cache")
     }
 }
 
