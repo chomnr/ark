@@ -49,6 +49,10 @@ impl UserSecurity {
         UserSecurity::new(Some(full), Some(new_stamp))
     }
 
+    pub fn verify(stamp: &str, token: SecurityToken) -> bool {
+        todo!();
+    }
+
     pub fn generate_security_stamp() -> String {
         let mut hasher = Sha256::new();
         let time = SystemTime::now()

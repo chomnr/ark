@@ -209,7 +209,7 @@ impl UserManager {
     /// ```
     /// let task_response = preload_permission_request();
     /// ```
-    pub fn create_security_token_request(search_by: &str, action: &str) -> TaskRequest {
+    fn create_security_token_request(search_by: &str, action: &str) -> TaskRequest {
         TaskRequest::compose_request(
             UserCreateSecurityToken {
                 search_by: String::from(search_by),
@@ -238,7 +238,7 @@ impl UserManager {
     /// ```
     /// let task_response = preload_permission_request();
     /// ```
-    pub fn preload_user_cache_request() -> TaskRequest {
+    fn preload_user_cache_request() -> TaskRequest {
         TaskRequest::compose_request(UserPreloadCache {}, TaskType::User, "user_preload_cache")
     }
 }
