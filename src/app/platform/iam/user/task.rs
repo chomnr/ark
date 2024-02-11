@@ -13,7 +13,10 @@ use crate::app::{
         role::{cache::RoleCache, model::Role},
     },
     service::{
-        cache::{error::CacheError, notify_cache_hit, notify_cache_miss, LocalizedCache},
+        cache::{
+            error::CacheError, manager::CacheManager, notify_cache_hit, notify_cache_miss,
+            LocalizedCache,
+        },
         task::{
             error::TaskError,
             message::{TaskRequest, TaskResponse, TaskStatus},
@@ -172,7 +175,7 @@ impl Task<PostgresDatabase, TaskRequest, UserCreateTask> for UserCreateTask {
         let mut pool = db.pool.get().await.unwrap();
         // dont include this as part of the transaction because if it fails the transaction fails.
 
-        let mut transaction = pool.transaction().await.unwrap();
+        let transaction = pool.transaction().await.unwrap();
         transaction.execute(
             "INSERT INTO iam_users (id, verified, created_at, updated_at) VALUES ($1, $2, $3, $4)",
             &[&param.user.info.user_id, &param.user.info.verified, &param.user.info.created_at, &param.user.info.updated_at]
@@ -250,7 +253,7 @@ impl Task<PostgresDatabase, TaskRequest, UserReadTask> for UserReadTask {
     async fn run(db: &PostgresDatabase, request: TaskRequest, param: UserReadTask) -> TaskResponse {
         // very messy what we should do propogate/push onto call back the error but the way i built the system... yeah that won't work.
 
-        let mut pool = db.pool.get().await.unwrap();
+        let pool = db.pool.get().await.unwrap();
 
         match UserCacheManager::read_user_from_cache(&param.identifier) {
             Ok(user) => {
@@ -309,7 +312,9 @@ impl Task<PostgresDatabase, TaskRequest, UserReadTask> for UserReadTask {
                             row.get::<_, Option<Vec<String>>>(6).unwrap_or_default(),
                             row.get::<_, Option<Vec<String>>>(7).unwrap_or_default(),
                             UserSecurity::new(
-                                SecurityToken::decode_then_deserialize(row.get::<_, Option<String>>(10)),
+                                SecurityToken::decode_then_deserialize(
+                                    row.get::<_, Option<String>>(10),
+                                ),
                                 row.get(11),
                             ),
                         );
@@ -334,7 +339,7 @@ impl Task<PostgresDatabase, TaskRequest, UserReadTask> for UserReadTask {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub(super) struct UserUpdateTask {
     pub search_by: String,
     pub update_for: String,
@@ -348,7 +353,7 @@ impl Task<PostgresDatabase, TaskRequest, UserUpdateTask> for UserUpdateTask {
         request: TaskRequest,
         param: UserUpdateTask,
     ) -> TaskResponse {
-        let mut pool = db.pool.get().await.unwrap();
+        let pool = db.pool.get().await.unwrap();
         let stmt = match pool
             .prepare(
                 format!(
@@ -389,54 +394,24 @@ impl Task<PostgresDatabase, TaskRequest, UserUpdateTask> for UserUpdateTask {
         {
             Ok(row) => {
                 if row.len() != 0 {
-                    let stmt_2 = pool.prepare("SELECT 
-                u.id, 
-                u.username, 
-                u.email, 
-                u.verified, 
-                u.created_at, 
-                u.updated_at, 
-                array_agg(DISTINCT ur.role_id) FILTER (WHERE ur.role_id IS NOT NULL) AS roles, 
-                array_agg(DISTINCT up.permission_id) FILTER (WHERE up.permission_id IS NOT NULL) AS permissions,
-                o.oauth_id, 
-                o.oauth_provider,
-                u.security_token, 
-                u.security_stamp
-            FROM iam_users u
-            LEFT JOIN iam_user_role ur ON u.id = ur.user_id
-            LEFT JOIN iam_user_permission up ON u.id = up.user_id
-            LEFT JOIN iam_user_oauth o ON u.id = o.user_id
-            WHERE u.id = $1
-            GROUP BY u.id, o.oauth_id, o.oauth_provider;").await.unwrap();
-                    match pool.query_one(&stmt_2, &[&row.get::<_, String>(0)]).await {
-                        Ok(user_row) => {
-                            let user = User::new(
-                                user_row.get(0),
-                                user_row.get(1),
-                                user_row.get(2),
-                                user_row.get::<_, bool>(3),
-                                user_row.get::<_, i64>(4),
-                                user_row.get::<_, i64>(5),
-                                user_row.get::<_, String>(8),
-                                user_row.get::<_, String>(9),
-                                user_row
-                                    .get::<_, Option<Vec<String>>>(6)
-                                    .unwrap_or_default(),
-                                user_row
-                                    .get::<_, Option<Vec<String>>>(7)
-                                    .unwrap_or_default(),
-                                UserSecurity::new(
-                                    SecurityToken::decode_then_deserialize(
-                                        user_row.get::<_, Option<String>>(10),
-                                    ),
-                                    user_row.get(11),
-                                ),
-                            );
-                            // revitalize the cache...automatically replaces existing cache with new one.
+                    // test
+                    match UserCacheManager::read_user_from_cache(&row.get::<_, String>(0)) {
+                        Ok(mut user) => {
+                            if param.update_for.eq_ignore_ascii_case("id") {
+                                return TaskResponse::throw_failed_response(
+                                    request,
+                                    vec![TaskError::UserCannotUpdateId.to_string()],
+                                );
+                            }
+                            if param.update_for.eq_ignore_ascii_case("username") {
+                                user.info.username = Some(param.clone().value);
+                            } else if param.update_for.eq_ignore_ascii_case("email") {
+                                user.info.email = Some(param.clone().value);
+                            }
                             UserCacheManager::add_user_to_cache(user).unwrap();
                         }
                         Err(_) => {
-                            unreachable!()
+                            /* if not found in cache then it will just update the database. */
                         }
                     }
                     return TaskResponse::compose_response(
@@ -454,14 +429,14 @@ impl Task<PostgresDatabase, TaskRequest, UserUpdateTask> for UserUpdateTask {
             Err(_) => {
                 return TaskResponse::throw_failed_response(
                     request,
-                    vec![TaskError::UserUniqueConstraint.to_string()],
+                    vec![TaskError::UserNotFound.to_string()],
                 )
             }
         }
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub(super) struct UserUpdateAsBooleanTask {
     pub search_by: String,
     pub update_for: String,
@@ -475,7 +450,7 @@ impl Task<PostgresDatabase, TaskRequest, UserUpdateAsBooleanTask> for UserUpdate
         request: TaskRequest,
         param: UserUpdateAsBooleanTask,
     ) -> TaskResponse {
-        let mut pool = db.pool.get().await.unwrap();
+        let pool = db.pool.get().await.unwrap();
         let stmt = match pool
             .prepare(
                 format!(
@@ -516,54 +491,15 @@ impl Task<PostgresDatabase, TaskRequest, UserUpdateAsBooleanTask> for UserUpdate
         {
             Ok(row) => {
                 if row.len() != 0 {
-                    let stmt_2 = pool.prepare("SELECT 
-                u.id, 
-                u.username, 
-                u.email, 
-                u.verified, 
-                u.created_at, 
-                u.updated_at, 
-                array_agg(DISTINCT ur.role_id) FILTER (WHERE ur.role_id IS NOT NULL) AS roles, 
-                array_agg(DISTINCT up.permission_id) FILTER (WHERE up.permission_id IS NOT NULL) AS permissions,
-                o.oauth_id, 
-                o.oauth_provider,
-                u.security_token, 
-                u.security_stamp
-            FROM iam_users u
-            LEFT JOIN iam_user_role ur ON u.id = ur.user_id
-            LEFT JOIN iam_user_permission up ON u.id = up.user_id
-            LEFT JOIN iam_user_oauth o ON u.id = o.user_id
-            WHERE u.id = $1
-            GROUP BY u.id, o.oauth_id, o.oauth_provider;").await.unwrap();
-                    match pool.query_one(&stmt_2, &[&row.get::<_, String>(0)]).await {
-                        Ok(user_row) => {
-                            let user = User::new(
-                                user_row.get(0),
-                                user_row.get(1),
-                                user_row.get(2),
-                                user_row.get::<_, bool>(3),
-                                user_row.get::<_, i64>(4),
-                                user_row.get::<_, i64>(5),
-                                user_row.get::<_, String>(8),
-                                user_row.get::<_, String>(9),
-                                user_row
-                                    .get::<_, Option<Vec<String>>>(6)
-                                    .unwrap_or_default(),
-                                user_row
-                                    .get::<_, Option<Vec<String>>>(7)
-                                    .unwrap_or_default(),
-                                UserSecurity::new(
-                                    SecurityToken::decode_then_deserialize(
-                                        user_row.get::<_, Option<String>>(10),
-                                    ),
-                                    user_row.get(11),
-                                ),
-                            );
-                            // revitalize the cache...automatically replaces existing cache with new one.
+                    match UserCacheManager::read_user_from_cache(&row.get::<_, String>(0)) {
+                        Ok(mut user) => {
+                            if param.update_for.eq_ignore_ascii_case("verified") {
+                                user.info.verified = param.clone().value;
+                            }
                             UserCacheManager::add_user_to_cache(user).unwrap();
                         }
                         Err(_) => {
-                            unreachable!()
+                            /* if not found in cache then it will just update the database. */
                         }
                     }
                     return TaskResponse::compose_response(
@@ -588,7 +524,7 @@ impl Task<PostgresDatabase, TaskRequest, UserUpdateAsBooleanTask> for UserUpdate
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub(super) struct UserUpdateAsIntegerTask {
     pub search_by: String,
     pub update_for: String,
@@ -602,7 +538,7 @@ impl Task<PostgresDatabase, TaskRequest, UserUpdateAsIntegerTask> for UserUpdate
         request: TaskRequest,
         param: UserUpdateAsIntegerTask,
     ) -> TaskResponse {
-        let mut pool = db.pool.get().await.unwrap();
+        let pool = db.pool.get().await.unwrap();
         let stmt = match pool
             .prepare(
                 format!(
@@ -643,54 +579,18 @@ impl Task<PostgresDatabase, TaskRequest, UserUpdateAsIntegerTask> for UserUpdate
         {
             Ok(row) => {
                 if row.len() != 0 {
-                    let stmt_2 = pool.prepare("SELECT 
-                u.id, 
-                u.username, 
-                u.email, 
-                u.verified, 
-                u.created_at, 
-                u.updated_at, 
-                array_agg(DISTINCT ur.role_id) FILTER (WHERE ur.role_id IS NOT NULL) AS roles, 
-                array_agg(DISTINCT up.permission_id) FILTER (WHERE up.permission_id IS NOT NULL) AS permissions,
-                o.oauth_id, 
-                o.oauth_provider,
-                u.security_token, 
-                u.security_stamp
-            FROM iam_users u
-            LEFT JOIN iam_user_role ur ON u.id = ur.user_id
-            LEFT JOIN iam_user_permission up ON u.id = up.user_id
-            LEFT JOIN iam_user_oauth o ON u.id = o.user_id
-            WHERE u.id = $1
-            GROUP BY u.id, o.oauth_id, o.oauth_provider;").await.unwrap();
-                    match pool.query_one(&stmt_2, &[&row.get::<_, String>(0)]).await {
-                        Ok(user_row) => {
-                            let user = User::new(
-                                user_row.get(0),
-                                user_row.get(1),
-                                user_row.get(2),
-                                user_row.get::<_, bool>(3),
-                                user_row.get::<_, i64>(4),
-                                user_row.get::<_, i64>(5),
-                                user_row.get::<_, String>(8),
-                                user_row.get::<_, String>(9),
-                                user_row
-                                    .get::<_, Option<Vec<String>>>(6)
-                                    .unwrap_or_default(),
-                                user_row
-                                    .get::<_, Option<Vec<String>>>(7)
-                                    .unwrap_or_default(),
-                                UserSecurity::new(
-                                    SecurityToken::decode_then_deserialize(
-                                        user_row.get::<_, Option<String>>(10),
-                                    ),
-                                    user_row.get(11),
-                                ),
-                            );
-                            // revitalize the cache...automatically replaces existing cache with new one.
+                    match UserCacheManager::read_user_from_cache(&row.get::<_, String>(0)) {
+                        Ok(mut user) => {
+                            if param.update_for.eq_ignore_ascii_case("created_at") {
+                                user.info.created_at = param.clone().value;
+                            }
+                            if param.update_for.eq_ignore_ascii_case("updated_at") {
+                                user.info.updated_at = param.clone().value;
+                            }
                             UserCacheManager::add_user_to_cache(user).unwrap();
                         }
                         Err(_) => {
-                            unreachable!()
+                            /* if not found in cache then it will just update the database. */
                         }
                     }
                     return TaskResponse::compose_response(
@@ -728,7 +628,7 @@ impl Task<PostgresDatabase, TaskRequest, UserCreateSecurityToken> for UserCreate
         request: TaskRequest,
         param: UserCreateSecurityToken,
     ) -> TaskResponse {
-        let mut pool = db.pool.get().await.unwrap();
+        let pool = db.pool.get().await.unwrap();
         let user_security = UserSecurity::create(&param.action);
         // updating security_stam
         let stmt_1 = pool
@@ -778,60 +678,19 @@ impl Task<PostgresDatabase, TaskRequest, UserCreateSecurityToken> for UserCreate
         {
             Ok(row) => {
                 if row.len() != 0 {
-                    let stmt_2 = pool.prepare("SELECT 
-                    u.id, 
-                    u.username, 
-                    u.email, 
-                    u.verified, 
-                    u.created_at, 
-                    u.updated_at, 
-                    array_agg(DISTINCT ur.role_id) FILTER (WHERE ur.role_id IS NOT NULL) AS roles, 
-                    array_agg(DISTINCT up.permission_id) FILTER (WHERE up.permission_id IS NOT NULL) AS permissions,
-                    o.oauth_id, 
-                    o.oauth_provider,
-                    u.security_token, 
-                    u.security_stamp
-                FROM iam_users u
-                LEFT JOIN iam_user_role ur ON u.id = ur.user_id
-                LEFT JOIN iam_user_permission up ON u.id = up.user_id
-                LEFT JOIN iam_user_oauth o ON u.id = o.user_id
-                WHERE u.id = $1
-                GROUP BY u.id, o.oauth_id, o.oauth_provider;").await.unwrap();
-                    match pool.query_one(&stmt_2, &[&row.get::<_, String>(0)]).await {
-                        Ok(user_row) => {
-                            let user = User::new(
-                                user_row.get(0),
-                                user_row.get(1),
-                                user_row.get(2),
-                                user_row.get::<_, bool>(3),
-                                user_row.get::<_, i64>(4),
-                                user_row.get::<_, i64>(5),
-                                user_row.get::<_, String>(8),
-                                user_row.get::<_, String>(9),
-                                user_row
-                                    .get::<_, Option<Vec<String>>>(6)
-                                    .unwrap_or_default(),
-                                user_row
-                                    .get::<_, Option<Vec<String>>>(7)
-                                    .unwrap_or_default(),
-                                UserSecurity::new(
-                                    SecurityToken::decode_then_deserialize(
-                                        user_row.get::<_, Option<String>>(10),
-                                    ),
-                                    user_row.get(11),
-                                ),
-                            );
-                            // revitalize the cache...automatically replaces existing cache with new one.
+                    match UserCacheManager::read_user_from_cache(&row.get::<_, String>(0)) {
+                        Ok(mut user) => {
+                            user.security = user_security.clone();
                             UserCacheManager::add_user_to_cache(user).unwrap();
                         }
                         Err(_) => {
-                            unreachable!()
+                            /* if not found in cache then it will just update the database. */
                         }
                     }
                     return TaskResponse::compose_response(
                         request,
                         TaskStatus::Completed,
-                        user_security.clone(),
+                        user_security,
                         Vec::default(),
                     );
                 }
@@ -864,7 +723,7 @@ impl Task<PostgresDatabase, TaskRequest, UserExchangeOAuthIdForId> for UserExcha
         param: UserExchangeOAuthIdForId,
     ) -> TaskResponse {
         // retrieves directly from database.
-        let mut pool = db.pool.get().await.unwrap();
+        let pool = db.pool.get().await.unwrap();
         let stmt = pool
             .prepare(
                 "SELECT user_id FROM iam_user_oauth WHERE oauth_id = $1 AND oauth_provider = $2",
@@ -882,13 +741,13 @@ impl Task<PostgresDatabase, TaskRequest, UserExchangeOAuthIdForId> for UserExcha
                     row.get::<_, String>(0),
                     Vec::default(),
                 );
-            },
+            }
             Err(_) => {
                 return TaskResponse::throw_failed_response(
                     request,
                     vec![TaskError::UserOAuthIdNotFound.to_string()],
                 )
-            },
+            }
         }
     }
 }
@@ -901,16 +760,9 @@ impl Task<PostgresDatabase, TaskRequest, UserPreloadCache> for UserPreloadCache 
     async fn run(
         db: &PostgresDatabase,
         request: TaskRequest,
-        param: UserPreloadCache,
+        _param: UserPreloadCache,
     ) -> TaskResponse {
-        let mut pool = db.pool.get().await.unwrap();
-        let stmt = pool
-            .prepare(
-                "SELECT * FROM iam_users WHERE updated_at >= EXTRACT(EPOCH FROM NOW()) - 604800",
-            )
-            .await
-            .unwrap();
-
+        let pool = db.pool.get().await.unwrap();
         let stmt = pool.prepare(
             "SELECT 
             u.id, 
@@ -950,7 +802,9 @@ impl Task<PostgresDatabase, TaskRequest, UserPreloadCache> for UserPreloadCache 
                         row.get::<_, Option<Vec<String>>>(6).unwrap_or_default(),
                         row.get::<_, Option<Vec<String>>>(7).unwrap_or_default(),
                         UserSecurity::new(
-                            SecurityToken::decode_then_deserialize(row.get::<_, Option<String>>(10)),
+                            SecurityToken::decode_then_deserialize(
+                                row.get::<_, Option<String>>(10),
+                            ),
                             row.get(11),
                         ),
                     );

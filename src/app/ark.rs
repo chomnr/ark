@@ -181,7 +181,7 @@ impl ArkServer {
         UserManager::preload_user_cache().unwrap();
 
         //sleep(Duration::from_secs(4));
-
+        UserManager::create_security_token("door", "reset_me").unwrap();
         //UserSecurity::new(, stamp)
         //UserManager::update_user("door", "email", "hello@gmail.com").unwrap();
         //UserManager::create_security_token("2da13f44-4121-4be3-a883-22046b55513f", "reset_email").unwrap();

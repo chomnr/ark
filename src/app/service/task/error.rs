@@ -53,6 +53,8 @@ pub enum TaskError {
     UserFailedToCreateSecurityToken,
     #[error("UserOAuthIdNotFound")]
     UserOAuthIdNotFound,
+    #[error("UserCannotUpdateId")]
+    UserCannotUpdateId,
     // Session
     #[error("SessionCreationFailed")]
     SessionCreationFailed,
