@@ -21,7 +21,7 @@ use super::{
     cache::{UserAddToCache, UserReadFromCache},
     model::{User, UserSecurity},
     task::{
-        UserCreateSecurityToken, UserCreateTask, UserPreloadCache, UserReadTask, UserUpdateTask,
+        UserCreateSecurityToken, UserCreateTask, UserExchangeOAuthIdForId, UserPreloadCache, UserReadTask, UserUpdateTask
     },
 };
 
@@ -64,7 +64,7 @@ impl UserManager {
         TaskRequest::compose_request(UserCreateTask { user }, TaskType::User, "user_create")
     }
 
-    /// Retrieve information about a specific user by their uui
+    /// Retrieve information about a specific user by their uuid
     ///
     /// # Arguments
     /// - `identifier`: the uuid of the user.
@@ -217,6 +217,42 @@ impl UserManager {
             },
             TaskType::User,
             "user_create_security_token",
+        )
+    }
+
+    /// Exchange an oauth_id for a user_id.
+    /// 
+    /// # Arguments
+    /// - `oauth_id`: the oauth id of the user.
+    /// - `oauth_provider`: the provider.
+    /// # Examples
+    /// ```
+    /// // Assuming `permission` is a reference to a valid Permission
+    /// exchange_oauth_for_id("oauth_id_here", "discord");
+    /// ```
+    pub fn exchange_oauth_for_id(oauth_id: &str, oauth_provider: &str) -> TaskResult<String> {
+        let task_request = Self::exchange_oauth_for_id_request(oauth_id, oauth_provider);
+        TaskManager::process_task_with_result::<String>(task_request)
+    }
+
+    /// Composes a exchange oauth for id request.
+    ///
+    /// # Arguments
+    /// - `oauth_id`: the oauth id of the user.
+    /// - `oauth_provider`: the provider.
+    /// 
+    /// # Examples
+    /// ```
+    /// let task_response = preload_permission_request();
+    /// ```
+    fn exchange_oauth_for_id_request(oauth_id: &str, oauth_provider: &str) -> TaskRequest {
+        TaskRequest::compose_request(
+            UserExchangeOAuthIdForId {
+                oauth_id: String::from(oauth_id),
+                provider: String::from(oauth_provider),
+            },
+            TaskType::User,
+            "user_exchange_oauthid_for_id",
         )
     }
 

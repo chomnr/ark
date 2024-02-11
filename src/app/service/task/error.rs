@@ -51,6 +51,8 @@ pub enum TaskError {
     UserFailedToPreload,
     #[error("UserFailedToCreateSecurityToken")]
     UserFailedToCreateSecurityToken,
+    #[error("UserOAuthIdNotFound")]
+    UserOAuthIdNotFound,
     // Session
     #[error("SessionCreationFailed")]
     SessionCreationFailed,

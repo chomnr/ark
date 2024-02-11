@@ -52,9 +52,9 @@ CREATE TABLE iam_user_role (
 -- not directly with roles or permissions. However, ensuring that user deletion 
 -- cascades to this table.
 CREATE TABLE iam_user_oauth (
-    user_id VARCHAR(255) NOT NULL REFERENCES iam_users(id) ON DELETE CASCADE,
     oauth_id VARCHAR(255) NOT NULL,
     oauth_provider VARCHAR(255) NOT NULL,
+    user_id VARCHAR(255) NOT NULL REFERENCES iam_users(id) ON DELETE CASCADE,
     UNIQUE(oauth_id, oauth_provider),
     PRIMARY KEY(user_id)
 );

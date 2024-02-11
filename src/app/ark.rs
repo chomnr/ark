@@ -151,7 +151,7 @@ impl ArkServer {
     }
 
     /// Registers and starts listening for tasks using the specified PostgreSQL and Redis databases.
-    ///
+    /// v bv mg 
     /// # Arguments
     ///
     /// * `pg` - An instance of `PostgresDatabase` representing the connection to the PostgreSQL database.
@@ -180,11 +180,14 @@ impl ArkServer {
         RoleManager::preload_role_cache().unwrap();
         UserManager::preload_user_cache().unwrap();
 
+        let test2 = UserManager::exchange_oauth_for_id("testing_stoopid_2", "discordd").unwrap();
+        println!("{}", test2);
+
         //sleep(Duration::from_secs(4));
 
         //UserSecurity::new(, stamp)
         //UserManager::update_user("door", "email", "hello@gmail.com").unwrap();
-        UserManager::create_security_token("2da13f44-4121-4be3-a883-22046b55513f", "reset_email").unwrap();
+        //UserManager::create_security_token("2da13f44-4121-4be3-a883-22046b55513f", "reset_email").unwrap();
         //let token = UserManager::create_security_token("chomnrupdated", "reset_email").unwrap();
         //println!("{}", token.token.unwrap().action)
         /*

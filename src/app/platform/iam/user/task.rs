@@ -119,6 +119,21 @@ impl TaskHandler<PostgresDatabase> for UserTaskHandler {
             return UserCreateSecurityToken::run(pg, task_request, payload).await;
         }
 
+        if task_request.task_action.eq("user_exchange_oauthid_for_id") {
+            let payload = match TaskRequest::intepret_request_payload::<UserExchangeOAuthIdForId>(
+                &task_request,
+            ) {
+                Ok(p) => p,
+                Err(_) => {
+                    return TaskResponse::throw_failed_response(
+                        task_request,
+                        vec![TaskError::FailedToInterpretPayload.to_string()],
+                    )
+                }
+            };
+            return UserExchangeOAuthIdForId::run(pg, task_request, payload).await;
+        }
+
         if task_request.task_action.eq("user_preload_cache") {
             let payload =
                 match TaskRequest::intepret_request_payload::<UserPreloadCache>(&task_request) {
@@ -254,8 +269,6 @@ impl Task<PostgresDatabase, TaskRequest, UserReadTask> for UserReadTask {
                         vec![TaskError::FailedToCompleteTask.to_string()],
                     );
                 }
-                // retriever user from postgres database here..1
-                // UserManager::get_id_from_oauth_id();
 
                 let fallback_stmt = pool
                     .prepare(
@@ -275,8 +288,8 @@ impl Task<PostgresDatabase, TaskRequest, UserReadTask> for UserReadTask {
                     FROM iam_users u
                     LEFT JOIN iam_user_role ur ON u.id = ur.user_id
                     LEFT JOIN iam_user_permission up ON u.id = up.user_id
-                    LEFT JOIN iam_user_oauth o ON u.id = o.user_id
-                    WHERE u.id = $1
+                    LEFT JOIN iam_user_oauth o ON u.id = o.user_id OR o.oauth_id = $1
+                    WHERE u.id = $1 OR o.oauth_id = $1
                     GROUP BY u.id, o.oauth_id, o.oauth_provider;",
                     )
                     .await
@@ -825,7 +838,7 @@ impl Task<PostgresDatabase, TaskRequest, UserCreateSecurityToken> for UserCreate
                 return TaskResponse::throw_failed_response(
                     request,
                     vec![TaskError::UserNotFound.to_string()],
-                )
+                );
             }
             Err(_) => {
                 return TaskResponse::throw_failed_response(
@@ -833,6 +846,49 @@ impl Task<PostgresDatabase, TaskRequest, UserCreateSecurityToken> for UserCreate
                     vec![TaskError::UserFailedToCreateSecurityToken.to_string()],
                 )
             }
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+pub(super) struct UserExchangeOAuthIdForId {
+    pub oauth_id: String,
+    pub provider: String,
+}
+
+#[async_trait]
+impl Task<PostgresDatabase, TaskRequest, UserExchangeOAuthIdForId> for UserExchangeOAuthIdForId {
+    async fn run(
+        db: &PostgresDatabase,
+        request: TaskRequest,
+        param: UserExchangeOAuthIdForId,
+    ) -> TaskResponse {
+        // retrieves directly from database.
+        let mut pool = db.pool.get().await.unwrap();
+        let stmt = pool
+            .prepare(
+                "SELECT user_id FROM iam_user_oauth WHERE oauth_id = $1 AND oauth_provider = $2",
+            )
+            .await
+            .unwrap();
+        match pool
+            .query_one(&stmt, &[&param.oauth_id, &param.provider])
+            .await
+        {
+            Ok(row) => {
+                return TaskResponse::compose_response(
+                    request,
+                    TaskStatus::Completed,
+                    row.get::<_, String>(0),
+                    Vec::default(),
+                );
+            },
+            Err(_) => {
+                return TaskResponse::throw_failed_response(
+                    request,
+                    vec![TaskError::UserOAuthIdNotFound.to_string()],
+                )
+            },
         }
     }
 }
