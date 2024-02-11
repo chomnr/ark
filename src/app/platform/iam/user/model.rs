@@ -49,10 +49,6 @@ impl UserSecurity {
         UserSecurity::new(Some(full), Some(new_stamp))
     }
 
-    pub fn verify(stamp: &str, token: SecurityToken) -> bool {
-        todo!();
-    }
-
     pub fn generate_security_stamp() -> String {
         let mut hasher = Sha256::new();
         let time = SystemTime::now()
@@ -96,7 +92,7 @@ impl SecurityToken {
     }
 
     /// Deserialize a security token
-    pub fn deserialize(security_token: Option<String>) -> Option<SecurityToken> {
+    pub fn decode_then_deserialize(security_token: Option<String>) -> Option<SecurityToken> {
         if security_token.is_none() {
             return None;
         }
@@ -137,6 +133,8 @@ impl SecurityToken {
         let hex_token = hex::encode(no_hex_token);
         hex_token
     }
+
+
     /*
     /// Creates a new `SecurityToken` instance.
     ///

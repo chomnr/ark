@@ -309,7 +309,7 @@ impl Task<PostgresDatabase, TaskRequest, UserReadTask> for UserReadTask {
                             row.get::<_, Option<Vec<String>>>(6).unwrap_or_default(),
                             row.get::<_, Option<Vec<String>>>(7).unwrap_or_default(),
                             UserSecurity::new(
-                                SecurityToken::deserialize(row.get::<_, Option<String>>(10)),
+                                SecurityToken::decode_then_deserialize(row.get::<_, Option<String>>(10)),
                                 row.get(11),
                             ),
                         );
@@ -426,7 +426,7 @@ impl Task<PostgresDatabase, TaskRequest, UserUpdateTask> for UserUpdateTask {
                                     .get::<_, Option<Vec<String>>>(7)
                                     .unwrap_or_default(),
                                 UserSecurity::new(
-                                    SecurityToken::deserialize(
+                                    SecurityToken::decode_then_deserialize(
                                         user_row.get::<_, Option<String>>(10),
                                     ),
                                     user_row.get(11),
@@ -553,7 +553,7 @@ impl Task<PostgresDatabase, TaskRequest, UserUpdateAsBooleanTask> for UserUpdate
                                     .get::<_, Option<Vec<String>>>(7)
                                     .unwrap_or_default(),
                                 UserSecurity::new(
-                                    SecurityToken::deserialize(
+                                    SecurityToken::decode_then_deserialize(
                                         user_row.get::<_, Option<String>>(10),
                                     ),
                                     user_row.get(11),
@@ -680,7 +680,7 @@ impl Task<PostgresDatabase, TaskRequest, UserUpdateAsIntegerTask> for UserUpdate
                                     .get::<_, Option<Vec<String>>>(7)
                                     .unwrap_or_default(),
                                 UserSecurity::new(
-                                    SecurityToken::deserialize(
+                                    SecurityToken::decode_then_deserialize(
                                         user_row.get::<_, Option<String>>(10),
                                     ),
                                     user_row.get(11),
@@ -815,7 +815,7 @@ impl Task<PostgresDatabase, TaskRequest, UserCreateSecurityToken> for UserCreate
                                     .get::<_, Option<Vec<String>>>(7)
                                     .unwrap_or_default(),
                                 UserSecurity::new(
-                                    SecurityToken::deserialize(
+                                    SecurityToken::decode_then_deserialize(
                                         user_row.get::<_, Option<String>>(10),
                                     ),
                                     user_row.get(11),
@@ -950,7 +950,7 @@ impl Task<PostgresDatabase, TaskRequest, UserPreloadCache> for UserPreloadCache 
                         row.get::<_, Option<Vec<String>>>(6).unwrap_or_default(),
                         row.get::<_, Option<Vec<String>>>(7).unwrap_or_default(),
                         UserSecurity::new(
-                            SecurityToken::deserialize(row.get::<_, Option<String>>(10)),
+                            SecurityToken::decode_then_deserialize(row.get::<_, Option<String>>(10)),
                             row.get(11),
                         ),
                     );

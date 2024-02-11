@@ -5,7 +5,7 @@ use app::{
     database::{
         postgres::{PostgresConfig, PostgresDatabase},
         redis::{RedisConfig, RedisDatabase},
-    }, platform::iam::user::{manager::UserManager, model::SecurityToken},
+    }, platform::iam::{session::manager::SessionManager, user::{manager::UserManager, model::SecurityToken}},
 };
 
 

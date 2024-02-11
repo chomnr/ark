@@ -180,9 +180,6 @@ impl ArkServer {
         RoleManager::preload_role_cache().unwrap();
         UserManager::preload_user_cache().unwrap();
 
-        let test2 = UserManager::exchange_oauth_for_id("testing_stoopid_2", "discordd").unwrap();
-        println!("{}", test2);
-
         //sleep(Duration::from_secs(4));
 
         //UserSecurity::new(, stamp)
