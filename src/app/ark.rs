@@ -183,9 +183,10 @@ impl ArkServer {
         //sleep(Duration::from_secs(4));
 
         //UserSecurity::new(, stamp)
-        //UserManager::update_user("4663c8fc-baae-4f85-8439-d23c81037b12", "security_token", "door").unwrap();
-        let token = UserManager::create_security_token("chomnrupdated", "reset_email").unwrap();
-        println!("{}", token.token.unwrap().action)
+        //UserManager::update_user("door", "email", "hello@gmail.com").unwrap();
+        UserManager::create_security_token("2da13f44-4121-4be3-a883-22046b55513f", "reset_email").unwrap();
+        //let token = UserManager::create_security_token("chomnrupdated", "reset_email").unwrap();
+        //println!("{}", token.token.unwrap().action)
         /*
         let user = User::builder()
             .verified(false)

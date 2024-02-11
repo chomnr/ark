@@ -1,3 +1,6 @@
+// todo: make a user_update_cache so I don't have to retrieve all the results every time
+// will reduce lines of code by at least 200
+
 use axum::async_trait;
 use bb8_redis::redis::{Cmd, RedisError};
 use serde::{Deserialize, Serialize};
