@@ -180,9 +180,8 @@ impl ArkServer {
         RoleManager::preload_role_cache().unwrap();
         UserManager::preload_user_cache().unwrap();
 
-        sleep(Duration::from_secs(4));
-        UserManager::update_user("13744c7c-a8a1-43a4-bf8a-bf2acb5722e9", "verified", "true").unwrap();
-        
+        //sleep(Duration::from_secs(4));
+        UserManager::update_user("4663c8fc-baae-4f85-8439-d23c81037b12", "username", "door").unwrap();
         /*
         let user = User::builder()
             .verified(false)

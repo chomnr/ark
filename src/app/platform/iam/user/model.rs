@@ -1,8 +1,9 @@
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-use base64::{decode, Engine};
+use base64::decode;
 use serde::{Deserialize, Serialize};
 use serde_json::from_slice;
+use sha2::{Digest, Sha256};
 use uuid::Uuid;
 
 /// Represents a user's basic information.
@@ -41,9 +42,25 @@ impl UserSecurity {
     pub fn new(token: Option<SecurityToken>, stamp: Option<String>) -> UserSecurity {
         UserSecurity { token, stamp }
     }
+
+    //pub fn new_s(action: &str, stamp: &str) {
+    //    let token = SecurityToken::new(Self::generate_security_stamp(), action);
+    //}
+
+    pub fn generate_security_stamp() -> String {
+        let mut hasher = Sha256::new();
+        let time = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_millis() as i64;
+        hasher.update(time.to_string());
+        let no_hex_stamp = hasher.finalize();
+        let hex_stamp = hex::encode(no_hex_stamp);
+        hex_stamp
+    }
 }
 
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 // security token for the user...
 pub struct SecurityToken {
     pub token: String,
@@ -60,7 +77,74 @@ impl SecurityToken {
     ///
     /// # Returns
     /// A new `SecurityToken` instance.
-    pub fn new(token: &str, action: &str) -> SecurityToken {
+    pub fn new(security_stamp: String, action: &str) -> SecurityToken {
+        Self {
+            token: Self::generate_token(security_stamp, action),
+            expiry: SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_millis()
+                + 900000,
+            action: String::from(action),
+        }
+    }
+
+    /// Deserialize a security token
+    pub fn deserialize(security_token: Option<String>) -> Option<SecurityToken> {
+        if security_token.is_none() {
+            return None
+        }
+        let decode_data = hex::decode(security_token.unwrap());
+        let decode_data_result = match decode_data {
+            Ok(data) => data,
+            Err(_) => return None,
+        };
+        let from_utf8_data = String::from_utf8(decode_data_result);
+        let from_utf8_data_result = match from_utf8_data {
+            Ok(data) => data,
+            Err(_) => return None,
+        };
+        match serde_json::from_str::<SecurityToken>(&from_utf8_data_result) {
+            Ok(data) => Some(data),
+            Err(_) => return None,
+        }
+    }
+
+    /// Serializes then encodes the serialization via hex.
+    pub fn serialize_then_hex(self) -> String {
+        let data = serde_json::to_string(&self).unwrap();
+        hex::encode(data)
+    }
+
+    /// Creates a new 'token' used for urls.
+    ///
+    /// # Arguments
+    /// - `security_stamp`: The security_stamp.
+    /// - `action`: The action this token is associated with.
+    ///
+    /// Returns string of token
+    fn generate_token(security_stamp: String, action: &str) -> String {
+        let mut hasher = Sha256::new();
+        let key_f = format!("{}:{}", security_stamp, action);
+        hasher.update(key_f);
+        let no_hex_token = hasher.finalize();
+        let hex_token = hex::encode(no_hex_token);
+        hex_token
+    }
+    /*
+    /// Creates a new `SecurityToken` instance.
+    ///
+    /// # Arguments
+    /// - `token`: The security token string.
+    /// - `action`: The action this token is associated with.
+    ///
+    /// # Returns
+    /// A new `SecurityToken` instance.
+    pub fn new(action: &str) -> SecurityToken {
+        let mut sha = Sha256::new();
+        let format_key = format!("{}:{}:{}", 1, 2, 3);
+        let pre_key = sha.update(format_key);
+        let key = sha.finalize();
         SecurityToken {
             token: token.to_string(),
             expiry: Self::get_expiration_time(),
@@ -83,6 +167,11 @@ impl SecurityToken {
         }
     }
 
+    /// Get the current time in miliseconds for security stamps..
+    pub fn get_current_time() -> u128 {
+        SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis() as u128
+    }
+
     /// Encodes the `SecurityToken`.
     ///
     /// # Arguments
@@ -103,12 +192,13 @@ impl SecurityToken {
             Ok(bytes) => bytes,
             Err(_) => return Some(SecurityToken::default()), // Handle decode error, returning a default SecurityToken
         };
-    
+
         match from_slice(&decoded_bytes) {
             Ok(token) => token,
             Err(_) => Some(SecurityToken::default()), // Handle deserialize error, returning a default SecurityToken
         }
     }
+    */
 }
 
 /// Represents a user.
