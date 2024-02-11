@@ -4,7 +4,7 @@
 use axum::async_trait;
 use bb8_redis::redis::{Cmd, RedisError};
 use serde::{Deserialize, Serialize};
-use uuid::{uuid, Uuid};
+use uuid::Uuid;
 
 use crate::app::{
     database::redis::RedisDatabase,

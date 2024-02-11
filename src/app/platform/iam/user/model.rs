@@ -1,8 +1,6 @@
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::time::{SystemTime, UNIX_EPOCH};
 
-use base64::decode;
 use serde::{Deserialize, Serialize};
-use serde_json::from_slice;
 use sha2::{Digest, Sha256};
 use uuid::Uuid;
 
@@ -352,7 +350,7 @@ impl UserBuilder {
     }
     */
 
-    pub fn build(mut self) -> User {
+    pub fn build(self) -> User {
         User {
             info: self.info,
             auth: self.auth,

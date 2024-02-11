@@ -14,7 +14,7 @@ use crate::app::{
     },
     service::{
         cache::{
-            error::CacheError, manager::CacheManager, notify_cache_hit, notify_cache_miss,
+            error::CacheError, notify_cache_hit, notify_cache_miss,
             LocalizedCache,
         },
         task::{
