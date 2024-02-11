@@ -393,7 +393,9 @@ impl Task<PostgresDatabase, TaskRequest, UserUpdateTask> for UserUpdateTask {
                             // revitalize the cache...automatically replaces existing cache with new one.
                             UserCacheManager::add_user_to_cache(user).unwrap();
                         }
-                        Err(_) => {}
+                        Err(_) => {
+                            unreachable!()
+                        }
                     }
                     return TaskResponse::compose_response(
                         request,
@@ -461,6 +463,56 @@ impl Task<PostgresDatabase, TaskRequest, UserUpdateAsBooleanTask> for UserUpdate
         {
             Ok(row) => {
                 if row.len() != 0 {
+                    let stmt_2 = pool.prepare("SELECT 
+                u.id, 
+                u.username, 
+                u.email, 
+                u.verified, 
+                u.created_at, 
+                u.updated_at, 
+                array_agg(DISTINCT ur.role_id) FILTER (WHERE ur.role_id IS NOT NULL) AS roles, 
+                array_agg(DISTINCT up.permission_id) FILTER (WHERE up.permission_id IS NOT NULL) AS permissions,
+                o.oauth_id, 
+                o.oauth_provider,
+                u.security_token, 
+                u.security_stamp
+            FROM iam_users u
+            LEFT JOIN iam_user_role ur ON u.id = ur.user_id
+            LEFT JOIN iam_user_permission up ON u.id = up.user_id
+            LEFT JOIN iam_user_oauth o ON u.id = o.user_id
+            WHERE u.id = $1
+            GROUP BY u.id, o.oauth_id, o.oauth_provider;").await.unwrap();
+                    match pool.query_one(&stmt_2, &[&row.get::<_, String>(0)]).await {
+                        Ok(user_row) => {
+                            let user = User::new(
+                                user_row.get(0),
+                                user_row.get(1),
+                                user_row.get(2),
+                                user_row.get::<_, bool>(3),
+                                user_row.get::<_, i64>(4),
+                                user_row.get::<_, i64>(5),
+                                user_row.get::<_, String>(8),
+                                user_row.get::<_, String>(9),
+                                user_row
+                                    .get::<_, Option<Vec<String>>>(6)
+                                    .unwrap_or_default(),
+                                user_row
+                                    .get::<_, Option<Vec<String>>>(7)
+                                    .unwrap_or_default(),
+                                UserSecurity::new(
+                                    SecurityToken::deserialize_and_decode(
+                                        user_row.get::<_, Option<&str>>(10),
+                                    ),
+                                    user_row.get(11),
+                                ),
+                            );
+                            // revitalize the cache...automatically replaces existing cache with new one.
+                            UserCacheManager::add_user_to_cache(user).unwrap();
+                        }
+                        Err(_) => {
+                            unreachable!()
+                        }
+                    }
                     return TaskResponse::compose_response(
                         request,
                         TaskStatus::Completed,
@@ -527,6 +579,56 @@ impl Task<PostgresDatabase, TaskRequest, UserUpdateAsIntegerTask> for UserUpdate
         {
             Ok(row) => {
                 if row.len() != 0 {
+                    let stmt_2 = pool.prepare("SELECT 
+                u.id, 
+                u.username, 
+                u.email, 
+                u.verified, 
+                u.created_at, 
+                u.updated_at, 
+                array_agg(DISTINCT ur.role_id) FILTER (WHERE ur.role_id IS NOT NULL) AS roles, 
+                array_agg(DISTINCT up.permission_id) FILTER (WHERE up.permission_id IS NOT NULL) AS permissions,
+                o.oauth_id, 
+                o.oauth_provider,
+                u.security_token, 
+                u.security_stamp
+            FROM iam_users u
+            LEFT JOIN iam_user_role ur ON u.id = ur.user_id
+            LEFT JOIN iam_user_permission up ON u.id = up.user_id
+            LEFT JOIN iam_user_oauth o ON u.id = o.user_id
+            WHERE u.id = $1
+            GROUP BY u.id, o.oauth_id, o.oauth_provider;").await.unwrap();
+                    match pool.query_one(&stmt_2, &[&row.get::<_, String>(0)]).await {
+                        Ok(user_row) => {
+                            let user = User::new(
+                                user_row.get(0),
+                                user_row.get(1),
+                                user_row.get(2),
+                                user_row.get::<_, bool>(3),
+                                user_row.get::<_, i64>(4),
+                                user_row.get::<_, i64>(5),
+                                user_row.get::<_, String>(8),
+                                user_row.get::<_, String>(9),
+                                user_row
+                                    .get::<_, Option<Vec<String>>>(6)
+                                    .unwrap_or_default(),
+                                user_row
+                                    .get::<_, Option<Vec<String>>>(7)
+                                    .unwrap_or_default(),
+                                UserSecurity::new(
+                                    SecurityToken::deserialize_and_decode(
+                                        user_row.get::<_, Option<&str>>(10),
+                                    ),
+                                    user_row.get(11),
+                                ),
+                            );
+                            // revitalize the cache...automatically replaces existing cache with new one.
+                            UserCacheManager::add_user_to_cache(user).unwrap();
+                        }
+                        Err(_) => {
+                            unreachable!()
+                        }
+                    }
                     return TaskResponse::compose_response(
                         request,
                         TaskStatus::Completed,

@@ -181,7 +181,7 @@ impl ArkServer {
         UserManager::preload_user_cache().unwrap();
 
         sleep(Duration::from_secs(4));
-        UserManager::update_user("88393616-65f4-4117-a428-c8c431910832", "username", "chomnrupdated").unwrap();
+        UserManager::update_user("13744c7c-a8a1-43a4-bf8a-bf2acb5722e9", "verified", "true").unwrap();
         
         /*
         let user = User::builder()
