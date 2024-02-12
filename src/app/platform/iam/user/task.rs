@@ -150,6 +150,20 @@ impl TaskHandler<PostgresDatabase> for UserTaskHandler {
             return UserAddPermission::run(pg, task_request, payload).await;
         }
 
+        if task_request.task_action.eq("user_delete_permission") {
+            let payload =
+                match TaskRequest::intepret_request_payload::<UserDeletePermission>(&task_request) {
+                    Ok(p) => p,
+                    Err(_) => {
+                        return TaskResponse::throw_failed_response(
+                            task_request,
+                            vec![TaskError::FailedToInterpretPayload.to_string()],
+                        )
+                    }
+                };
+            return UserDeletePermission::run(pg, task_request, payload).await;
+        }
+
         if task_request.task_action.eq("user_preload_cache") {
             let payload =
                 match TaskRequest::intepret_request_payload::<UserPreloadCache>(&task_request) {
@@ -848,6 +862,24 @@ impl Task<PostgresDatabase, TaskRequest, UserAddPermission> for UserAddPermissio
                 )
             }
         }
+    }
+}
+
+
+#[derive(Serialize, Deserialize)]
+pub(super) struct UserDeletePermission {
+    pub target_user_id: String,
+    pub permission_identifier: String,
+}
+
+#[async_trait]
+impl Task<PostgresDatabase, TaskRequest, UserDeletePermission> for UserDeletePermission {
+    async fn run(
+        db: &PostgresDatabase,
+        request: TaskRequest,
+        param: UserDeletePermission,
+    ) -> TaskResponse {
+        todo!()
     }
 }
 
