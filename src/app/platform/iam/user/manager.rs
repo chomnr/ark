@@ -21,7 +21,7 @@ use super::{
     cache::{UserAddToCache, UserReadFromCache},
     model::{User, UserSecurity},
     task::{
-        UserAddPermission, UserCreateSecurityToken, UserCreateTask, UserExchangeOAuthIdForId, UserPreloadCache, UserReadTask, UserUpdateTask
+        UserAddPermission, UserCreateSecurityToken, UserCreateTask, UserDeletePermission, UserExchangeOAuthIdForId, UserPreloadCache, UserReadTask, UserUpdateTask
     },
 };
 
@@ -319,7 +319,7 @@ impl UserManager {
     /// ```
     fn delete_permission_from_user_request(user_identifier: &str, permission_identifier: &str) -> TaskRequest {
         TaskRequest::compose_request(
-            UserAddPermission {
+            UserDeletePermission {
                 target_user_id: String::from(user_identifier),
                 permission_identifier: String::from(permission_identifier),
             },

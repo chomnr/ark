@@ -879,13 +879,77 @@ impl Task<PostgresDatabase, TaskRequest, UserDeletePermission> for UserDeletePer
         request: TaskRequest,
         param: UserDeletePermission,
     ) -> TaskResponse {
-        todo!()
-    }
-}
+        let pool = db.pool.get().await.unwrap();
+        let stmt = pool
+            .prepare("DELETE FROM iam_user_permission WHERE user_id = $1 and permission_id = $2")
+            .await
+            .unwrap();
 
-#[derive(Serialize, Deserialize)]
-pub(super) struct UserRemovePermission {
-    pub permission_identifier: String,
+        match PermissionCache::get(&param.permission_identifier) {
+            Ok(permission) => match UserCacheManager::read_user_from_cache(&param.target_user_id) {
+                Ok(mut cached_user) => match pool
+                    .execute(
+                        &stmt,
+                        &[&param.target_user_id, &param.permission_identifier],
+                    )
+                    .await
+                {
+                    Ok(_) => {
+                        cached_user.access.permission.retain(|perm| !perm.eq(&permission.permission_id) );
+                        UserCacheManager::add_user_to_cache(cached_user).unwrap();
+                        // user exists in the cache so we need to update
+                        return TaskResponse::compose_response(
+                            request,
+                            TaskStatus::Completed,
+                            String::default(),
+                            Vec::default(),
+                        );
+                    }
+                    Err(_) => {
+                        // user does not exist so we don't
+                        return TaskResponse::throw_failed_response(
+                            request,
+                            vec![TaskError::UserPermissionAlreadyExists.to_string()],
+                        );
+                    }
+                },
+                Err(_) => {
+                    // we don't need to directly check if a user exists here
+                    // because of the foreign keys, we cannot insert an empty
+                    // user because of that so if it throws out an error
+                    // that means the user does not exist.
+                    match pool
+                        .execute(
+                            &stmt,
+                            &[&param.target_user_id, &param.permission_identifier],
+                        )
+                        .await
+                    {
+                        Ok(_) => {
+                            return TaskResponse::compose_response(
+                                request,
+                                TaskStatus::Completed,
+                                String::default(),
+                                Vec::default(),
+                            );
+                        }
+                        Err(_) => {
+                            return TaskResponse::throw_failed_response(
+                                request,
+                                vec![TaskError::UserNotFound.to_string()],
+                            );
+                        }
+                    }
+                }
+            },
+            Err(_) => {
+                return TaskResponse::throw_failed_response(
+                    request,
+                    vec![TaskError::PermissionNotFound.to_string()],
+                )
+            }
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize)]

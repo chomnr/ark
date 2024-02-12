@@ -181,6 +181,7 @@ impl ArkServer {
         UserManager::preload_user_cache().unwrap();
 
         //UserManager::add_permission_to_user("88393616-65f4-4117-a428-c8c431910832", "admin.test.hoo").unwrap();
+        //UserManager::delete_permission_from_user("88393616-65f4-4117-a428-c8c431910832", "e028e747-0ef6-49b9-8ae8-00212c455d16").unwrap();
         //sleep(Duration::from_secs(4));
         //UserManager::create_security_token("door", "reset_me").unwrap();
         //UserSecurity::new(, stamp)
