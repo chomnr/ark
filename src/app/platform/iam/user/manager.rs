@@ -21,7 +21,7 @@ use super::{
     cache::{UserAddToCache, UserReadFromCache},
     model::{User, UserSecurity},
     task::{
-        UserAddPermission, UserCreateSecurityToken, UserCreateTask, UserDeletePermission, UserExchangeOAuthIdForId, UserPreloadCache, UserReadTask, UserUpdateTask
+        UserAddPermission, UserAddRole, UserCreateSecurityToken, UserCreateTask, UserDeletePermission, UserDeleteRole, UserExchangeOAuthIdForId, UserPreloadCache, UserReadTask, UserUpdateTask
     },
 };
 
@@ -300,7 +300,7 @@ impl UserManager {
     /// # Examples
     /// ```
     /// // Assuming `permission` is a reference to a valid Permission
-    /// add_permission_to_user("oauth_id_here", "discord");
+    /// delete_permission_from_user("oauth_id_here", "discord");
     /// ```
     pub fn delete_permission_from_user(user_identifier: &str, permission_identifier: &str) -> TaskResult<TaskStatus> {
         let task_request = Self::delete_permission_from_user_request(user_identifier, permission_identifier);
@@ -325,6 +325,78 @@ impl UserManager {
             },
             TaskType::User,
             "user_delete_permission",
+        )
+    }
+
+    /// Add role to user.
+    /// 
+    /// # Arguments
+    /// - `user_identifier`: the oauth id of the user.
+    /// - `role_identifier`: the permission identifier.
+    /// # Examples
+    /// ```
+    /// // Assuming `permission` is a reference to a valid Permission
+    /// add_role_to_user("user_uuid", "role_identiifer");
+    /// ```
+    pub fn add_role_to_user(user_identifier: &str, role_identifier: &str) -> TaskResult<TaskStatus> {
+        let task_request = Self::add_role_from_user_request(user_identifier, role_identifier);
+        TaskManager::process_task(task_request)
+    }
+    
+    /// Composes a add role from user request.
+    ///
+    /// # Arguments
+    /// - `user_identifier`: the oauth id of the user.
+    /// - `role_identifier`: the permission identifier.
+    /// 
+    /// # Examples
+    /// ```
+    /// add_role_from_user_request("user_identifier", "permission_identifier");
+    /// ```
+    fn add_role_from_user_request(user_identifier: &str, role_identifier: &str) -> TaskRequest {
+        TaskRequest::compose_request(
+            UserAddRole {
+                target_user_id: String::from(user_identifier),
+                role_identifier: String::from(role_identifier),
+            },
+            TaskType::User,
+            "user_add_role",
+        )
+    }
+
+    /// Delete role from user.
+    /// 
+    /// # Arguments
+    /// - `user_identifier`: the oauth id of the user.
+    /// - `role_identifier`: the permission identifier.
+    /// # Examples
+    /// ```
+    /// // Assuming `permission` is a reference to a valid Permission
+    /// delete_role_from_user("user_uuid", "role_identiifer");
+    /// ```
+    pub fn delete_role_from_user(user_identifier: &str, role_identifier: &str) -> TaskResult<TaskStatus> {
+        let task_request = Self::delete_role_from_user_request(user_identifier, role_identifier);
+        TaskManager::process_task(task_request)
+    }
+    
+    /// Composes a delete role from user request.
+    ///
+    /// # Arguments
+    /// - `user_identifier`: the oauth id of the user.
+    /// - `role_identifier`: the permission identifier.
+    /// 
+    /// # Examples
+    /// ```
+    /// delete_permission_from_user_request("user_identifier", "permission_identifier");
+    /// ```
+    fn delete_role_from_user_request(user_identifier: &str, role_identifier: &str) -> TaskRequest {
+        TaskRequest::compose_request(
+            UserDeleteRole {
+                target_user_id: String::from(user_identifier),
+                role_identifier: String::from(role_identifier),
+            },
+            TaskType::User,
+            "user_delete_role",
         )
     }
 

@@ -134,7 +134,34 @@ impl TaskHandler<PostgresDatabase> for UserTaskHandler {
             return UserExchangeOAuthIdForId::run(pg, task_request, payload).await;
         }
 
-        if task_request.task_action.eq("user_add_role") {}
+        if task_request.task_action.eq("user_add_role") {
+            let payload =
+                match TaskRequest::intepret_request_payload::<UserAddRole>(&task_request) {
+                    Ok(p) => p,
+                    Err(_) => {
+                        return TaskResponse::throw_failed_response(
+                            task_request,
+                            vec![TaskError::FailedToInterpretPayload.to_string()],
+                        )
+                    }
+                };
+            return UserAddRole::run(pg, task_request, payload).await;
+        }
+
+        if task_request.task_action.eq("user_delete_role") {
+            let payload =
+                match TaskRequest::intepret_request_payload::<UserDeleteRole>(&task_request) {
+                    Ok(p) => p,
+                    Err(_) => {
+                        return TaskResponse::throw_failed_response(
+                            task_request,
+                            vec![TaskError::FailedToInterpretPayload.to_string()],
+                        )
+                    }
+                };
+            return UserDeleteRole::run(pg, task_request, payload).await;
+        }
+
 
         if task_request.task_action.eq("user_add_permission") {
             let payload =
@@ -803,7 +830,7 @@ impl Task<PostgresDatabase, TaskRequest, UserAddPermission> for UserAddPermissio
                 Ok(mut cached_user) => match pool
                     .execute(
                         &stmt,
-                        &[&param.target_user_id, &param.permission_identifier],
+                        &[&param.target_user_id, &permission.permission_id],
                     )
                     .await
                 {
@@ -819,7 +846,6 @@ impl Task<PostgresDatabase, TaskRequest, UserAddPermission> for UserAddPermissio
                         );
                     }
                     Err(_) => {
-                        // user does not exist so we don't
                         return TaskResponse::throw_failed_response(
                             request,
                             vec![TaskError::UserPermissionAlreadyExists.to_string()],
@@ -884,13 +910,12 @@ impl Task<PostgresDatabase, TaskRequest, UserDeletePermission> for UserDeletePer
             .prepare("DELETE FROM iam_user_permission WHERE user_id = $1 and permission_id = $2")
             .await
             .unwrap();
-
         match PermissionCache::get(&param.permission_identifier) {
             Ok(permission) => match UserCacheManager::read_user_from_cache(&param.target_user_id) {
                 Ok(mut cached_user) => match pool
                     .execute(
                         &stmt,
-                        &[&param.target_user_id, &param.permission_identifier],
+                        &[&param.target_user_id, &permission.permission_id],
                     )
                     .await
                 {
@@ -906,7 +931,6 @@ impl Task<PostgresDatabase, TaskRequest, UserDeletePermission> for UserDeletePer
                         );
                     }
                     Err(_) => {
-                        // user does not exist so we don't
                         return TaskResponse::throw_failed_response(
                             request,
                             vec![TaskError::UserPermissionAlreadyExists.to_string()],
@@ -946,6 +970,168 @@ impl Task<PostgresDatabase, TaskRequest, UserDeletePermission> for UserDeletePer
                 return TaskResponse::throw_failed_response(
                     request,
                     vec![TaskError::PermissionNotFound.to_string()],
+                )
+            }
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+pub(super) struct UserAddRole {
+    pub target_user_id: String,
+    pub role_identifier: String,
+}
+
+#[async_trait]
+impl Task<PostgresDatabase, TaskRequest, UserAddRole> for UserAddRole {
+    async fn run(
+        db: &PostgresDatabase,
+        request: TaskRequest,
+        param: UserAddRole,
+    ) -> TaskResponse {
+        let pool = db.pool.get().await.unwrap();
+        let stmt = pool
+            .prepare("INSERT INTO iam_user_role (user_id, role_id) VALUES ($1, $2)")
+            .await
+            .unwrap();
+
+        match RoleCache::get(&param.role_identifier) {
+            Ok(role) => match UserCacheManager::read_user_from_cache(&param.target_user_id) {
+                Ok(mut cached_user) => match pool
+                    .execute(
+                        &stmt,
+                        &[&param.target_user_id, &role.role_id],
+                    )
+                    .await
+                {
+                    Ok(_) => {
+                        cached_user.access.role.push(role.role_id);
+                        UserCacheManager::add_user_to_cache(cached_user).unwrap();
+                        // user exists in the cache so we need to update
+                        return TaskResponse::compose_response(
+                            request,
+                            TaskStatus::Completed,
+                            String::default(),
+                            Vec::default(),
+                        );
+                    }
+                    Err(er) => {
+                        return TaskResponse::throw_failed_response(
+                            request,
+                            vec![TaskError::UserRoleAlreadyExists.to_string()],
+                        );
+                    }
+                },
+                Err(_) => {
+                    match pool
+                        .execute(
+                            &stmt,
+                            &[&param.target_user_id, &role.role_id],
+                        )
+                        .await
+                    {
+                        Ok(_) => {
+                            return TaskResponse::compose_response(
+                                request,
+                                TaskStatus::Completed,
+                                String::default(),
+                                Vec::default(),
+                            );
+                        }
+                        Err(_) => {
+                            return TaskResponse::throw_failed_response(
+                                request,
+                                vec![TaskError::UserNotFound.to_string()],
+                            );
+                        }
+                    }
+                }
+            },
+            Err(_) => {
+                return TaskResponse::throw_failed_response(
+                    request,
+                    vec![TaskError::RoleNotFound.to_string()],
+                )
+            }
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+pub(super) struct UserDeleteRole {
+    pub target_user_id: String,
+    pub role_identifier: String,
+}
+
+#[async_trait]
+impl Task<PostgresDatabase, TaskRequest, UserDeleteRole> for UserDeleteRole {
+    async fn run(
+        db: &PostgresDatabase,
+        request: TaskRequest,
+        param: UserDeleteRole,
+    ) -> TaskResponse {
+        let pool = db.pool.get().await.unwrap();
+        let stmt = pool
+            .prepare("DELETE FROM iam_user_role WHERE user_id = $1 and role_id = $2")
+            .await
+            .unwrap();
+
+        match RoleCache::get(&param.role_identifier) {
+            Ok(role) => match UserCacheManager::read_user_from_cache(&param.target_user_id) {
+                Ok(mut cached_user) => match pool
+                    .execute(
+                        &stmt,
+                        &[&param.target_user_id, &param.role_identifier],
+                    )
+                    .await
+                {
+                    Ok(_) => {
+                        cached_user.access.role.retain(|perm| !perm.eq(&role.role_id) );
+                        UserCacheManager::add_user_to_cache(cached_user).unwrap();
+                        // user exists in the cache so we need to update
+                        return TaskResponse::compose_response(
+                            request,
+                            TaskStatus::Completed,
+                            String::default(),
+                            Vec::default(),
+                        );
+                    }
+                    Err(_) => {
+                        return TaskResponse::throw_failed_response(
+                            request,
+                            vec![TaskError::UserRoleAlreadyExists.to_string()],
+                        );
+                    }
+                },
+                Err(_) => {
+                    match pool
+                        .execute(
+                            &stmt,
+                            &[&param.target_user_id, &param.role_identifier],
+                        )
+                        .await
+                    {
+                        Ok(_) => {
+                            return TaskResponse::compose_response(
+                                request,
+                                TaskStatus::Completed,
+                                String::default(),
+                                Vec::default(),
+                            );
+                        }
+                        Err(_) => {
+                            return TaskResponse::throw_failed_response(
+                                request,
+                                vec![TaskError::UserNotFound.to_string()],
+                            );
+                        }
+                    }
+                }
+            },
+            Err(_) => {
+                return TaskResponse::throw_failed_response(
+                    request,
+                    vec![TaskError::RoleNotFound.to_string()],
                 )
             }
         }

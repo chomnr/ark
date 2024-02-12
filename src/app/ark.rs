@@ -6,6 +6,8 @@ use tokio::net::TcpListener;
 use tower_cookies::{CookieManagerLayer, Key};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
+use crate::app::{platform::iam::role::cache::RoleCache, service::cache::LocalizedCache};
+
 use super::{
     adapter::oauth_adapter::OAuthCollectionAdapter,
     database::{
@@ -179,6 +181,7 @@ impl ArkServer {
         PermissionManager::preload_permission_cache().unwrap();
         RoleManager::preload_role_cache().unwrap();
         UserManager::preload_user_cache().unwrap();
+        UserManager::delete_role_from_user("88393616-65f4-4117-a428-c8c431910832", "Administrator").unwrap();
 
         //UserManager::add_permission_to_user("88393616-65f4-4117-a428-c8c431910832", "admin.test.hoo").unwrap();
         //UserManager::delete_permission_from_user("88393616-65f4-4117-a428-c8c431910832", "e028e747-0ef6-49b9-8ae8-00212c455d16").unwrap();

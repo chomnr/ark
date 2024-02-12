@@ -57,6 +57,8 @@ pub enum TaskError {
     UserCannotUpdateId,
     #[error("UserPermissionAlreadyExists")]
     UserPermissionAlreadyExists,
+    #[error("UserRoleAlreadyExists")]
+    UserRoleAlreadyExists,
     // Session
     #[error("SessionCreationFailed")]
     SessionCreationFailed,
