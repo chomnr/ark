@@ -21,7 +21,7 @@ use super::{
     cache::{UserAddToCache, UserReadFromCache},
     model::{User, UserSecurity},
     task::{
-        UserCreateSecurityToken, UserCreateTask, UserExchangeOAuthIdForId, UserPreloadCache, UserReadTask, UserUpdateTask
+        UserAddPermission, UserCreateSecurityToken, UserCreateTask, UserExchangeOAuthIdForId, UserPreloadCache, UserReadTask, UserUpdateTask
     },
 };
 
@@ -253,6 +253,42 @@ impl UserManager {
             },
             TaskType::User,
             "user_exchange_oauthid_for_id",
+        )
+    }
+
+    /// Add permission to user.
+    /// 
+    /// # Arguments
+    /// - `user_identifier`: the oauth id of the user.
+    /// - `permission_identifier`: the permission identifier.
+    /// # Examples
+    /// ```
+    /// // Assuming `permission` is a reference to a valid Permission
+    /// add_permission_to_user("oauth_id_here", "discord");
+    /// ```
+    pub fn add_permission_to_user(user_identifier: &str, permission_identifier: &str) -> TaskResult<TaskStatus> {
+        let task_request = Self::add_permission_to_user_request(user_identifier, permission_identifier);
+        TaskManager::process_task(task_request)
+    }
+    
+    /// Composes a permission to a user request.
+    ///
+    /// # Arguments
+    /// - `oauth_id`: The id of the user.
+    /// - `oauth_provider`: the provider.
+    /// 
+    /// # Examples
+    /// ```
+    /// add_permission_to_user_request("user_identifier", "permission_identifier");
+    /// ```
+    fn add_permission_to_user_request(user_identifier: &str, permission_identifier: &str) -> TaskRequest {
+        TaskRequest::compose_request(
+            UserAddPermission {
+                target_user_id: String::from(user_identifier),
+                permission_identifier: String::from(permission_identifier),
+            },
+            TaskType::User,
+            "user_add_permission",
         )
     }
 

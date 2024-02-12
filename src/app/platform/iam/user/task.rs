@@ -9,14 +9,11 @@ use serde::{Deserialize, Serialize};
 use crate::app::{
     database::postgres::PostgresDatabase,
     platform::iam::{
-        permission::{cache::PermissionCache, model::Permission},
+        permission::{cache::PermissionCache, manager::PermissionManager, model::Permission},
         role::{cache::RoleCache, model::Role},
     },
     service::{
-        cache::{
-            error::CacheError, notify_cache_hit, notify_cache_miss,
-            LocalizedCache,
-        },
+        cache::{error::CacheError, notify_cache_hit, notify_cache_miss, LocalizedCache},
         task::{
             error::TaskError,
             message::{TaskRequest, TaskResponse, TaskStatus},
@@ -135,6 +132,22 @@ impl TaskHandler<PostgresDatabase> for UserTaskHandler {
                 }
             };
             return UserExchangeOAuthIdForId::run(pg, task_request, payload).await;
+        }
+
+        if task_request.task_action.eq("user_add_role") {}
+
+        if task_request.task_action.eq("user_add_permission") {
+            let payload =
+                match TaskRequest::intepret_request_payload::<UserAddPermission>(&task_request) {
+                    Ok(p) => p,
+                    Err(_) => {
+                        return TaskResponse::throw_failed_response(
+                            task_request,
+                            vec![TaskError::FailedToInterpretPayload.to_string()],
+                        )
+                    }
+                };
+            return UserAddPermission::run(pg, task_request, payload).await;
         }
 
         if task_request.task_action.eq("user_preload_cache") {
@@ -750,6 +763,97 @@ impl Task<PostgresDatabase, TaskRequest, UserExchangeOAuthIdForId> for UserExcha
             }
         }
     }
+}
+
+#[derive(Serialize, Deserialize)]
+pub(super) struct UserAddPermission {
+    pub target_user_id: String,
+    pub permission_identifier: String,
+}
+
+#[async_trait]
+impl Task<PostgresDatabase, TaskRequest, UserAddPermission> for UserAddPermission {
+    async fn run(
+        db: &PostgresDatabase,
+        request: TaskRequest,
+        param: UserAddPermission,
+    ) -> TaskResponse {
+        let pool = db.pool.get().await.unwrap();
+        let stmt = pool
+            .prepare("INSERT INTO iam_user_permission (user_id, permission_id) VALUES ($1, $2)")
+            .await
+            .unwrap();
+
+        match PermissionCache::get(&param.permission_identifier) {
+            Ok(permission) => match UserCacheManager::read_user_from_cache(&param.target_user_id) {
+                Ok(mut cached_user) => match pool
+                    .execute(
+                        &stmt,
+                        &[&param.target_user_id, &param.permission_identifier],
+                    )
+                    .await
+                {
+                    Ok(_) => {
+                        cached_user.access.permission.push(permission.permission_id);
+                        UserCacheManager::add_user_to_cache(cached_user).unwrap();
+                        // user exists in the cache so we need to update
+                        return TaskResponse::compose_response(
+                            request,
+                            TaskStatus::Completed,
+                            String::default(),
+                            Vec::default(),
+                        );
+                    }
+                    Err(_) => {
+                        // user does not exist so we don't
+                        return TaskResponse::throw_failed_response(
+                            request,
+                            vec![TaskError::UserPermissionAlreadyExists.to_string()],
+                        );
+                    }
+                },
+                Err(_) => {
+                    // we don't need to directly check if a user exists here
+                    // because of the foreign keys, we cannot insert an empty
+                    // user because of that so if it throws out an error
+                    // that means the user does not exist.
+                    match pool
+                        .execute(
+                            &stmt,
+                            &[&param.target_user_id, &param.permission_identifier],
+                        )
+                        .await
+                    {
+                        Ok(_) => {
+                            return TaskResponse::compose_response(
+                                request,
+                                TaskStatus::Completed,
+                                String::default(),
+                                Vec::default(),
+                            );
+                        }
+                        Err(_) => {
+                            return TaskResponse::throw_failed_response(
+                                request,
+                                vec![TaskError::UserNotFound.to_string()],
+                            );
+                        }
+                    }
+                }
+            },
+            Err(_) => {
+                return TaskResponse::throw_failed_response(
+                    request,
+                    vec![TaskError::PermissionNotFound.to_string()],
+                )
+            }
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+pub(super) struct UserRemovePermission {
+    pub permission_identifier: String,
 }
 
 #[derive(Serialize, Deserialize)]

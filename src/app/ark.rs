@@ -180,8 +180,9 @@ impl ArkServer {
         RoleManager::preload_role_cache().unwrap();
         UserManager::preload_user_cache().unwrap();
 
+        //UserManager::add_permission_to_user("88393616-65f4-4117-a428-c8c431910832", "admin.test.hoo").unwrap();
         //sleep(Duration::from_secs(4));
-        UserManager::create_security_token("door", "reset_me").unwrap();
+        //UserManager::create_security_token("door", "reset_me").unwrap();
         //UserSecurity::new(, stamp)
         //UserManager::update_user("door", "email", "hello@gmail.com").unwrap();
         //UserManager::create_security_token("2da13f44-4121-4be3-a883-22046b55513f", "reset_email").unwrap();
