@@ -1,8 +1,6 @@
 use serde::{Serialize, Deserialize};
 use uuid::Uuid;
 
-use crate::app::platform::iam::permission::model::Permission;
-
 use super::task::RoleCreateTask;
 
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
