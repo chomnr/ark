@@ -1,5 +1,5 @@
 use crate::app::{
-    platform::iam::permission::{cache::PermissionCache, manager::PermissionManager},
+    platform::iam::permission::cache::PermissionCache,
     service::cache::{notify_cache_hit, notify_cache_miss, LocalizedCache},
 };
 use axum::async_trait;

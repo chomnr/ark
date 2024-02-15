@@ -2,9 +2,7 @@ use nanoid::nanoid;
 
 use serde::{Deserialize, Serialize};
 
-use crate::app::service::task::error::TaskError;
-
-use super::{error::{CacheError, CacheResult}, CacheEvent};
+use super::{error::{CacheError, CacheResult}};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum CacheLocation {

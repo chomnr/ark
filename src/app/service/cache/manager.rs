@@ -19,7 +19,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::app::{database::redis::RedisDatabase, platform::iam::user::cache::UserCacheHandler, service::cache::INBOUND_CACHE};
 
-use super::{error::{CacheError, CacheResult}, message::{CacheLocation, CacheRequest, CacheResponse, CacheStatus}, CacheEvent, CacheHandler, OUTBOUND_CACHE};
+use super::{error::{CacheError, CacheResult}, message::{CacheLocation, CacheRequest, CacheResponse, CacheStatus}, CacheHandler, OUTBOUND_CACHE};
 
 
 pub struct CacheManager {

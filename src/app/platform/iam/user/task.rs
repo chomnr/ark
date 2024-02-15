@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use crate::app::{
     database::postgres::PostgresDatabase,
     platform::iam::{
-        permission::{cache::PermissionCache, manager::PermissionManager, model::Permission},
+        permission::{cache::PermissionCache, model::Permission},
         role::{cache::RoleCache, model::Role},
     },
     service::{
@@ -1015,7 +1015,7 @@ impl Task<PostgresDatabase, TaskRequest, UserAddRole> for UserAddRole {
                             Vec::default(),
                         );
                     }
-                    Err(er) => {
+                    Err(_) => {
                         return TaskResponse::throw_failed_response(
                             request,
                             vec![TaskError::UserRoleAlreadyExists.to_string()],

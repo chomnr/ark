@@ -27,9 +27,6 @@
 //                        | Item          |       | Entry & Returns|
 //                        +---------------+       | Result         |
 //                                                +----------------+
-
-use std::sync::Arc;
-
 use axum::async_trait;
 use chrono::Utc;
 use crossbeam_channel::{unbounded, Receiver, Sender};

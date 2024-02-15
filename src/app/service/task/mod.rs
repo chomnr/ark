@@ -31,8 +31,6 @@ use axum::async_trait;
 use crossbeam_channel::{Receiver, Sender, unbounded};
 use once_cell::sync::Lazy;
 
-use crate::app::database::postgres::PostgresDatabase;
-
 use self::message::{TaskRequest, TaskResponse};
 
 pub mod error;

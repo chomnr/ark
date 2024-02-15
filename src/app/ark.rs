@@ -1,12 +1,10 @@
 use core::fmt;
-use std::{env, sync::Arc, thread::sleep, time::Duration};
+use std::{env, sync::Arc};
 
 use axum::{extract::FromRef, Extension, Router};
 use tokio::net::TcpListener;
 use tower_cookies::{CookieManagerLayer, Key};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
-
-use crate::app::{platform::iam::role::cache::RoleCache, service::cache::LocalizedCache};
 
 use super::{
     adapter::oauth_adapter::OAuthCollectionAdapter,
@@ -16,9 +14,8 @@ use super::{
     },
     platform::iam::{
         permission::manager::PermissionManager,
-        role::{manager::RoleManager, model::Role},
-        session::manager::SessionManager,
-        user::{manager::UserManager, model::{User, UserSecurity}},
+        role::manager::RoleManager,
+        user::manager::UserManager,
     },
     service::{cache::manager::CacheManager, task::manager::TaskManager},
 };
@@ -254,36 +251,7 @@ impl ArkServer {
         //RoleManager::create_role(Role::builder().role_name("Administrator").build()).unwrap();
         //PermissionManager::delete_permission("b9389d1a-10ce-43c1-bb04-e4963409239c").unwrap();
     }
-
-    /// Asynchronously loads prerequisites using PostgreSQL and Redis databases.
-    ///
-    /// # Arguments
-    ///
-    /// * `pg` - An instance of `PostgresDatabase` for interacting with the PostgreSQL database.
-    /// * `redis` - An instance of `RedisDatabase` for interacting with the Redis database.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// #[tokio::main]
-    /// async fn main() {
-    ///     let pg_database = PostgresDatabase::new(/* PostgreSQL connection parameters */);
-    ///     let redis_database = RedisDatabase::new(/* Redis database connection parameters */);
-    ///     load_prerequisites(pg_database, redis_database).await;
-    /// }
-    /// ```
-    async fn load_prerequisites(pg: PostgresDatabase, redis: RedisDatabase) {
-        // redis setup
-        let mut redis_pool = redis.pool.get().await.unwrap();
-        //let _: () = cmd("HSET")
-        //    .arg("user_sessions")
-        //    .arg("placeholder_field")
-        //    .arg("placeholder_value")
-        //    .query_async(&mut *redis_pool)
-        //    .await
-        //    .unwrap();
-        // postgres setup
-    }
+    
 }
 
 /// Defines the operational modes for a server.
