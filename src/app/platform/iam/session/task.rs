@@ -1,7 +1,7 @@
-use std::{mem, thread::scope};
+use std::mem;
 
 use axum::async_trait;
-use bb8_redis::redis::{AsyncCommands, AsyncIter, RedisError};
+use bb8_redis::redis::{AsyncCommands, AsyncIter};
 use serde::{Deserialize, Serialize};
 
 use crate::app::{
