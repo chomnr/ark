@@ -1,1 +1,2 @@
-soon.
+# Ark
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/537dbd44ce0645f184d4132d90cefff4)](https://app.codacy.com/gh/notpointless/ark/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
