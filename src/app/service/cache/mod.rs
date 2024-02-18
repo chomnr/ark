@@ -37,8 +37,6 @@ use self::{error::CacheResult, message::{CacheRequest, CacheResponse}};
 pub mod error;
 pub mod manager;
 pub mod message;
-pub mod reader;
-
 
 static INBOUND_CACHE: Lazy<(Sender<CacheRequest>, Receiver<CacheRequest>)> =
    Lazy::new(|| unbounded());

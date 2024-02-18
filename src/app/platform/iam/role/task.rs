@@ -393,7 +393,7 @@ impl Task<PostgresDatabase, TaskRequest, RolePreloadCache> for RolePreloadCache 
     async fn run(
         db: &PostgresDatabase,
         request: TaskRequest,
-        param: RolePreloadCache,
+        _: RolePreloadCache,
     ) -> TaskResponse {
         let pool = db.pool.get().await.unwrap();
         let stmt = pool.prepare("SELECT * FROM iam_roles").await.unwrap();

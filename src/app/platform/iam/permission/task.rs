@@ -420,7 +420,7 @@ impl Task<PostgresDatabase, TaskRequest, PermissionPreloadCache> for PermissionP
     async fn run(
         db: &PostgresDatabase,
         request: TaskRequest,
-        param: PermissionPreloadCache,
+        _: PermissionPreloadCache,
     ) -> TaskResponse {
         let pool = db.pool.get().await.unwrap();
         let stmt = pool.prepare("SELECT * FROM iam_permissions").await.unwrap();

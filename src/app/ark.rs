@@ -169,87 +169,12 @@ impl ArkServer {
     async fn register_listeners(pg: PostgresDatabase, redis: RedisDatabase) {
         TaskManager::new(pg, redis.clone()).listen();
         CacheManager::new(redis).listen();
-        //PermissionManager::create_permission(Permission::builder().permission_name("admin ban").permission_key("admin.ban").build()).unwrap();
-        //PermissionManager::create_permission(Permission::builder().permission_name("admin test").permission_key("admin.test").build()).unwrap();
-        //CacheManager::new(redis).listen();
     }
 
     async fn preload_necessities() {
         PermissionManager::preload_permission_cache().unwrap();
         RoleManager::preload_role_cache().unwrap();
         UserManager::preload_user_cache().unwrap();
-        //UserManager::delete_role_from_user("88393616-65f4-4117-a428-c8c431910832", "Administrator").unwrap();
-
-        //UserManager::add_permission_to_user("88393616-65f4-4117-a428-c8c431910832", "admin.test.hoo").unwrap();
-        //UserManager::delete_permission_from_user("88393616-65f4-4117-a428-c8c431910832", "e028e747-0ef6-49b9-8ae8-00212c455d16").unwrap();
-        //sleep(Duration::from_secs(4));
-        //UserManager::create_security_token("door", "reset_me").unwrap();
-        //UserSecurity::new(, stamp)
-        //UserManager::update_user("door", "email", "hello@gmail.com").unwrap();
-        //UserManager::create_security_token("2da13f44-4121-4be3-a883-22046b55513f", "reset_email").unwrap();
-        //let token = UserManager::create_security_token("chomnrupdated", "reset_email").unwrap();
-        //println!("{}", token.token.unwrap().action)
-        /*
-        let user = User::builder()
-            .verified(false)
-            .oauth_id("testing_stoopid_4")
-            .oauth_provider("discord")
-            .role(vec!["Member".to_string()])
-            .build();
-        UserManager::create_user(user).unwrap();
-        */
-
-        //UserManager::update_user("b98c3289-c4fb-45b3-a99e-3c43e04246cd", "created_at", "1337").unwrap();
-        //let test: User = UserManager::get_user("e63cd0ab-a7e7-46c5-8417-2b2c71b63bb1").unwrap();
-
-        //println!("{:?}", test.info.created_at);
-        //SessionManager::create_session("3b9cd87a-5228-4168-9a56-2923883b2885").unwrap();
-        //let user = User::builder()
-        //.verified(false)
-        //.oauth_id("testing_stoopid_123")
-        //.oauth_provider("discord")
-        //.role(vec!["Administrator".to_string(), "Member".to_string()])
-        //.build();
-
-        //UserManager::create_user(user).unwrap();
-        /*
-        let user = User::builder()
-            .verified(false)
-            .oauth_id("testing_stoopid_12")
-            .oauth_provider("discord")
-            .role(vec!["Administrator".to_string(), "Member".to_string()])
-            .build();
-        */
-        //UserManager::create_user(user).unwrap();
-
-        /*
-        println!(
-            "{:?}",
-            RoleManager::get_role("Member")
-                .unwrap()
-                .role_permissions
-        );
-
-        RoleManager::delete_permission_from_role("Member", "admin test").unwrap();
-
-        println!(
-            "{:?}",
-            RoleManager::get_role("Member")
-                .unwrap()
-                .role_permissions
-        );*/
-        //println!("{:?}", RoleManager::get_role("Administrator").unwrap().role_permissions)
-        // let role_mgr = RoleManager::new();
-        // role_mgr.create_role("Fool");
-
-        // RoleManager::stream_line().create_permission("ddd");
-
-        //RoleManager::create_role(Role::builder().role_name("Member").build()).unwrap();
-        //PermissionManager::preload_permission_cache().unwrap();
-        //RoleManager::preload_role_cache().unwrap();
-        //PermissionManager::create_permission(Permission::builder().permission_name("admin ban").permission_key("admin.ban").build()).unwrap();
-        //RoleManager::create_role(Role::builder().role_name("Administrator").build()).unwrap();
-        //PermissionManager::delete_permission("b9389d1a-10ce-43c1-bb04-e4963409239c").unwrap();
     }
     
 }
