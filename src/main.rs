@@ -6,7 +6,6 @@ use app::{
     },
 };
 
-
 pub mod app;
 
 #[tokio::main]
