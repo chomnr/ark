@@ -32,7 +32,7 @@ cargo run
 ```
 
 ### Setting environment variables
-```bash
+```bat
 SET PG_HOST=
 SET PG_USER=
 SET PG_PASSWORD=
