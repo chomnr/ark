@@ -143,7 +143,7 @@ impl RoleManager {
     ///
     /// # Examples
     /// ```
-    /// link_permission_to_role("Administrator");
+    /// link_permission_to_role("Administrator", "ban.user");
     /// ```
     pub fn link_permission_to_role(role_identifier: &str, permission_identifier: &str) -> TaskResult<TaskStatus> {
         let request = Self::add_role_add_permission_request(role_identifier, permission_identifier);
