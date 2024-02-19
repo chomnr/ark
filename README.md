@@ -9,3 +9,24 @@ Technically, it is not a full stack just yet, I haven't wrote the frontend yet.
 
 ## Technical Breakdown
 If you're interested in my thought process while I was building out the foundation of this project, you can view the post I made about this project on my substack [here](https://chomnr.substack.com/p/project-breakdown-ark)
+
+## Installation
+
+This section guides you through the process of installing the necessary tools and building the project.
+
+### Prerequisites
+
+Before you begin, ensure you have installed Rust, Cargo, PostgreSQL, and Redis on your system.
+
+* Rust
+* Postgres
+* Redis
+* OAuth Provider (ex: Discord)
+
+### From the source
+```bash
+git clone https://github.com/notpointless/ark.git
+cd ark
+cargo build
+cargo run
+```
