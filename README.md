@@ -19,7 +19,7 @@ This section guides you through the process of installing the necessary tools an
 Before you begin, ensure you have installed Rust, Cargo, PostgreSQL, and Redis on your system.
 
 * Rust
-* Postgres
+* PostgreSQL
 * Redis
 * OAuth Provider (ex: Discord)
 
