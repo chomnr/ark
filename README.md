@@ -50,7 +50,7 @@ SET OAUTH2_REDIRECT_URL=http://localhost:3000/auth/callback
 SET COOKIE_ENCRYPTION_KEY=TESTKEY1324E31324123421244123TESTFEY1214E31324123421244123TESTKEY1224E31324123421244123
 ```
 ## IAM
-There is some simple documentation for some of the functions for the IAM; all are commented. Note roles and permissions are case-sensitive.
+Some simple documentation for some of the functions for the IAM; all are commented. Note roles and permissions are case-sensitive.
 
 ### Creating a user
 If the permissions or roles added to a user do not already exist, they will not be added to the user.
