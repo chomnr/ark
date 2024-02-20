@@ -49,3 +49,35 @@ SET DISCORD_REVOCATION_URL=https://discord.com/api/oauth2/token/revoke
 SET OAUTH2_REDIRECT_URL=http://localhost:3000/auth/callback
 SET COOKIE_ENCRYPTION_KEY=TESTKEY1324E31324123421244123TESTFEY1214E31324123421244123TESTKEY1224E31324123421244123
 ```
+## IAM
+There is some simple documentation for some of the functions for the IAM; all are commented. Note roles and permissions are case-sensitive.
+
+### Creating a user
+If the permissions or roles added to a user do not already exist, they will not be added to the user.
+```rust
+let user = User::builder()
+        .oauth_id("oauth_id")
+        .oauth_provider("discord")
+        .username("hello")
+        .permission(vec!["special.permission".to_string()])
+        .role(vec!["Admin".to_string()])
+        .build();
+UserManager::create_user(user).unwrap();
+```
+
+### Creating a role
+```rust
+let role = Role::builder()
+        .role_name("Admin")
+        .build();
+RoleManager::create_role(role).unwrap();
+```
+
+### Creating a permission
+```rust
+let role = Permission::builder()
+        .permission_name("Ban User")
+        .permission_key("ban.user")
+        .build();
+PermissionManager::create_permission(role).unwrap();
+```
