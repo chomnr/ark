@@ -62,6 +62,10 @@ pub enum TaskError {
     // Session
     #[error("SessionCreationFailed")]
     SessionCreationFailed,
+    #[error("SessionDeletionFailed")]
+    SessionDeletionFailed,
+    #[error("SessionNotFound")]
+    SessionNotFound
 }
 
 pub type TaskResult<T> = Result<T, TaskError>;

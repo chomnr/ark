@@ -33,6 +33,21 @@ impl TaskHandler<RedisDatabase> for SessionTaskHandler {
                 };
             return SessionCreateTask::run(redis, task_request, payload).await;
         }
+        
+        if task_request.task_action.eq("session_revocation") {
+            let payload =
+                match TaskRequest::intepret_request_payload::<SessionRevocationTask>(&task_request) {
+                    Ok(p) => p,
+                    Err(_) => {
+                        return TaskResponse::throw_failed_response(
+                            task_request,
+                            vec![TaskError::FailedToInterpretPayload.to_string()],
+                        )
+                    }
+                };
+            return SessionRevocationTask::run(redis, task_request, payload).await;
+        }
+
         return TaskResponse::throw_failed_response(
             task_request,
             vec![TaskError::FailedToFindAction.to_string()],
@@ -109,6 +124,48 @@ impl Task<RedisDatabase, TaskRequest, SessionCreateTask> for SessionCreateTask {
             request,
             TaskStatus::Completed,
             UserSession::new(&param.token, param.expires_in, &param.user_id),
+            Vec::default(),
+        );
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct SessionRevocationTask {
+    pub user_id: String,
+}
+
+// untested.
+#[async_trait]
+impl Task<RedisDatabase, TaskRequest, SessionRevocationTask> for SessionRevocationTask {
+    async fn run(
+        db: &RedisDatabase,
+        request: TaskRequest,
+        param: SessionRevocationTask,
+    ) -> TaskResponse {
+        let mut pool = db.pool.get().await.unwrap();
+        let pattern = format!("session:*:{}", param.user_id);
+        let mut scan_result: AsyncIter<String> = pool.scan_match(&pattern).await.unwrap();
+        // need to collect into a vec to go around rust borrowing rules
+        let mut sessions_to_invalidate: Vec<String> = Vec::new();
+        while let Some(key_result) = scan_result.next_item().await {
+            sessions_to_invalidate.push(key_result);
+        }
+        // return session not found if session is not found by user id.
+        if sessions_to_invalidate.len() == 0 {
+            return TaskResponse::throw_failed_response(
+                request,
+                vec![TaskError::SessionNotFound.to_string()],
+            );
+        }
+        mem::drop(scan_result);
+        // revocate session.
+        for key in sessions_to_invalidate.iter() {
+            let _: () = pool.del(key).await.unwrap();
+        }
+        return TaskResponse::compose_response(
+            request,
+            TaskStatus::Completed,
+            String::default(),
             Vec::default(),
         );
     }

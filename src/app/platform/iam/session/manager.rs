@@ -6,7 +6,7 @@ use crate::app::service::task::{
     message::{TaskRequest, TaskType},
 };
 
-use super::{model::UserSession, task::SessionCreateTask};
+use super::{model::UserSession, task::{SessionCreateTask, SessionRevocationTask}};
 
 pub struct SessionManager;
 
@@ -39,7 +39,6 @@ impl SessionManager {
     ///
     /// # Examples
     /// ```
-    /// // Assuming `permission` is a reference to a valid Permission
     /// Self::create_role_request(role)
     /// ```
     fn create_session_request(session: UserSession) -> TaskRequest {
@@ -51,6 +50,40 @@ impl SessionManager {
             },
             TaskType::Session,
             "session_create",
+        )
+    }
+
+    /// Revoke a user session.
+    ///
+    /// # Arguments
+    /// - `user_id`: who to create the sessionf or.
+    ///
+    /// # Examples
+    /// ```
+    /// SessionManager::revoke_session("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX").unwrap();
+    /// SessionManager::revoke_session("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX").unwrap();
+    /// ```
+    pub fn revoke_session(user_id: &str) -> TaskResult<UserSession> {
+        let task_request = Self::revoke_session_request(user_id);
+        TaskManager::process_task_with_result::<UserSession>(task_request)
+    }
+
+    /// Composes a user session revocation request.
+    ///
+    /// # Arguments
+    /// - `id`: The user id.
+    ///
+    /// # Examples
+    /// ```
+    /// Self::revoke_session_request(user_id)
+    /// ```
+    fn revoke_session_request(id: &str) -> TaskRequest {
+        TaskRequest::compose_request(
+            SessionRevocationTask {
+                user_id: String::from(id),
+            },
+            TaskType::Session,
+            "session_revocation",
         )
     }
 }
