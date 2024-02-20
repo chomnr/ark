@@ -79,6 +79,11 @@ RoleManager::update_role("dd2546c3-e34a-4fcb-9b12-1a96eb6873e3", "role_name", "A
 RoleManager::update_role("Admin", "role_name", "Administrator");
 ```
 
+### Linking a permission to a role.
+```rust
+RoleManager::link_permission_to_role("Admin", "ban.user").unwrap();
+```
+
 ### Creating a permission
 ```rust
 let role = Permission::builder()
@@ -92,11 +97,6 @@ PermissionManager::create_permission(role).unwrap();
 ```rust
 PermissionManager::update_permission("dd2546c3-e34a-4fcb-9b12-1a96eb6873e3", "permission_name", "admin ban user.");
 PermissionManager::update_permission("admin ban user.", "permission_key", "admin.ban.key");
-```
-
-### Link permission to role
-```rust
-   RoleManager::link_permission_to_role("Admin", "ban.user").unwrap();
 ```
 
 ### Tests
