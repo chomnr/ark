@@ -3,7 +3,6 @@ A full-stack monolithic application that heavily emphasizes its (IAM) solution. 
 <br><br>
 Technically, it is not a full stack just yet, I haven't wrote the frontend yet.
 <br /><br />
-![Status](https://img.shields.io/badge/status-not_production_ready-yellow)
 ![Version](https://img.shields.io/badge/ark-0.1.0-orange)
 ![GitHub commit activity (branch)](https://img.shields.io/github/commit-activity/w/notpointless/ark/main)
 
